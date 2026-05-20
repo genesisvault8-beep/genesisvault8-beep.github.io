@@ -375,12 +375,15 @@
     </div>
 
     <div class="form-card">
-      <div class="section-title" style="margin-bottom:12px;">// Lab HTML Content *</div>
+      <div class="section-title" style="margin-bottom:12px;">// Lab HTML URL *</div>
       <p style="font-size:0.75rem;color:var(--dim);margin-bottom:10px;line-height:1.6;">
-        Paste the full HTML of the vulnerable target app. This will be rendered inside a sandboxed iframe.
-        Include intentional vulnerabilities, flags, and any embedded JavaScript.
+        Paste the <strong style="color:var(--accent)">raw GitHub URL</strong> of your lab HTML file.
+        Upload the lab HTML to GitHub then click Raw and copy the URL.
       </p>
-      <textarea id="lab-html-content" placeholder="<!DOCTYPE html><html>..."></textarea>
+      <input type="text" id="lab-html-content" placeholder="https://raw.githubusercontent.com/you/repo/main/labs/lab.html">
+      <p style="font-size:0.65rem;color:var(--dim);margin-top:4px;line-height:1.6;">
+        ⚑ GitHub: open file → click Raw → copy URL from browser bar.
+      </p>
     </div>
 
     <div class="form-card" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
@@ -687,7 +690,7 @@ async function editLab(id) {
     document.getElementById('f-objective').value = lab.objective || '';
     document.getElementById('f-category').value  = lab.category || 'AUTH';
     document.getElementById('f-difficulty').value= lab.difficulty || 'easy';
-    document.getElementById('lab-html-content').value = lab.html_content || '';
+    document.getElementById('lab-html-content').value = lab.lab_url || '';
     document.getElementById('f-is-live').checked = lab.is_live ?? true;
     document.getElementById('live-toggle-label').textContent = (lab.is_live ?? true) ? 'LIVE' : 'OFFLINE';
 
@@ -764,12 +767,12 @@ async function publishLab() {
   const objective= document.getElementById('f-objective').value.trim();
   const category = document.getElementById('f-category').value;
   const difficulty=document.getElementById('f-difficulty').value;
-  const html     = document.getElementById('lab-html-content').value.trim();
+  const lab_url  = document.getElementById('lab-html-content').value.trim();
   const hints    = getHints();
   const isLive   = document.getElementById('f-is-live').checked;
 
-  if (!title || !desc || !objective || !html) {
-    toast('// Title, description, objective and HTML are required', 'var(--accent3)');
+  if (!title || !desc || !objective || !lab_url) {
+    toast('// Title, description, objective and URL are required', 'var(--accent3)');
     return;
   }
 
@@ -777,7 +780,7 @@ async function publishLab() {
   btn.textContent = editingLabId ? '[ UPDATING... ]' : '[ PUBLISHING... ]';
 
   const payload = { title, description: desc, objective, category, difficulty,
-                    tags: currentTags, hints, html_content: html, is_live: isLive };
+                    tags: currentTags, hints, lab_url: lab_url, is_live: isLive };
 
   const url    = editingLabId ? `${API}/admin/labs/${editingLabId}/update` : `${API}/admin/labs/create`;
 
