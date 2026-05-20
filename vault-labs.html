@@ -940,7 +940,7 @@ async function openLab(id) {
   document.getElementById('viewer-title').textContent = '// Loading...';
   document.getElementById('viewer-diff').textContent  = '';
   document.getElementById('viewer-loading').classList.add('show');
-  document.getElementById('lab-frame').srcdoc = '';
+  document.getElementById('lab-frame').src = 'about:blank';
   document.getElementById('solved-banner').classList.remove('show');
   document.getElementById('viewer-objective').textContent = '';
   window.scrollTo(0,0);
@@ -972,7 +972,7 @@ async function openLab(id) {
       hints.map(h => `<div class="hint-item">${escapeHtml(h)}</div>`).join('') ||
       '<div style="color:var(--dim);font-size:0.8rem;">// No hints available for this lab.</div>';
 
-    document.getElementById('lab-frame').srcdoc = lab.html_content || '<p style="padding:20px;font-family:monospace;">No content loaded.</p>';
+    document.getElementById('lab-frame').src = lab.lab_url || 'about:blank';
 
     // Reset panels
     ['hints','notes','ai'].forEach(p => {
@@ -1015,7 +1015,7 @@ function closeLab() {
   currentLab = null;
   document.getElementById('lab-viewer').style.display = 'none';
   document.getElementById('lobby').style.display      = 'block';
-  document.getElementById('lab-frame').srcdoc         = '';
+  document.getElementById('lab-frame').src            = 'about:blank';
   renderLabs(currentFilter);
   window.scrollTo(0,0);
 }
