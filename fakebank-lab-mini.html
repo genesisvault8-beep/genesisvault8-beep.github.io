@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NorthPoint Bank</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a1628;color:#e8eaf0;font-family:sans-serif;min-height:100vh;display:flex;flex-direction:column}header{background:#112240;border-bottom:1px solid #1e3a5f;padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}.logo{font-size:1.1rem;color:#c9a84c;font-weight:700;letter-spacing:1px}.logo small{display:block;font-size:0.55rem;color:#7a8ba0;letter-spacing:3px;font-weight:400}.nav{display:flex;gap:16px;font-size:0.75rem;color:#7a8ba0}main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px}.card{background:#0f1e35;border:1px solid #1e3a5f;border-top:3px solid #c9a84c;padding:32px 28px;width:100%;max-width:380px}.card h2{font-size:1.4rem;color:white;margin-bottom:4px}.card p{font-size:0.78rem;color:#7a8ba0;margin-bottom:24px;line-height:1.5}label{display:block;font-size:0.68rem;color:#7a8ba0;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}input[type=text],input[type=password]{width:100%;background:#0a1628;border:1px solid #1e3a5f;color:#e8eaf0;padding:11px 13px;font-size:0.9rem;outline:none;margin-bottom:16px;transition:border-color .2s}input:focus{border-color:#c9a84c}.btn{width:100%;background:#c9a84c;color:#0a1628;border:none;padding:13px;font-size:0.85rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-top:4px}.btn:hover{background:#e8c97a}.btn:disabled{opacity:.6;cursor:not-allowed}.err{background:rgba(192,57,43,.15);border:1px solid #c0392b;color:#e74c3c;padding:10px 13px;font-size:0.78rem;margin-bottom:14px;display:none}.err.show{display:block}#dash{display:none;animation:fi .4s ease}.acc{background:#0a1628;border:1px solid #1e3a5f;padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}.acc-type{font-size:0.65rem;color:#7a8ba0;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}.acc-num{font-size:0.8rem;font-family:monospace;letter-spacing:1px}.amt{font-size:1.3rem;color:#c9a84c;font-weight:700}.flag{background:rgba(39,174,96,.08);border:1px solid #27ae60;padding:18px;text-align:center;margin-top:4px}.flag-lbl{font-size:0.65rem;color:#27ae60;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}.flag-val{font-family:monospace;font-size:0.95rem;color:white;background:#0a1628;border:1px solid #1e3a5f;padding:11px 16px;display:inline-block;letter-spacing:1px;word-break:break-all}.flag-note{font-size:0.7rem;color:#7a8ba0;margin-top:10px;line-height:1.5}footer{background:#112240;border-top:1px solid #1e3a5f;padding:12px 20px;text-align:center;font-size:0.62rem;color:#7a8ba0;letter-spacing:1px}@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}</style></head><body>
+<header><div class="logo">NorthPoint Bank<small>Member FDIC · Est. 1987</small></div><div class="nav"><span>Personal</span><span>Business</span><span>Help</span></div></header>
+<main>
+<div id="login-wrap" class="card">
+  <h2>Account Login</h2>
+  <p>Access your NorthPoint account securely.</p>
+  <div class="err" id="err">✗ Invalid username or password.</div>
+  <label>Username</label>
+  <input type="text" id="u" placeholder="Enter username" autocomplete="off">
+  <label>Password</label>
+  <input type="password" id="p" placeholder="Enter password" autocomplete="off">
+  <button class="btn" id="btn" onclick="doLogin()">Sign In</button>
+</div>
+<div id="dash" class="card" style="max-width:420px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #1e3a5f">
+    <div><div style="font-size:1.2rem;color:white;font-weight:700">Welcome, <span id="uname" style="color:#c9a84c"></span></div><div style="font-size:0.7rem;color:#7a8ba0;margin-top:2px">Last login: Today</div></div>
+    <div style="font-size:0.65rem;color:#27ae60;letter-spacing:2px">● AUTHENTICATED</div>
+  </div>
+  <div class="acc"><div><div class="acc-type">Checking</div><div class="acc-num">•••• 4821</div></div><div style="text-align:right"><div class="amt">$12,450.00</div><div style="font-size:0.6rem;color:#7a8ba0;letter-spacing:1px">AVAILABLE</div></div></div>
+  <div class="acc"><div><div class="acc-type">Savings</div><div class="acc-num">•••• 9034</div></div><div style="text-align:right"><div class="amt">$38,900.00</div><div style="font-size:0.6rem;color:#7a8ba0;letter-spacing:1px">AVAILABLE</div></div></div>
+  <div class="flag"><div class="flag-lbl">// Flag Captured</div><div class="flag-val">FLAG{h4rdc0d3d_cr3ds_4r3_d4ng3r0us}</div><div class="flag-note">You found hardcoded credentials in the JS source.<br>In real apps this leads to full account takeover. Nice work.</div></div>
+</div>
+</main>
+<footer>NorthPoint Bank © 2024 · Member FDIC · Deposits insured up to $250,000</footer>
+<script>
+// NOTE: Remove before production!
+// admin username: northpoint_admin
+// admin password: vault@2024
+const USERS={"northpoint_admin":"vault@2024"};
+function doLogin(){
+  const u=document.getElementById('u').value.trim();
+  const p=document.getElementById('p').value.trim();
+  const btn=document.getElementById('btn');
+  const err=document.getElementById('err');
+  if(!u||!p){err.textContent='✗ Please enter both fields.';err.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Authenticating...';err.classList.remove('show');
+  setTimeout(()=>{
+    if(USERS[u]&&USERS[u]===p){
+      document.getElementById('login-wrap').style.display='none';
+      document.getElementById('dash').style.display='block';
+      document.getElementById('uname').textContent=u;
+      // Notify Genesis Vault parent that lab is solved
+      window.parent.postMessage({ type: 'LAB_SOLVED', flag: 'FLAG{h4rdc0d3d_cr3ds_4r3_d4ng3r0us}' }, '*');
+    }else{
+      btn.disabled=false;btn.textContent='Sign In';
+      err.textContent='✗ Invalid username or password.';err.classList.add('show');
+    }
+  },1500);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body></html>
