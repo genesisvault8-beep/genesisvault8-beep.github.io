@@ -667,12 +667,6 @@ async function openCourse(id) {
         '<div class="empty">// Server error. Try again.</div>';
       return;
     }
-    const data = await res.json();
-    if (data.status === 'error' && data.message === 'NOT_PURCHASED') {
-      document.getElementById('reader-content').innerHTML =
-        '<div class="empty">// Access denied. Unlock this course to read it.</div>';
-      return;
-    }
     const raw = data.content || data.course?.content || 'No content available.';
     document.getElementById('reader-content').innerHTML = marked.parse(raw);
   } catch(e) {
