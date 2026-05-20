@@ -585,9 +585,11 @@ function renderCourses() {
   let filtered = allCourses.filter(c => {
     const cat = (c.category || '').toLowerCase();
     const matchTab = currentTab === 'all'
-      || cat === currentTab.toLowerCase()
-      || (currentTab === 'web' && cat.includes('web'))
-      || (currentTab === 'bugbounty' && cat.includes('bug'));
+        || cat === currentTab.toLowerCase()
+        || (currentTab === 'web' && cat.includes('web'))
+        || (currentTab === 'bugbounty' && cat.includes('bug'))
+        || (currentTab === 'recon' && cat.includes('recon'))
+        || (currentTab === 'tools' && cat.includes('tool'));
     const matchSearch = !search
       || c.title.toLowerCase().includes(search)
       || (c.description || '').toLowerCase().includes(search);
