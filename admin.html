@@ -1222,8 +1222,6 @@
 
     // Flagged posts
     try {
-      const res = await apiFetch(`${API}/admin/flagged-posts`);
-      if (!res) return;
       const d = await res.json();
       if (!d.posts || !d.posts.length) {
         pc.innerHTML = '<div class="empty">// No flagged posts. ✓</div>';
@@ -1594,6 +1592,7 @@
     } catch(e) {
       updateAdminWakeupLog('Connection error, retrying...', '#ffaa00');
       await new Promise(r => setTimeout(r, 6000));
+      return; // ← add this
     }
 
     hideAdminWakeup();
