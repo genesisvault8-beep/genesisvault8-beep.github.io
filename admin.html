@@ -1465,7 +1465,7 @@
   async function viewCourse(id, title) {
     document.getElementById('modal-course-title').textContent = '// ' + title;
     document.getElementById('modal-course-body').innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
-    document.getElementById('modal-course-view').style.display = 'block';
+    document.getElementById('modal-course-view').classList.add('active');
     try {
       const res = await apiFetch(`${API}/courses/${id}`);
       if (!res) { document.getElementById('modal-course-body').innerHTML = '// Failed to load content.'; return; }
