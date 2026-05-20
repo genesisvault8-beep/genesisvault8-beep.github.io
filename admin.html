@@ -1454,7 +1454,7 @@
         <h4>${esc(course.title)}</h4>
         <p>${esc(course.description || '')}</p>
         <div class="actions" style="margin-top:10px;">
-          <button class="btn-approve" style="font-size:0.7rem;padding:5px 12px;" onclick="viewCourse(${course.id}, \`${esc(course.title)}\`)">[ VIEW ]</button>
+          <button class="btn-approve" style="font-size:0.7rem;padding:5px 12px;" onclick="viewCourse(${course.id}, ${JSON.stringify(esc(course.title))})">[ VIEW ]</button>
           <button class="btn-action"  style="font-size:0.7rem;padding:5px 12px;" onclick="editCourse(${course.id})">[ EDIT ]</button>
           <button class="btn-reject"  style="font-size:0.7rem;padding:5px 12px;" onclick="deleteCourse(${course.id}, this)">[ DELETE ]</button>
         </div>
