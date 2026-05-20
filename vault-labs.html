@@ -398,6 +398,7 @@
     border-color:var(--accent); cursor:default;
   }
   .complete-btn:disabled { opacity:0.6; cursor:not-allowed; }
+  .complete-btn.locked { opacity:0.4; cursor:not-allowed; border-color:var(--dim); color:var(--dim); }
 
   /* Solved overlay */
   .solved-banner {
@@ -1001,9 +1002,10 @@ async function openLab(id) {
       btn.classList.add('done');
       btn.disabled = true; // FIX #8: Prevent re-submission on already-solved labs
     } else {
-      btn.textContent = '[ MARK AS COMPLETE ]';
+      btn.textContent = '[ SOLVE LAB TO COMPLETE ]';
       btn.classList.remove('done');
-      btn.disabled = false;
+      btn.classList.add('locked');
+      btn.disabled = true;
     }
   } catch(e) {
     document.getElementById('viewer-loading').classList.remove('show');
