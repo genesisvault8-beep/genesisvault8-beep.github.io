@@ -791,7 +791,7 @@ async function loadCourses() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
-    if (data.status === 'error') {
+    if (data.status === 'error' && data.message === 'UNAUTHORIZED') {
       window.location.href = 'login.html';
       return;
     }
