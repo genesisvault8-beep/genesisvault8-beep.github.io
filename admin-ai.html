@@ -715,6 +715,13 @@ async function loadFailures() {
           <span class="fail-provider">${esc(f.provider)} KEY${f.key_index || 1}</span>
           <span>${esc(time)}</span>
         </div>
+        <span class="fail-type">${esc(f.reason || 'UNKNOWN')}</span>
+        ${f.status_code ? `<span class="fail-code">HTTP ${f.status_code}</span>` : ''}
+      `;
+        <div class="fail-meta">
+          <span class="fail-provider">${esc(f.provider)} KEY${f.key_index || 1}</span>
+          <span>${esc(time)}</span>
+        </div>
         <span class="fail-type ${esc(f.error_type)}">${esc(f.error_type)}</span>
         ${f.error_code ? `<span class="fail-code">HTTP ${f.error_code}</span>` : ''}
       `;
