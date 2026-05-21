@@ -791,6 +791,7 @@ async function loadCourses() {
       return;
     }
     allCourses = data.courses || [];
+    allCourses = [...new Map(allCourses.map(c => [c.id, c])).values()];
     renderCourses();
   } catch(e) {
     document.getElementById('courses-grid').innerHTML =
