@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>DevPortal API</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0d1117;color:#c9d1d9;font-family:monospace;min-height:100vh;display:flex;flex-direction:column}header{background:#161b22;border-bottom:1px solid #30363d;padding:12px 20px;display:flex;align-items:center;justify-content:space-between}.logo{color:#58a6ff;font-size:1rem;font-weight:700;letter-spacing:1px}.nav{display:flex;gap:16px;font-size:0.75rem;color:#8b949e}main{flex:1;padding:30px 20px;max-width:700px;margin:0 auto;width:100%}.hero{text-align:center;padding:40px 0 30px;border-bottom:1px solid #21262d;margin-bottom:30px}.hero h1{font-size:1.8rem;color:#f0f6fc;margin-bottom:8px}.hero p{color:#8b949e;font-size:0.85rem;line-height:1.6}.endpoints{margin-bottom:30px}.ep-title{font-size:0.7rem;color:#58a6ff;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #21262d}.ep-card{background:#161b22;border:1px solid #30363d;padding:16px;margin-bottom:10px;border-radius:4px}.ep-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}.method{font-size:0.65rem;padding:2px 8px;border-radius:3px;font-weight:700}.method.get{background:rgba(35,134,54,0.2);color:#3fb950;border:1px solid #3fb950}.method.post{background:rgba(88,166,255,0.2);color:#58a6ff;border:1px solid #58a6ff}.ep-path{color:#f0f6fc;font-size:0.85rem}.ep-desc{color:#8b949e;font-size:0.75rem;margin-bottom:10px}.ep-try{display:flex;gap:8px;align-items:center}.ep-input{flex:1;background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:7px 10px;font-family:monospace;font-size:0.78rem;outline:none}.ep-input:focus{border-color:#58a6ff}.ep-btn{background:#238636;color:white;border:none;padding:7px 14px;font-family:monospace;font-size:0.75rem;cursor:pointer;border-radius:3px;transition:background .2s}.ep-btn:hover{background:#2ea043}.response-box{background:#0d1117;border:1px solid #30363d;padding:12px;margin-top:10px;font-size:0.75rem;line-height:1.7;display:none;border-radius:3px}.response-box.show{display:block}.response-box.success{border-color:#3fb950}.response-box.error{border-color:#f85149;color:#f85149}.flag-reveal{background:rgba(35,134,54,0.1);border:1px solid #3fb950;padding:16px;text-align:center;margin-top:20px;display:none;border-radius:4px}.flag-reveal.show{display:block}.flag-label{font-size:0.65rem;color:#3fb950;letter-spacing:3px;margin-bottom:8px}.flag-val{font-size:0.95rem;color:#f0f6fc;background:#0d1117;border:1px solid #30363d;padding:10px 16px;display:inline-block;letter-spacing:1px;word-break:break-all}.flag-note{font-size:0.7rem;color:#8b949e;margin-top:10px;line-height:1.5}footer{background:#161b22;border-top:1px solid #30363d;padding:12px 20px;text-align:center;font-size:0.62rem;color:#8b949e}</style></head><body>
+<header><div class="logo">⬡ DevPortal</div><div class="nav"><span>Docs</span><span>API</span><span>Support</span></div></header>
+<main>
+<div class="hero"><h1>API Reference</h1><p>Welcome to the DevPortal API. Use the endpoints below to interact with our platform.<br>Authentication required for admin endpoints.</p></div>
+<div class="endpoints">
+<div class="ep-title">// Available Endpoints</div>
+<div class="ep-card">
+  <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/status</span></div>
+  <div class="ep-desc">Check API status. No authentication required.</div>
+  <div class="ep-try"><button class="ep-btn" onclick="callStatus()">Try it</button></div>
+  <div class="response-box" id="res-status"></div>
+</div>
+<div class="ep-card">
+  <div class="ep-top"><span class="method post">POST</span><span class="ep-path">/api/admin/data</span></div>
+  <div class="ep-desc">Retrieve admin data. Requires API key in X-API-Key header.</div>
+  <div class="ep-try">
+    <input type="text" class="ep-input" id="api-key-input" placeholder="Enter X-API-Key value...">
+    <button class="ep-btn" onclick="callAdmin()">Send</button>
+  </div>
+  <div class="response-box" id="res-admin"></div>
+</div>
+<div class="ep-card">
+  <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/users</span></div>
+  <div class="ep-desc">List public users. No authentication required.</div>
+  <div class="ep-try"><button class="ep-btn" onclick="callUsers()">Try it</button></div>
+  <div class="response-box" id="res-users"></div>
+</div>
+</div>
+<div class="flag-reveal" id="flag-box">
+  <div class="flag-label">// Flag Captured</div>
+  <div class="flag-val">FLAG{3xp0s3d_k3ys_1n_s0urc3}</div>
+  <div class="flag-note">You found an API key hidden in the HTML source comments.<br>In real apps this gives attackers full admin access. Great find.</div>
+</div>
+</main>
+<footer>DevPortal API v2.1.0 · Built for developers · © 2024</footer>
+<!-- TODO: Remove before production! Dev API key: dp_admin_x9k2m7p4q1r8s3t6 -->
+<script>
+const ADMIN_KEY = 'dp_admin_x9k2m7p4q1r8s3t6';
+function callStatus(){const b=document.getElementById('res-status');b.className='response-box show success';b.innerHTML='<span style="color:#3fb950">200 OK</span><br>{"status":"operational","version":"2.1.0","uptime":"14d 6h 32m"}';}
+function callUsers(){const b=document.getElementById('res-users');b.className='response-box show success';b.innerHTML='<span style="color:#3fb950">200 OK</span><br>{"users":[{"id":1,"username":"alice"},{"id":2,"username":"bob"},{"id":3,"username":"charlie"}]}';}
+function callAdmin(){
+  const key=document.getElementById('api-key-input').value.trim();
+  const b=document.getElementById('res-admin');
+  if(!key){b.className='response-box show error';b.textContent='400 Bad Request — X-API-Key header missing';return;}
+  if(key===ADMIN_KEY){
+    b.className='response-box show success';
+    b.innerHTML='<span style="color:#3fb950">200 OK</span><br>{"admin":true,"data":{"total_users":1482,"revenue":"$48,200","secret":"vault_prod_db_pass=Tr0ub4dor&3"}}';
+    document.getElementById('flag-box').classList.add('show');
+    window.parent.postMessage({type:'LAB_SOLVED',flag:'FLAG{3xp0s3d_k3ys_1n_s0urc3}'},'*');
+  } else {
+    b.className='response-box show error';
+    b.textContent='401 Unauthorized — Invalid API key';
+  }
+}
+</script>
+</body></html>
