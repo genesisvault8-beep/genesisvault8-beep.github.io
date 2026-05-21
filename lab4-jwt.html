@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>VoteChain</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0f0f23;color:#cccccc;font-family:monospace;min-height:100vh;display:flex;flex-direction:column}header{background:#1a1a3e;border-bottom:2px solid #6c63ff;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between}.logo{color:#6c63ff;font-size:1rem;font-weight:700;letter-spacing:2px}.badge{background:rgba(108,99,255,0.2);border:1px solid #6c63ff;color:#6c63ff;padding:3px 10px;font-size:0.65rem;letter-spacing:2px}main{flex:1;padding:20px 16px;max-width:640px;margin:0 auto;width:100%}.section{background:#1a1a3e;border:1px solid #2d2d6b;padding:16px;margin-bottom:14px;border-radius:4px}.section-title{font-size:0.65rem;color:#6c63ff;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #2d2d6b}.token-display{background:#0f0f23;border:1px solid #2d2d6b;padding:10px;font-size:0.68rem;word-break:break-all;line-height:1.8;margin-bottom:10px}.token-part{display:inline}.token-part.header{color:#ff6b6b}.token-part.payload{color:#ffd93d}.token-part.sig{color:#6bcb77}.dot{color:#888}.label{font-size:0.6rem;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}.decoded-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.decode-section{background:#0f0f23;border:1px solid #2d2d6b;padding:10px}.decode-title{font-size:0.6rem;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}.decode-content{font-size:0.72rem;line-height:1.8;word-break:break-all}.key{color:#6c63ff}.val{color:#ffd93d}.val.editable{color:#ff6b6b;text-decoration:underline;cursor:pointer}.field-group{margin-bottom:10px}.field-group label{display:block;font-size:0.65rem;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}.field-group input,select{width:100%;background:#0f0f23;border:1px solid #2d2d6b;color:#ccc;padding:8px 10px;font-family:monospace;font-size:0.78rem;outline:none;border-radius:3px}.field-group input:focus,.field-group select:focus{border-color:#6c63ff}.btn{width:100%;background:#6c63ff;color:white;border:none;padding:11px;font-family:monospace;font-size:0.82rem;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;border-radius:3px;margin-bottom:8px}.btn:hover{background:#5a52d5}.btn.secondary{background:transparent;border:1px solid #6c63ff;color:#6c63ff}.result-box{background:#0f0f23;border:1px solid #2d2d6b;padding:12px;font-size:0.75rem;line-height:1.8;margin-top:10px;display:none;border-radius:3px}.result-box.show{display:block}.result-box.success{border-color:#6bcb77;color:#6bcb77}.result-box.error{border-color:#ff6b6b;color:#ff6b6b}.flag-box{background:rgba(107,203,119,0.08);border:1px solid #6bcb77;padding:16px;text-align:center;margin-bottom:14px;display:none;border-radius:4px}.flag-box.show{display:block}.flag-label{font-size:0.6rem;color:#6bcb77;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}.flag-val{font-size:0.88rem;color:white;background:#0f0f23;border:1px solid #2d2d6b;padding:10px 14px;display:inline-block;word-break:break-all}.steps{counter-reset:step}.step{display:flex;gap:12px;margin-bottom:10px;font-size:0.78rem;line-height:1.6;color:#999}.step::before{counter-increment:step;content:counter(step);background:#6c63ff;color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;flex-shrink:0;margin-top:2px}footer{background:#1a1a3e;border-top:1px solid #2d2d6b;padding:12px 20px;text-align:center;font-size:0.62rem;color:#888}</style></head><body>
+<header><div class="logo">⬡ VOTECHAIN</div><div class="badge">JWT AUTH</div></header>
+<main>
+<div class="section">
+  <div class="section-title">// Your JWT Token</div>
+  <div class="label">Encoded Token (from your session cookie)</div>
+  <div class="token-display"><span class="token-part header">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="dot">.</span><span class="token-part payload">eyJ1c2VybmFtZSI6InZvdGVyXzA0MiIsInJvbGUiOiJ1c2VyIiwiZXhwIjoxNzE2MjM5MDIyfQ</span><span class="dot">.</span><span class="token-part sig">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span></div>
+  <div style="display:flex;gap:6px;font-size:0.65rem;margin-top:4px;">
+    <span style="color:#ff6b6b">■ Header</span>
+    <span style="color:#ffd93d">■ Payload</span>
+    <span style="color:#6bcb77">■ Signature</span>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">// Decoded Payload</div>
+  <div class="decoded-box">
+    <div class="decode-section">
+      <div class="decode-title">Header</div>
+      <div class="decode-content"><span class="key">"alg"</span>: <span class="val" id="alg-display">"HS256"</span><br><span class="key">"typ"</span>: <span class="val">"JWT"</span></div>
+    </div>
+    <div class="decode-section">
+      <div class="decode-title">Payload</div>
+      <div class="decode-content"><span class="key">"username"</span>: <span class="val">"voter_042"</span><br><span class="key">"role"</span>: <span class="val editable" id="role-display" onclick="document.getElementById('role-field').value='admin'">"user"</span><br><span class="key">"exp"</span>: <span class="val">1716239022</span></div>
+    </div>
+  </div>
+  <p style="font-size:0.72rem;color:#888;line-height:1.6;">The signature uses HS256 by default. But what if the server also accepts <strong style="color:#ff6b6b">"none"</strong> as the algorithm, skipping verification entirely?</p>
+</div>
+<div class="section">
+  <div class="section-title">// Forge New Token</div>
+  <div class="steps">
+    <div class="step">Change the algorithm to "none" — this tells the server to skip signature verification</div>
+    <div class="step">Change your role from "user" to "admin"</div>
+    <div class="step">Send the forged token — the server accepts it without checking the signature</div>
+  </div>
+  <div class="field-group"><label>Algorithm</label>
+    <select id="alg-field"><option value="HS256">HS256 (default)</option><option value="none">none (bypass)</option></select>
+  </div>
+  <div class="field-group"><label>Role</label>
+    <input type="text" id="role-field" value="user" placeholder="user / admin">
+  </div>
+  <div class="field-group"><label>Username</label>
+    <input type="text" id="user-field" value="voter_042">
+  </div>
+  <button class="btn" onclick="forgeToken()">[ FORGE & SEND TOKEN ]</button>
+  <div class="result-box" id="result-box"></div>
+</div>
+<div class="flag-box" id="flag-box">
+  <div class="flag-label">// Flag Captured</div>
+  <div class="flag-val">FLAG{jwt_n0n3_4lg0_byp4ss}</div>
+  <div style="font-size:0.7rem;color:#888;margin-top:10px">You exploited JWT algorithm confusion to forge an admin token.<br>Always validate algorithm type server-side and reject "none".</div>
+</div>
+</main>
+<footer>VoteChain Auth System · Powered by JWT · © 2024</footer>
+<script>
+function b64(str){return btoa(unescape(encodeURIComponent(str))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');}
+function forgeToken(){
+  const alg=document.getElementById('alg-field').value;
+  const role=document.getElementById('role-field').value.trim().toLowerCase();
+  const user=document.getElementById('user-field').value.trim();
+  const header=b64(JSON.stringify({alg:alg,typ:'JWT'}));
+  const payload=b64(JSON.stringify({username:user,role:role,exp:1716239022}));
+  const sig=alg==='none'?'':b64('fakesig_'+Math.random());
+  const token=`${header}.${payload}.${sig}`;
+  document.getElementById('alg-display').textContent=`"${alg}"`;
+  const box=document.getElementById('result-box');
+  box.classList.add('show');
+  if(alg==='none'&&role==='admin'){
+    box.className='result-box show success';
+    box.innerHTML=`200 OK — Token accepted!\n{"authenticated":true,"role":"admin","message":"Welcome, Administrator. Signature verification skipped."}\n\nForged token:\n${token}`;
+    document.getElementById('flag-box').classList.add('show');
+    window.parent.postMessage({type:'LAB_SOLVED',flag:'FLAG{jwt_n0n3_4lg0_byp4ss}'},'*');
+  } else if(role==='admin'&&alg!=='none'){
+    box.className='result-box show error';
+    box.textContent='401 Unauthorized — Invalid signature. Hint: try changing the algorithm.';
+  } else {
+    box.className='result-box show error';
+    box.textContent=`200 OK — Authenticated as "${role}". Not an admin, access limited.`;
+  }
+}
+</script>
+</body></html>
