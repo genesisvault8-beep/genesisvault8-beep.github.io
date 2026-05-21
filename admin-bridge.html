@@ -352,7 +352,7 @@ body::before {
 </div>
 
 <script>
-const BRIDGE_URL = "https://genesis-vault-backend.onrender.com";
+const BRIDGE_URL = "https://genesis-ai-backend.onrender.com";
 const AI_URL = "https://genesis-ai-backend.onrender.com";
 let adminToken = localStorage.getItem("gv_admin_token") || "";
 let refreshTimer = null;
@@ -419,11 +419,11 @@ function showTab(name) {
 // ── NODES ──
 async function loadNodes() {
   try {
-    const res = await fetch(`${BRIDGE_URL}/admin/nodes`, {
+    const res = await fetch(`${BRIDGE_URL}/admin/bridges`, {
       headers: { "Authorization": `Bearer ${adminToken}` }
     });
     const data = await res.json();
-    const nodes = data.nodes || [];
+    const nodes = data.bridges || [];
     const online = nodes.filter(n => n.online).length;
     const totalJobs = nodes.reduce((a, n) => a + (n.jobs_completed || 0), 0);
     const totalVc = nodes.reduce((a, n) => a + (n.vc_earned || 0), 0);
@@ -441,13 +441,13 @@ async function loadNodes() {
       const specs = (n.specializations || []).join(", ") || "None yet";
       const ping = n.last_ping ? new Date(n.last_ping).toLocaleTimeString() : "N/A";
       return `
-        <div class="node-card ${n.online ? 'online' : 'offline'}">
+        <div class="node-card ${n.status === 'online' ? 'online' : 'offline'}">
           <div class="node-top">
             <div>
-              <div class="node-name">${esc(n.username || n.id)}</div>
+              <div class="node-name">${esc(n.username || n.bridge_id)}</div>
               <div class="node-status">
-                <div class="status-dot ${n.online ? 'online' : 'offline'}"></div>
-                <span>${n.online ? 'ONLINE' : 'OFFLINE'}</span>
+                <div class="status-dot ${n.status === 'online' ? 'online' : 'offline'}"></div>
+                <span>${(n.status || 'offline').toUpperCase()}</span>
               </div>
             </div>
             <span class="node-type ${n.node_type || 'GHOST'}">${n.node_type || 'GHOST'}</span>
@@ -462,8 +462,8 @@ async function loadNodes() {
           </div>
           ${tools ? `<div class="node-tools">${tools}</div>` : ''}
           <div class="node-actions">
-            <button class="node-btn primary" onclick="dispatchTo('${n.id}', '${esc(n.username || n.id)}')">DISPATCH JOB</button>
-            <button class="node-btn danger" onclick="kickNode('${n.id}')">KICK</button>
+            <button class="node-btn primary" onclick="dispatchTo('${n.bridge_id}', '${esc(n.username || n.bridge_id)}')">DISPATCH JOB</button>
+            <button class="node-btn danger" onclick="kickNode('${n.bridge_id}')">KICK</button>
           </div>
         </div>`;
     }).join("");
@@ -543,7 +543,7 @@ async function deleteTool(id) {
 // ── JOBS ──
 async function loadJobs() {
   try {
-    const res = await fetch(`${BRIDGE_URL}/admin/jobs`, {
+    const res = await fetch(`${BRIDGE_URL}/admin/bridge-jobs`, {
       headers: { "Authorization": `Bearer ${adminToken}` }
     });
     const data = await res.json();
@@ -568,11 +568,11 @@ async function loadJobs() {
 // ── DISPATCH ──
 async function loadDispatchNodes() {
   try {
-    const res = await fetch(`${BRIDGE_URL}/admin/nodes`, {
+    const res = await fetch(`${BRIDGE_URL}/admin/bridges`, {
       headers: { "Authorization": `Bearer ${adminToken}` }
     });
     const data = await res.json();
-    const nodes = (data.nodes || []).filter(n => n.online);
+    const nodes = (data.bridges || []).filter(n => n.status === "online");
     const sel = document.getElementById("dispatch-node");
     sel.innerHTML = '<option value="">Select online node...</option>' +
       nodes.map(n => `<option value="${n.id}">${esc(n.username || n.id)} [${n.node_type}]</option>`).join("");
@@ -581,7 +581,7 @@ async function loadDispatchNodes() {
 
 async function loadRecentDispatches() {
   try {
-    const res = await fetch(`${BRIDGE_URL}/admin/jobs?limit=10`, {
+    const res = await fetch(`${BRIDGE_URL}/admin/bridge-jobs`, {
       headers: { "Authorization": `Bearer ${adminToken}` }
     });
     const data = await res.json();
@@ -610,10 +610,10 @@ async function dispatchJob() {
 
   const command = cmd || `${tool} ${target}`;
   try {
-    const res = await fetch(`${BRIDGE_URL}/admin/dispatch`, {
+    const res = await fetch(`${BRIDGE_URL}/admin/bridge-dispatch`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminToken}` },
-      body: JSON.stringify({ bridge_id, tool, command, target, vc_reward })
+      body: JSON.stringify({ tool, command, target, category: "BASIC", vc_reward })
     });
     const data = await res.json();
     if (data.job_id) {
@@ -635,7 +635,7 @@ function dispatchTo(nodeId, name) {
 
 async function kickNode(id) {
   if (!confirm("Kick this node?")) return;
-  await fetch(`${BRIDGE_URL}/admin/nodes/${id}/kick`, {
+  await fetch(`${BRIDGE_URL}/admin/bridges/${id}/kick`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${adminToken}` }
   });
