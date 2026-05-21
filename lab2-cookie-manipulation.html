@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>ShopZone</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f5f5f5;color:#333;font-family:sans-serif;min-height:100vh;display:flex;flex-direction:column}header{background:#e63946;color:white;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between}.logo{font-size:1.2rem;font-weight:700;letter-spacing:1px}.nav{display:flex;gap:16px;font-size:0.8rem}.nav span{cursor:pointer;opacity:0.9}.banner{background:#1d3557;color:white;text-align:center;padding:8px;font-size:0.72rem;letter-spacing:1px}main{flex:1;padding:24px 16px;max-width:600px;margin:0 auto;width:100%}.info-card{background:white;border:1px solid #ddd;border-radius:6px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}.info-card h3{font-size:1rem;margin-bottom:4px;color:#1d3557}.info-card p{font-size:0.8rem;color:#666;line-height:1.5;margin-bottom:12px}.role-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}.role-badge.user{background:#e9ecef;color:#666}.role-badge.admin{background:#d4edda;color:#155724}.cookie-display{background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:12px;font-family:monospace;font-size:0.78rem;margin-bottom:12px;word-break:break-all}.section-title{font-size:0.65rem;color:#e63946;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #dee2e6}.btn{padding:9px 18px;border:none;border-radius:4px;font-size:0.8rem;cursor:pointer;font-weight:600;transition:all .2s}.btn-primary{background:#e63946;color:white}.btn-primary:hover{background:#c1121f}.btn-outline{background:none;border:1px solid #1d3557;color:#1d3557;margin-left:8px}.btn-outline:hover{background:#1d3557;color:white}.admin-panel{background:#d4edda;border:1px solid #28a745;border-radius:6px;padding:20px;margin-bottom:16px;display:none}.admin-panel.show{display:block}.admin-panel h3{color:#155724;margin-bottom:8px}.admin-panel p{font-size:0.8rem;color:#155724;margin-bottom:12px}.flag-box{background:#fff3cd;border:1px solid #ffc107;border-radius:4px;padding:14px;text-align:center;margin-top:10px}.flag-label{font-size:0.65rem;color:#856404;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.flag-val{font-family:monospace;font-size:0.9rem;color:#1d3557;background:white;border:1px solid #dee2e6;padding:9px 14px;display:inline-block;word-break:break-all}.hint{background:#fff3cd;border-left:3px solid #ffc107;padding:10px 14px;font-size:0.78rem;color:#856404;margin-bottom:16px;line-height:1.5}footer{background:#1d3557;color:white;padding:14px 20px;text-align:center;font-size:0.62rem;opacity:0.9}</style></head><body>
+<header><div class="logo">🛒 ShopZone</div><div class="nav"><span>Home</span><span>Products</span><span>Orders</span></div></header>
+<div class="banner">⚡ SALE: 50% off all items this weekend only!</div>
+<main>
+<div class="info-card">
+  <div class="section-title">// Your Session</div>
+  <h3>Welcome back, <span id="username-display">guest_user</span></h3>
+  <p>Your current role determines what you can access on this platform.</p>
+  <p>Current role: <span class="role-badge user" id="role-badge">USER</span></p>
+  <div style="margin-top:12px;">
+    <div style="font-size:0.7rem;color:#666;margin-bottom:6px;">Your session cookie:</div>
+    <div class="cookie-display" id="cookie-display">role=user; username=guest_user; session_id=abc123xyz</div>
+  </div>
+  <div style="margin-top:12px;">
+    <button class="btn btn-primary" onclick="checkAccess()">Access Admin Panel</button>
+    <button class="btn btn-outline" onclick="refreshRole()">Refresh Role</button>
+  </div>
+</div>
+<div class="hint">💡 <strong>Hint:</strong> Web applications often store user roles in cookies. If the server doesn't validate them properly, you might be able to modify them directly in your browser.</div>
+<div class="admin-panel" id="admin-panel">
+  <h3>🔐 Admin Panel — Access Granted</h3>
+  <p>Welcome, Administrator. You have full access to the system.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div style="background:white;padding:10px;border-radius:4px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#155724;">1,482</div><div style="font-size:0.6rem;color:#666;">Total Users</div></div>
+    <div style="background:white;padding:10px;border-radius:4px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:#155724;">$48K</div><div style="font-size:0.6rem;color:#666;">Revenue</div></div>
+  </div>
+  <div class="flag-box">
+    <div class="flag-label">// Flag Captured</div>
+    <div class="flag-val">FLAG{c00k13_m4n1pul4t10n_pwn3d}</div>
+    <div style="font-size:0.7rem;color:#856404;margin-top:8px;">You manipulated the role cookie to gain admin access.<br>Always validate roles server-side, never trust the client.</div>
+  </div>
+</div>
+<div class="info-card">
+  <div class="section-title">// Cookie Editor (Dev Tool)</div>
+  <p style="font-size:0.78rem;color:#666;margin-bottom:10px;">Modify your session cookie values below:</p>
+  <div style="margin-bottom:10px;"><label style="font-size:0.7rem;color:#666;display:block;margin-bottom:4px;">role</label><input type="text" id="role-input" value="user" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:0.82rem;"></div>
+  <div style="margin-bottom:12px;"><label style="font-size:0.7rem;color:#666;display:block;margin-bottom:4px;">username</label><input type="text" id="user-input" value="guest_user" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:0.82rem;"></div>
+  <button class="btn btn-primary" onclick="applyCookie()">Apply Cookie Changes</button>
+</div>
+</main>
+<footer>ShopZone © 2024 · Secure Shopping · All rights reserved</footer>
+<script>
+let currentRole='user';
+function applyCookie(){
+  const role=document.getElementById('role-input').value.trim().toLowerCase();
+  const user=document.getElementById('user-input').value.trim()||'guest_user';
+  currentRole=role;
+  document.getElementById('username-display').textContent=user;
+  document.getElementById('cookie-display').textContent=`role=${role}; username=${user}; session_id=abc123xyz`;
+  const badge=document.getElementById('role-badge');
+  if(role==='admin'){badge.className='role-badge admin';badge.textContent='ADMIN';}
+  else{badge.className='role-badge user';badge.textContent='USER';}
+}
+function checkAccess(){
+  if(currentRole==='admin'){
+    document.getElementById('admin-panel').classList.add('show');
+    window.parent.postMessage({type:'LAB_SOLVED',flag:'FLAG{c00k13_m4n1pul4t10n_pwn3d}'},'*');
+  } else {
+    alert('Access Denied. You do not have admin privileges.');
+  }
+}
+function refreshRole(){
+  document.getElementById('role-input').value=currentRole;
+}
+</script>
+</body></html>
