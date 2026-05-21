@@ -1013,7 +1013,10 @@
 </div>
 
 <script>
-const API  = 'https://genesis-vault-backend.onrender.com/api';
+const API = 'https://genesis-ai-backend.onrender.com/api';
+
+// Keep-alive ping
+setInterval(() => fetch(`${API}/health`).catch(()=>{}), 14 * 60 * 1000);
 let token  = localStorage.getItem('gv_token');
 if (!token) location.href = 'login.html';
 
