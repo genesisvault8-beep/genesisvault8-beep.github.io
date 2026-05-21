@@ -211,12 +211,16 @@ setInterval(() => {
 
 function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function scrollBottom() {
+  requestAnimationFrame(() => { out.scrollTop = out.scrollHeight; });
+}
+
 function print(text, cls = 'logc') {
   const d = document.createElement('div');
   d.className = 'line ' + cls;
   d.textContent = text;
   out.appendChild(d);
-  out.scrollTop = out.scrollHeight;
+  scrollBottom();
   return d;
 }
 
@@ -225,7 +229,7 @@ function printHTML(html, cls = 'logc') {
   d.className = 'line ' + cls;
   d.innerHTML = html;
   out.appendChild(d);
-  out.scrollTop = out.scrollHeight;
+  scrollBottom();
   return d;
 }
 
@@ -240,7 +244,7 @@ function typewrite(el, text, speed = 8) {
     function tick() {
       if (i < text.length) {
         el.innerHTML = pre + esc(text.slice(0, ++i));
-        out.scrollTop = out.scrollHeight;
+        scrollBottom();
         setTimeout(tick, speed);
       } else {
         el.classList.remove('typing');
@@ -408,7 +412,7 @@ async function send(msg) {
       el.className = 'line ai';
       el.innerHTML = `<span style="color:var(--green);opacity:.7">[VAULT-AI]:</span> `;
       out.appendChild(el);
-      out.scrollTop = out.scrollHeight;
+      scrollBottom();
       await typewrite(el, data.response, 7);
     } else {
       print('[ERR]: UNEXPECTED RESPONSE.', 'err');
