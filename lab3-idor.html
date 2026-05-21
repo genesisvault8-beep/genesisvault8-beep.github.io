@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>UserVault — Account Portal</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;color:#eee;font-family:sans-serif;min-height:100vh;display:flex;flex-direction:column}header{background:#16213e;border-bottom:1px solid #0f3460;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between}.logo{color:#e94560;font-size:1rem;font-weight:700;letter-spacing:2px}.nav{font-size:0.75rem;color:#888}main{flex:1;padding:24px 16px;max-width:600px;margin:0 auto;width:100%}.url-bar{background:#0f1923;border:1px solid #0f3460;border-radius:4px;padding:10px 14px;font-family:monospace;font-size:0.78rem;color:#4ecca3;margin-bottom:20px;display:flex;align-items:center;gap:8px}.url-label{color:#888;font-size:0.65rem;white-space:nowrap}.url-val{flex:1}.profile-card{background:#16213e;border:1px solid #0f3460;border-radius:6px;padding:20px;margin-bottom:16px}.profile-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #0f3460}.avatar{width:48px;height:48px;border-radius:50%;background:#0f3460;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:2px solid #e94560}.profile-name{font-size:1.1rem;font-weight:700;color:white}.profile-id{font-size:0.7rem;color:#888;letter-spacing:1px}.field-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0f3460;font-size:0.82rem}.field-row:last-child{border:none}.field-label{color:#888;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px}.field-value{color:#eee;font-family:monospace}.field-value.sensitive{color:#e94560;filter:blur(4px);transition:filter .3s;cursor:pointer}.field-value.sensitive:hover{filter:blur(0)}.section-title{font-size:0.65rem;color:#e94560;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px}.nav-card{background:#16213e;border:1px solid #0f3460;border-radius:6px;padding:16px;margin-bottom:16px}.id-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.id-btn{background:#0f3460;color:#4ecca3;border:1px solid #4ecca3;padding:6px 14px;font-family:monospace;font-size:0.78rem;cursor:pointer;border-radius:3px;transition:all .2s}.id-btn:hover{background:#4ecca3;color:#0f1923}.id-btn.current{background:#e94560;border-color:#e94560;color:white}.id-input{flex:1;background:#0f1923;border:1px solid #0f3460;color:#eee;padding:7px 10px;font-family:monospace;font-size:0.78rem;border-radius:3px;outline:none}.id-input:focus{border-color:#4ecca3}.flag-box{background:rgba(78,204,163,0.08);border:1px solid #4ecca3;border-radius:6px;padding:18px;text-align:center;margin-bottom:16px;display:none}.flag-box.show{display:block}.flag-label{font-size:0.65rem;color:#4ecca3;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}.flag-val{font-family:monospace;font-size:0.9rem;color:white;background:#0f1923;border:1px solid #0f3460;padding:10px 16px;display:inline-block;word-break:break-all}.hint{background:rgba(233,69,96,0.1);border-left:3px solid #e94560;padding:10px 14px;font-size:0.76rem;color:#e94560;margin-bottom:16px;line-height:1.6}footer{background:#16213e;border-top:1px solid #0f3460;padding:12px 20px;text-align:center;font-size:0.62rem;color:#888}</style></head><body>
+<header><div class="logo">USERVAULT</div><div class="nav">Logged in as: john_doe (ID: 42)</div></header>
+<main>
+<div class="section-title">// Account Portal</div>
+<div class="url-bar"><span class="url-label">URL:</span><span class="url-val" id="url-display">https://uservault.app/api/users?id=42</span></div>
+<div class="hint">🔍 You are user ID 42. The API endpoint uses your ID to fetch your profile. What happens if you change the ID to something else?</div>
+<div class="nav-card">
+  <div class="section-title">// Change User ID</div>
+  <div class="id-nav">
+    <button class="id-btn" onclick="loadUser(1)">ID: 1</button>
+    <button class="id-btn" onclick="loadUser(13)">ID: 13</button>
+    <button class="id-btn current" onclick="loadUser(42)">ID: 42 (You)</button>
+    <button class="id-btn" onclick="loadUser(99)">ID: 99</button>
+    <input type="number" class="id-input" id="custom-id" placeholder="Custom ID..." min="1">
+    <button class="id-btn" onclick="loadUser(parseInt(document.getElementById('custom-id').value)||42)">Go</button>
+  </div>
+</div>
+<div class="profile-card" id="profile-card">
+  <div class="profile-header">
+    <div class="avatar" id="p-avatar">👤</div>
+    <div><div class="profile-name" id="p-name">john_doe</div><div class="profile-id" id="p-id">USER ID: 42</div></div>
+  </div>
+  <div class="field-row"><span class="field-label">Email</span><span class="field-value" id="p-email">john@example.com</span></div>
+  <div class="field-row"><span class="field-label">Phone</span><span class="field-value" id="p-phone">+1 555-0142</span></div>
+  <div class="field-row"><span class="field-label">Balance</span><span class="field-value" id="p-balance">$1,200.00</span></div>
+  <div class="field-row"><span class="field-label">API Token</span><span class="field-value sensitive" id="p-token">hover to reveal</span></div>
+  <div class="field-row"><span class="field-label">Role</span><span class="field-value" id="p-role">user</span></div>
+</div>
+<div class="flag-box" id="flag-box">
+  <div class="flag-label">// Flag Captured</div>
+  <div class="flag-val">FLAG{1D0R_1s_3v3rywh3r3}</div>
+  <div style="font-size:0.7rem;color:#888;margin-top:10px">You accessed another user's data by changing the ID in the URL.<br>IDOR is one of the most common and impactful web vulnerabilities.</div>
+</div>
+</main>
+<footer>UserVault Portal v3.0 · Your data, secured · © 2024</footer>
+<script>
+const USERS={
+  1:{name:'admin_root',email:'admin@uservault.app',phone:'+1 555-0001',balance:'$98,432.00',token:'uvt_admin_9x2k7m4p',role:'administrator',avatar:'👑'},
+  13:{name:'sarah_k',email:'sarah.k@email.com',phone:'+1 555-0013',balance:'$340.50',token:'uvt_sk_4p1q8r2m',role:'user',avatar:'👩'},
+  42:{name:'john_doe',email:'john@example.com',phone:'+1 555-0142',balance:'$1,200.00',token:'uvt_jd_7t3n9k1s',role:'user',avatar:'👤'},
+  99:{name:'corp_client',email:'corp@bigbiz.com',phone:'+1 555-0099',balance:'$24,800.00',token:'uvt_cc_2m5r8x6p',role:'premium',avatar:'🏢'},
+};
+let flagShown=false;
+function loadUser(id){
+  document.getElementById('url-display').textContent=`https://uservault.app/api/users?id=${id}`;
+  document.querySelectorAll('.id-btn').forEach(b=>b.classList.remove('current'));
+  const u=USERS[id]||{name:`user_${id}`,email:`user${id}@email.com`,phone:`+1 555-0${String(id).padStart(3,'0')}`,balance:'$0.00',token:'uvt_unknown',role:'user',avatar:'❓'};
+  document.getElementById('p-avatar').textContent=u.avatar;
+  document.getElementById('p-name').textContent=u.name;
+  document.getElementById('p-id').textContent=`USER ID: ${id}`;
+  document.getElementById('p-email').textContent=u.email;
+  document.getElementById('p-phone').textContent=u.phone;
+  document.getElementById('p-balance').textContent=u.balance;
+  document.getElementById('p-token').textContent=u.token;
+  document.getElementById('p-role').textContent=u.role;
+  if(id!==42&&!flagShown&&USERS[id]){
+    flagShown=true;
+    document.getElementById('flag-box').classList.add('show');
+    window.parent.postMessage({type:'LAB_SOLVED',flag:'FLAG{1D0R_1s_3v3rywh3r3}'},'*');
+  }
+}
+</script>
+</body></html>
