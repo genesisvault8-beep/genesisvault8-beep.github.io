@@ -411,11 +411,10 @@ function renderTool(t) {
   ].filter(Boolean).join('');
 
   const footerBtn = t.owned
-    ? `<button class="btn-owned" onclick="openAccess(${JSON.stringify(t)})">[ ACCESS TOOL ]</button>`
+    ? `<button class="btn-owned" onclick="openAccessById(${t.id})">[ ACCESS TOOL ]</button>`
     : isFree
-      ? `<button class="btn-free" onclick="openFree(${JSON.stringify(t)})">[ GET FREE ]</button>`
-      : `<button class="btn-buy"  onclick="openBuy(${JSON.stringify(t)})">[ BUY NOW ]</button>`;
-
+      ? `<button class="btn-free" onclick="openFree(allTools.find(x=>x.id===${t.id}))">[ GET FREE ]</button>`
+      : `<button class="btn-buy"  onclick="openBuy(allTools.find(x=>x.id===${t.id}))">[ BUY NOW ]</button>`;
   return `
   <div class="tool-card">
     <div class="tool-card-top">
