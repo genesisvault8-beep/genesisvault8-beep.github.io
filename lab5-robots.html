@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>TechCorp</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;color:#333;font-family:sans-serif;min-height:100vh;display:flex;flex-direction:column}header{background:#2c3e50;color:white;padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between}.logo{font-size:1.1rem;font-weight:700;letter-spacing:1px}.nav{display:flex;gap:20px;font-size:0.8rem;color:#bdc3c7}.nav span{cursor:pointer}.nav span:hover{color:white}.hero{background:linear-gradient(135deg,#2c3e50,#3498db);color:white;padding:50px 20px;text-align:center}.hero h1{font-size:1.8rem;margin-bottom:8px}.hero p{font-size:0.9rem;opacity:0.85;margin-bottom:20px}.hero-btn{background:#e74c3c;color:white;border:none;padding:11px 28px;font-size:0.85rem;cursor:pointer;border-radius:4px;font-weight:600}main{flex:1;padding:24px 16px;max-width:640px;margin:0 auto;width:100%}.section-title{font-size:0.65rem;color:#e74c3c;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e74c3c}.url-bar{background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:10px 14px;font-family:monospace;font-size:0.78rem;color:#2c3e50;margin-bottom:16px;display:flex;gap:8px;align-items:center}.url-label{color:#888;font-size:0.65rem;white-space:nowrap;background:#e9ecef;padding:2px 6px;border-radius:3px}.url-val{flex:1;color:#2980b9}.page-card{background:white;border:1px solid #dee2e6;border-radius:6px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}.page-card h4{font-size:0.9rem;color:#2c3e50;margin-bottom:4px}.page-card p{font-size:0.78rem;color:#666;line-height:1.5;margin-bottom:10px}.page-card .path{font-family:monospace;font-size:0.72rem;color:#2980b9;background:#ebf5fb;padding:3px 8px;border-radius:3px;display:inline-block;margin-bottom:8px}.visit-btn{background:#3498db;color:white;border:none;padding:7px 14px;font-size:0.75rem;cursor:pointer;border-radius:3px;transition:all .2s}.visit-btn:hover{background:#2980b9}.robots-content{background:#1e1e1e;border-radius:4px;padding:16px;font-family:monospace;font-size:0.78rem;line-height:2;margin-bottom:16px}.robots-comment{color:#6a9955}.robots-key{color:#569cd6}.robots-val{color:#ce9178}.robots-disallow{color:#f44747}.admin-panel{background:#2c3e50;color:white;border-radius:6px;padding:20px;margin-bottom:14px;display:none}.admin-panel.show{display:block}.admin-panel h3{color:#e74c3c;margin-bottom:12px;font-family:monospace}.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.admin-stat{background:#34495e;padding:12px;border-radius:4px;text-align:center}.admin-stat-val{font-size:1.3rem;font-weight:700;color:#e74c3c}.admin-stat-label{font-size:0.6rem;color:#bdc3c7;letter-spacing:1px;text-transform:uppercase;margin-top:3px}.flag-box{background:rgba(231,76,60,0.1);border:1px solid #e74c3c;border-radius:4px;padding:16px;text-align:center}.flag-label{font-size:0.62rem;color:#e74c3c;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}.flag-val{font-family:monospace;font-size:0.88rem;color:white;background:#1e1e1e;border:1px solid #444;padding:10px 14px;display:inline-block;word-break:break-all}.hint{background:#fef9e7;border-left:3px solid #f39c12;padding:10px 14px;font-size:0.76rem;color:#856404;margin-bottom:14px;line-height:1.6}footer{background:#2c3e50;color:#bdc3c7;padding:12px 20px;text-align:center;font-size:0.62rem}</style></head><body>
+<header><div class="logo">⬡ TechCorp</div><div class="nav"><span>Home</span><span>Products</span><span>About</span><span>Contact</span></div></header>
+<div class="hero"><h1>Enterprise Solutions</h1><p>Powering businesses worldwide with cutting-edge technology</p><button class="hero-btn">Get Started</button></div>
+<main>
+<div style="margin-bottom:20px;margin-top:4px;">
+  <div class="section-title">// Recon Terminal</div>
+  <div class="hint">🤖 Every website has a <strong>robots.txt</strong> file that tells search engines which pages NOT to index. Hackers check this first — it often reveals hidden paths the developer didn't want public.</div>
+  <div class="url-bar"><span class="url-label">URL</span><span class="url-val" id="url-display">https://techcorp.io</span></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <button class="visit-btn" onclick="visitPage('home')">/ (Home)</button>
+    <button class="visit-btn" onclick="visitPage('robots')">robots.txt</button>
+    <button class="visit-btn" onclick="visitPage('admin')">/admin-portal</button>
+    <button class="visit-btn" onclick="visitPage('backup')">/backup</button>
+    <button class="visit-btn" onclick="visitPage('staging')">/staging</button>
+  </div>
+</div>
+<div id="content-area"></div>
+<div class="admin-panel" id="admin-panel">
+  <h3>// ADMIN PORTAL — Access Granted</h3>
+  <div class="admin-grid">
+    <div class="admin-stat"><div class="admin-stat-val">3,841</div><div class="admin-stat-label">Users</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">$2.1M</div><div class="admin-stat-label">Revenue</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">142</div><div class="admin-stat-label">Active Plans</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">99.9%</div><div class="admin-stat-label">Uptime</div></div>
+  </div>
+  <div class="flag-box">
+    <div class="flag-label">// Flag Captured</div>
+    <div class="flag-val">FLAG{r0b0ts_txt_15_n0t_s3cur1ty}</div>
+    <div style="font-size:0.7rem;color:#bdc3c7;margin-top:10px">You found a hidden path via robots.txt.<br>Disallow doesn't protect — it just points attackers to the good stuff.</div>
+  </div>
+</div>
+</main>
+<footer>TechCorp © 2024 · Enterprise Solutions · All rights reserved</footer>
+<script>
+let robotsRead=false,flagShown=false;
+function visitPage(page){
+  const url=document.getElementById('url-display');
+  const area=document.getElementById('content-area');
+  if(page==='home'){
+    url.textContent='https://techcorp.io/';
+    area.innerHTML=`<div class="page-card"><h4>Welcome to TechCorp</h4><p>This is the public homepage. Nothing interesting here for a recon exercise. Try checking standard recon files...</p></div>`;
+  } else if(page==='robots'){
+    robotsRead=true;
+    url.textContent='https://techcorp.io/robots.txt';
+    area.innerHTML=`<div class="section-title">// robots.txt</div><div class="robots-content"><span class="robots-comment"># TechCorp robots.txt</span><br><span class="robots-comment"># Last updated: 2024-01-15</span><br><br><span class="robots-key">User-agent:</span> <span class="robots-val">*</span><br><span class="robots-key">Disallow:</span> <span class="robots-disallow">/admin-portal</span><br><span class="robots-key">Disallow:</span> <span class="robots-disallow">/backup</span><br><span class="robots-key">Disallow:</span> <span class="robots-disallow">/staging</span><br><span class="robots-key">Disallow:</span> <span class="robots-disallow">/internal-api</span><br><br><span class="robots-key">Sitemap:</span> <span class="robots-val">https://techcorp.io/sitemap.xml</span></div><p style="font-size:0.78rem;color:#666;line-height:1.6">These paths are <strong>disallowed</strong> from search indexing. That means the developer is hiding something there. Try visiting them...</p>`;
+  } else if(page==='admin'){
+    url.textContent='https://techcorp.io/admin-portal';
+    if(!robotsRead){
+      area.innerHTML=`<div class="page-card"><h4>404 — Not Found</h4><p style="color:#e74c3c">How did you find this path? Check robots.txt first to understand the recon methodology.</p></div>`;
+    } else {
+      area.innerHTML=`<div class="page-card"><h4>Admin Portal</h4><p>Normally this would require authentication — but this lab simulates a misconfigured server with no access control.</p><p style="color:#e74c3c;font-size:0.78rem;margin-top:6px">Access granted! No authentication required.</p></div>`;
+      document.getElementById('admin-panel').classList.add('show');
+      if(!flagShown){flagShown=true;window.parent.postMessage({type:'LAB_SOLVED',flag:'FLAG{r0b0ts_txt_15_n0t_s3cur1ty}'},'*');}
+    }
+  } else if(page==='backup'){
+    url.textContent='https://techcorp.io/backup';
+    area.innerHTML=`<div class="page-card"><h4>/backup</h4><p>Directory listing: <br><code style="font-size:0.75rem">db_backup_2024-01-01.sql.gz (482 MB)<br>config_backup.tar.gz (12 MB)</code><br><br><span style="font-size:0.75rem;color:#e74c3c">In a real engagement, these files could contain credentials and sensitive data.</span></p></div>`;
+  } else if(page==='staging'){
+    url.textContent='https://techcorp.io/staging';
+    area.innerHTML=`<div class="page-card"><h4>/staging — Staging Environment</h4><p>This staging server is running with debug mode ON and default credentials.<br><br><code style="font-size:0.75rem">admin / admin123</code><br><br><span style="font-size:0.75rem;color:#e74c3c">Default credentials on staging servers are a goldmine for attackers.</span></p></div>`;
+  }
+}
+visitPage('home');
+</script>
+</body></html>
