@@ -222,6 +222,59 @@
     .access-denied h2 { color: var(--red); margin-bottom: 8px; }
     .access-denied p { font-size: 0.85rem; font-family: 'Space Mono', monospace; }
 
+    /* ORDER LOOKUP BAR */
+    .lookup-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .lookup-bar label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .lookup-bar input {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.95rem;
+      padding: 8px 12px;
+      width: 110px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .lookup-bar input:focus { border-color: var(--accent); }
+    .lookup-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 8px 18px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity 0.2s;
+    }
+    .lookup-btn:hover { opacity: 0.85; }
+    .lookup-error {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--red);
+      display: none;
+    }
+
     /* FOOTER */
     footer {
       text-align: center;
@@ -255,6 +308,13 @@
 <main>
   <div class="page-title">Order Details</div>
   <div class="page-sub" id="page-sub">Viewing order for your account</div>
+
+  <div class="lookup-bar">
+    <label>ORDER ID:</label>
+    <input type="number" id="order-input" min="1000" max="1010" placeholder="e.g. 1005"/>
+    <button class="lookup-btn" onclick="lookupOrder()">VIEW</button>
+    <span class="lookup-error" id="lookup-error">Enter a number only (1000-1010)</span>
+  </div>
 
   <div id="order-content"></div>
 </main>
@@ -422,20 +482,35 @@
     return url.get(name);
   }
 
-  function render() {
-    const idParam = getParam("id");
-    const id = parseInt(idParam) || 1005;
+  function lookupOrder() {
+    const input = document.getElementById("order-input");
+    const errEl = document.getElementById("lookup-error");
+    const val = parseInt(input.value);
+    if (!val || isNaN(val)) {
+      errEl.style.display = "inline";
+      return;
+    }
+    errEl.style.display = "none";
+    render(val);
+  }
+
+  function render(id) {
+    if (!id) id = parseInt(getParam("id")) || 1005;
     const order = orders[id];
     const container = document.getElementById("order-content");
     const bc = document.getElementById("bc-id");
     const sub = document.getElementById("page-sub");
+
+    // update input field to reflect current id
+    const inp = document.getElementById("order-input");
+    if (inp) inp.value = id;
 
     bc.textContent = "Order #" + id;
 
     if (!order) {
       container.innerHTML = `
         <div class="access-denied">
-          <div class="icon">🔒</div>
+          <div class="icon">&#128274;</div>
           <h2>Order Not Found</h2>
           <p>Order #${id} does not exist or you don't have permission to view it.</p>
         </div>`;
@@ -445,84 +520,57 @@
     const isOwnOrder = (id === 1005);
     sub.textContent = isOwnOrder
       ? "Viewing your own order"
-      : `Viewing order belonging to: ${order.owner}`;
+      : "Viewing order belonging to: " + order.owner;
 
-    let itemsHTML = order.items.map(item => `
-      <tr>
-        <td class="item-name">${item.name}</td>
-        <td>${item.qty}</td>
-        <td class="item-price">${item.price}</td>
-      </tr>
-    `).join("");
+    let itemsHTML = order.items.map(item =>
+      "<tr><td class='item-name'>" + item.name + "</td><td>" + item.qty + "</td><td class='item-price'>" + item.price + "</td></tr>"
+    ).join("");
 
     let flagHTML = "";
     if (order.flag) {
-      flagHTML = `
-        <div class="flag-box">
-          <div class="flag-box-label">// 🚩 FLAG CAPTURED</div>
-          <div class="flag-value">${order.flag}</div>
-        </div>`;
+      flagHTML = "<div class='flag-box'><div class='flag-box-label'>// &#128681; FLAG CAPTURED</div><div class='flag-value'>" + order.flag + "</div></div>";
     }
 
     let noteHTML = "";
     if (!isOwnOrder) {
-      noteHTML = `
-        <div class="shipping-note">
-          ⚠️ <strong>Security Notice:</strong> You are viewing an order that does not belong to your account. This should not be possible.
-        </div>`;
+      noteHTML = "<div class='shipping-note'>&#9888;&#65039; <strong>Security Notice:</strong> You are viewing an order that does not belong to your account. This should not be possible.</div>";
     }
 
-    container.innerHTML = `
-      <div class="order-card">
-        <div class="order-card-header">
-          <div>
-            <div class="order-id-label">ORDER ID</div>
-            <div class="order-id-val">#${id}</div>
-          </div>
-          <span class="status-badge ${statusClasses[order.status]}">${statusLabels[order.status]}</span>
-        </div>
-        <div class="order-card-body">
-          <div class="info-grid">
-            <div class="info-item">
-              <label>CUSTOMER NAME</label>
-              <p>${order.owner}</p>
-            </div>
-            <div class="info-item">
-              <label>EMAIL</label>
-              <p>${order.email}</p>
-            </div>
-            <div class="info-item">
-              <label>ORDER DATE</label>
-              <p>${order.date}</p>
-            </div>
-            <div class="info-item">
-              <label>SHIPPING ADDRESS</label>
-              <p>${order.address}</p>
-            </div>
-          </div>
-          <hr class="divider"/>
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>ITEM</th>
-                <th>QTY</th>
-                <th style="text-align:right">PRICE</th>
-              </tr>
-            </thead>
-            <tbody>${itemsHTML}</tbody>
-          </table>
-          <hr class="divider"/>
-          <div style="text-align:right; font-family:'Space Mono',monospace; font-size:0.9rem;">
-            TOTAL: <strong style="color:var(--accent)">${order.total}</strong>
-          </div>
-          ${flagHTML}
-          ${noteHTML}
-        </div>
-      </div>
-    `;
+    container.innerHTML =
+      "<div class='order-card'>" +
+        "<div class='order-card-header'>" +
+          "<div><div class='order-id-label'>ORDER ID</div><div class='order-id-val'>#" + id + "</div></div>" +
+          "<span class='status-badge " + statusClasses[order.status] + "'>" + statusLabels[order.status] + "</span>" +
+        "</div>" +
+        "<div class='order-card-body'>" +
+          "<div class='info-grid'>" +
+            "<div class='info-item'><label>CUSTOMER NAME</label><p>" + order.owner + "</p></div>" +
+            "<div class='info-item'><label>EMAIL</label><p>" + order.email + "</p></div>" +
+            "<div class='info-item'><label>ORDER DATE</label><p>" + order.date + "</p></div>" +
+            "<div class='info-item'><label>SHIPPING ADDRESS</label><p>" + order.address + "</p></div>" +
+          "</div>" +
+          "<hr class='divider'/>" +
+          "<table class='items-table'><thead><tr><th>ITEM</th><th>QTY</th><th style='text-align:right'>PRICE</th></tr></thead><tbody>" + itemsHTML + "</tbody></table>" +
+          "<hr class='divider'/>" +
+          "<div style='text-align:right; font-family:Space Mono,monospace; font-size:0.9rem;'>TOTAL: <strong style='color:var(--accent)'>" + order.total + "</strong></div>" +
+          flagHTML +
+          noteHTML +
+        "</div>" +
+      "</div>";
   }
 
-  render();
+  // Init
+  const startId = parseInt(getParam("id")) || 1005;
+  document.addEventListener("DOMContentLoaded", function() {
+    const inp = document.getElementById("order-input");
+    if (inp) {
+      inp.value = startId;
+      inp.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") lookupOrder();
+      });
+    }
+    render(startId);
+  });
 </script>
 </body>
 </html>
