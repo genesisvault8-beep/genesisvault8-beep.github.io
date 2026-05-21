@@ -662,10 +662,11 @@ async function openCourse(id) {
     const res  = await fetch(`${API}/courses/${id}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    const data = await res.json();
     if (!res.ok && res.status !== 403) {
-      document.getElementById('reader-content').innerHTML =
-        '<div class="empty">// Server error. Try again.</div>';
-      return;
+       document.getElementById('reader-content').innerHTML =
+         '<div class="empty">// Server error. Try again.</div>';
+       return;
     }
     const raw = data.content || data.course?.content || 'No content available.';
     document.getElementById('reader-content').innerHTML = marked.parse(raw);
