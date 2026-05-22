@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis Vault | Cold Email Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#020608;--bg2:#060d10;--bg3:#0a1520;
+    --accent:#00f5c4;--accent2:#00a8ff;--accent3:#ff003c;--accent4:#ffaa00;
+    --text:#c8e6f0;--text-dim:#4a7a8a;--border:#0f2a35;
+    --glow:0 0 20px rgba(0,245,196,0.2);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,196,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,196,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;background:rgba(2,6,8,0.95);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;z-index:100;backdrop-filter:blur(10px);}
+  .nav-logo{font-family:'Share Tech Mono',monospace;font-size:1rem;letter-spacing:3px;position:relative;cursor:default;user-select:none;}
+  .nav-logo .g{color:var(--accent);}
+  .nav-logo .v{color:white;}
+  .nav-logo::before,.nav-logo::after{content:attr(data-text);position:absolute;top:0;left:0;width:100%;height:100%;font-family:'Share Tech Mono',monospace;font-size:1rem;letter-spacing:3px;pointer-events:none;}
+  .nav-logo::before{color:var(--accent3);clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%);animation:glitch1 4s infinite;left:2px;}
+  .nav-logo::after{color:var(--accent2);clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%);animation:glitch2 4s infinite;left:-2px;}
+  @keyframes glitch1{0%,90%,100%{opacity:0;transform:translateX(0)}91%{opacity:1;transform:translateX(-3px)}93%{opacity:1;transform:translateX(3px)}95%{opacity:1;transform:translateX(-2px)}97%{opacity:0}}
+  @keyframes glitch2{0%,90%,100%{opacity:0;transform:translateX(0)}92%{opacity:1;transform:translateX(3px)}94%{opacity:1;transform:translateX(-3px)}96%{opacity:1;transform:translateX(2px)}98%{opacity:0}}
+  .back-btn{background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+  .back-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* MAIN */
+  main{padding:76px 20px 40px;position:relative;z-index:1;max-width:680px;margin:0 auto;}
+
+  /* PAGE HEADER */
+  .page-header{margin-bottom:28px;}
+  .breadcrumb{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:10px;}
+  .page-title{font-size:1.8rem;font-weight:700;letter-spacing:3px;color:white;margin-bottom:6px;}
+  .page-title span{color:var(--accent);}
+  .page-sub{font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--text-dim);letter-spacing:1px;line-height:1.6;}
+  .tool-tag{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent);border:1px solid var(--accent);padding:2px 10px;margin-top:10px;letter-spacing:2px;}
+
+  /* FORM CARD */
+  .form-card{background:var(--bg2);border:1px solid var(--border);padding:24px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .form-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--accent),transparent);}
+  .form-section{margin-bottom:20px;}
+  .form-section-title{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:3px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+
+  label{display:block;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;font-family:'Share Tech Mono',monospace;}
+  input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 16px;font-family:'Share Tech Mono',monospace;font-size:0.85rem;outline:none;transition:border-color 0.2s;margin-bottom:14px;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  input::placeholder,textarea::placeholder{color:var(--text-dim);}
+  textarea{resize:vertical;}
+  select option{background:var(--bg2);}
+
+  /* TONE PILLS */
+  .tone-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .tone-pill{background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px 6px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;text-align:center;transition:all 0.2s;}
+  .tone-pill:hover{border-color:var(--accent);color:var(--accent);}
+  .tone-pill.active{border-color:var(--accent);color:var(--accent);background:rgba(0,245,196,0.08);}
+
+  /* COUNT PILLS */
+  .count-grid{display:flex;gap:8px;margin-bottom:14px;}
+  .count-pill{flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);padding:8px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;letter-spacing:1px;cursor:pointer;text-align:center;transition:all 0.2s;}
+  .count-pill:hover{border-color:var(--accent2);color:var(--accent2);}
+  .count-pill.active{border-color:var(--accent2);color:var(--accent2);background:rgba(0,168,255,0.08);}
+
+  /* GENERATE BTN */
+  .btn{width:100%;padding:14px;background:var(--accent);color:var(--bg);border:none;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+  .btn:hover{background:white;}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+  /* OUTPUT */
+  .output-section{display:none;animation:fadeIn 0.4s ease;}
+  .output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .output-title{font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--accent);letter-spacing:3px;}
+  .output-actions{display:flex;gap:8px;}
+  .btn-outline{background:none;border:1px solid var(--border);color:var(--text-dim);padding:6px 14px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-outline.green{border-color:var(--accent);color:var(--accent);}
+  .btn-outline.green:hover{background:var(--accent);color:var(--bg);}
+
+  /* EMAIL CARDS */
+  .email-card{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:20px;margin-bottom:12px;animation:fadeIn 0.3s ease;transition:border-color 0.2s;}
+  .email-card:hover{border-color:rgba(0,245,196,0.3);}
+  .email-num{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent);letter-spacing:3px;margin-bottom:8px;}
+  .email-subject{font-family:'Share Tech Mono',monospace;font-size:0.8rem;color:var(--accent2);letter-spacing:1px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .email-body{font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--text);line-height:1.8;white-space:pre-wrap;}
+  .email-copy-btn{margin-top:12px;background:none;border:1px solid var(--border);color:var(--text-dim);padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
+  .email-copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* RAW OUTPUT fallback */
+  .ai-output{background:var(--bg3);border:1px solid var(--accent);padding:16px;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;color:var(--text);white-space:pre-wrap;max-height:500px;overflow-y:auto;}
+
+  /* THINKING ANIMATION */
+  .thinking{display:flex;align-items:center;gap:10px;padding:20px;font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--text-dim);letter-spacing:2px;}
+  .thinking-dots span{animation:blink 1.4s infinite;opacity:0;}
+  .thinking-dots span:nth-child(2){animation-delay:0.2s;}
+  .thinking-dots span:nth-child(3){animation-delay:0.4s;}
+  @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--bg);padding:10px 24px;font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:2px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+  .toast.show{opacity:1;}
+
+  /* DIVIDER */
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CHAR COUNT */
+  .char-hint{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);text-align:right;margin-top:-10px;margin-bottom:14px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" data-text="GENESISVAULT"><span class="g">GENESIS</span><span class="v">VAULT</span></div>
+  <button class="back-btn" onclick="history.back()">← BACK</button>
+</nav>
+
+<main>
+
+  <div class="page-header">
+    <div class="breadcrumb">// AI TOOLS / COLD EMAIL GENERATOR</div>
+    <div class="page-title">COLD EMAIL <span>GENERATOR</span></div>
+    <div class="page-sub">// Describe your offer and target — get ready-to-send cold emails instantly.<br>// Crafted to convert. No fluff. Just results.</div>
+    <span class="tool-tag">⚡ AI POWERED</span>
+  </div>
+
+  <div class="form-card">
+
+    <!-- YOUR OFFER -->
+    <div class="form-section">
+      <div class="form-section-title">// 01 — YOUR OFFER</div>
+
+      <label>What are you selling / offering?</label>
+      <textarea id="e-offer" rows="3" placeholder="e.g. I offer social media management for e-commerce brands. I grow their Instagram and TikTok through organic content and paid ads..."></textarea>
+
+      <label>Your name / company</label>
+      <input type="text" id="e-sender" placeholder="e.g. Alex — GrowthLab Agency">
+    </div>
+
+    <hr class="divider">
+
+    <!-- TARGET -->
+    <div class="form-section">
+      <div class="form-section-title">// 02 — YOUR TARGET</div>
+
+      <label>Who are you emailing?</label>
+      <input type="text" id="e-target" placeholder="e.g. Shopify store owners, SaaS founders, local restaurants...">
+
+      <label>Their pain point / problem (optional)</label>
+      <textarea id="e-pain" rows="2" placeholder="e.g. They're struggling to get consistent sales from social media and don't have time to post..."></textarea>
+    </div>
+
+    <hr class="divider">
+
+    <!-- TONE -->
+    <div class="form-section">
+      <div class="form-section-title">// 03 — TONE</div>
+      <div class="tone-grid">
+        <button class="tone-pill active" data-tone="Professional">PROFESSIONAL</button>
+        <button class="tone-pill" data-tone="Casual & Friendly">CASUAL</button>
+        <button class="tone-pill" data-tone="Bold & Direct">BOLD</button>
+        <button class="tone-pill" data-tone="Curiosity-driven">CURIOSITY</button>
+        <button class="tone-pill" data-tone="Story-based">STORY</button>
+        <button class="tone-pill" data-tone="Short & Punchy">SHORT</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- HOW MANY -->
+    <div class="form-section">
+      <div class="form-section-title">// 04 — HOW MANY EMAILS</div>
+      <div class="count-grid">
+        <button class="count-pill active" data-count="1">1</button>
+        <button class="count-pill" data-count="3">3</button>
+        <button class="count-pill" data-count="5">5</button>
+      </div>
+    </div>
+
+    <button class="btn" id="btn-generate" onclick="generateEmails()">[ GENERATE EMAILS ]</button>
+
+  </div>
+
+  <!-- OUTPUT -->
+  <div id="output-section" class="output-section">
+    <div class="output-header">
+      <div class="output-title">// GENERATED EMAILS</div>
+      <div class="output-actions">
+        <button class="btn-outline green" onclick="copyAll()">[ COPY ALL ]</button>
+        <button class="btn-outline" onclick="resetForm()">[ RESET ]</button>
+      </div>
+    </div>
+    <div id="emails-container"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API   = 'https://genesis-ai-backend.onrender.com/api';
+let token   = localStorage.getItem('gv_token');
+let selectedTone  = 'Professional';
+let selectedCount = 1;
+
+if (!token) window.location.href = 'login.html';
+
+async function fetchWithAuth(url, options={}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` }
+  });
+  if (res.status === 401) { localStorage.removeItem('gv_token'); window.location.href = 'login.html'; return null; }
+  return res;
+}
+
+// Tone pills
+document.querySelectorAll('.tone-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    selectedTone = pill.dataset.tone;
+  });
+});
+
+// Count pills
+document.querySelectorAll('.count-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.count-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    selectedCount = parseInt(pill.dataset.count);
+  });
+});
+
+async function generateEmails() {
+  const offer  = document.getElementById('e-offer').value.trim();
+  const sender = document.getElementById('e-sender').value.trim();
+  const target = document.getElementById('e-target').value.trim();
+  const pain   = document.getElementById('e-pain').value.trim();
+
+  if (!offer || !target) { toast('// Fill in your offer and target.'); return; }
+
+  const btn = document.getElementById('btn-generate');
+  const out = document.getElementById('output-section');
+  const container = document.getElementById('emails-container');
+
+  btn.disabled = true; btn.textContent = '[ GENERATING... ]';
+  out.style.display = 'block';
+  container.innerHTML = `
+    <div class="thinking">
+      <span>// AI CRAFTING YOUR EMAILS</span>
+      <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>`;
+
+  const prompt = `You are an expert cold email copywriter. Generate ${selectedCount} cold email${selectedCount > 1 ? 's' : ''} with a ${selectedTone} tone.
+
+SENDER: ${sender || 'the sender'}
+OFFER: ${offer}
+TARGET AUDIENCE: ${target}
+${pain ? `THEIR PAIN POINT: ${pain}` : ''}
+
+Rules:
+- Each email must have a compelling subject line
+- Keep body under 150 words
+- End with a soft CTA (not pushy)
+- No fluff, no generic openers like "I hope this email finds you well"
+- Sound human, not like a robot
+
+Format each email EXACTLY like this (no extra text before or after):
+---EMAIL 1---
+SUBJECT: [subject line here]
+
+[email body here]
+---END---
+
+${selectedCount > 1 ? `Then EMAIL 2, EMAIL 3 etc in the same format.` : ''}`;
+
+  try {
+    const res = await fetchWithAuth(`${API}/vault-ai`, {
+      method: 'POST',
+      body: JSON.stringify({ message: prompt })
+    });
+    if (!res) return;
+    const data = await res.json();
+    const raw = data.response || '';
+    renderEmails(raw);
+  } catch(e) {
+    container.innerHTML = '<div class="ai-output">// Failed to connect to AI. Please try again.</div>';
+  }
+
+  btn.disabled = false; btn.textContent = '[ GENERATE EMAILS ]';
+}
+
+function renderEmails(raw) {
+  const container = document.getElementById('emails-container');
+
+  // Parse emails from the formatted response
+  const emailRegex = /---EMAIL\s*(\d+)---([\s\S]*?)---END---/gi;
+  const emails = [];
+  let match;
+  while ((match = emailRegex.exec(raw)) !== null) {
+    emails.push({ num: match[1], content: match[2].trim() });
+  }
+
+  if (emails.length === 0) {
+    // Fallback: show raw output if parsing fails
+    container.innerHTML = `<div class="ai-output">${esc(raw)}</div>`;
+    return;
+  }
+
+  container.innerHTML = emails.map(email => {
+    // Extract subject line
+    const subjectMatch = email.content.match(/SUBJECT:\s*(.+)/i);
+    const subject = subjectMatch ? subjectMatch[1].trim() : '(No subject)';
+    const body = email.content.replace(/SUBJECT:\s*.+\n?/i, '').trim();
+
+    return `
+    <div class="email-card" id="email-card-${email.num}">
+      <div class="email-num">// EMAIL ${email.num}</div>
+      <div class="email-subject">📧 ${esc(subject)}</div>
+      <div class="email-body" id="email-body-${email.num}">${esc(body)}</div>
+      <button class="email-copy-btn" onclick="copyEmail(${email.num}, '${esc(subject)}')">[ COPY EMAIL ]</button>
+    </div>`;
+  }).join('');
+}
+
+function copyEmail(num, subject) {
+  const body = document.getElementById('email-body-'+num).textContent;
+  const full = `Subject: ${subject}\n\n${body}`;
+  navigator.clipboard.writeText(full)
+    .then(() => toast('// Email copied!'))
+    .catch(() => toast('// Copy failed.'));
+}
+
+function copyAll() {
+  const cards = document.querySelectorAll('.email-card');
+  if (!cards.length) { toast('// No emails to copy.'); return; }
+  let all = '';
+  cards.forEach((card, i) => {
+    const subject = card.querySelector('.email-subject').textContent.replace('📧 ', '').trim();
+    const body = card.querySelector('.email-body').textContent;
+    all += `--- EMAIL ${i+1} ---\nSubject: ${subject}\n\n${body}\n\n`;
+  });
+  navigator.clipboard.writeText(all.trim())
+    .then(() => toast('// All emails copied!'))
+    .catch(() => toast('// Copy failed.'));
+}
+
+function resetForm() {
+  document.getElementById('e-offer').value = '';
+  document.getElementById('e-sender').value = '';
+  document.getElementById('e-target').value = '';
+  document.getElementById('e-pain').value = '';
+  document.getElementById('output-section').style.display = 'none';
+  document.getElementById('emails-container').innerHTML = '';
+  document.querySelectorAll('.tone-pill').forEach((p,i) => p.classList.toggle('active', i===0));
+  document.querySelectorAll('.count-pill').forEach((p,i) => p.classList.toggle('active', i===0));
+  selectedTone = 'Professional'; selectedCount = 1;
+  toast('// Form reset.');
+}
+
+function toast(msg, color='var(--accent)') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.background = color;
+  el.style.color = color === 'var(--accent)' ? 'var(--bg)' : 'white';
+  el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
