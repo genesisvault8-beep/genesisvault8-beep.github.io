@@ -1,516 +1,509 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tool Runner — Genesis Vault</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis Vault | Tool Runner</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#020608; --bg2:#060d10; --bg3:#0a1520;
+    --accent:#00f5c4; --accent2:#00a8ff; --accent3:#ff003c;
+    --text:#c8e6f0; --text-dim:#4a7a8a; --border:#0f2a35;
+    --glow:0 0 20px rgba(0,245,196,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:linear-gradient(rgba(0,245,196,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,196,0.02) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none; z-index:0;
+  }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0;
+    background:rgba(2,6,8,0.95); border-bottom:1px solid var(--border);
+    padding:0 20px; height:56px; display:flex; align-items:center;
+    justify-content:space-between; z-index:100; backdrop-filter:blur(10px);
+  }
+  .nav-logo { font-family:'Share Tech Mono',monospace; font-size:1rem; letter-spacing:3px; user-select:none; }
+  .nav-logo .g { color:var(--accent); }
+  .nav-logo .v { color:white; }
+  .back-btn { background:none; border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; font-family:'Share Tech Mono',monospace; font-size:0.7rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+  .back-btn:hover { border-color:var(--accent); color:var(--accent); }
 
-    body {
-      background: #000;
-      color: #c8d8e8;
-      font-family: 'Share Tech Mono', monospace;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+  /* LAYOUT */
+  main { padding-top:72px; padding-bottom:30px; min-height:100vh; position:relative; z-index:1; }
+  .container { padding:20px; max-width:700px; margin:0 auto; }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg, transparent, transparent 2px,
-        rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
-      );
-      pointer-events: none;
-      z-index: 999;
-    }
+  /* TOOL HEADER */
+  .tool-header { background:var(--bg2); border:1px solid var(--border); border-left:3px solid var(--accent); padding:16px 18px; margin-bottom:20px; animation:fadeIn 0.4s ease; }
+  .tool-header .breadcrumb { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:6px; }
+  .tool-header h1 { font-size:1.2rem; font-weight:700; letter-spacing:2px; color:white; margin-bottom:4px; }
+  .tool-header .tool-type-badge { font-family:'Share Tech Mono',monospace; font-size:0.62rem; letter-spacing:2px; color:var(--accent); border:1px solid var(--accent); padding:2px 10px; display:inline-block; }
+  .tool-header .tool-desc { font-size:0.82rem; color:var(--text-dim); margin-top:8px; line-height:1.5; }
 
-    .grid-bg {
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      z-index: 0;
-    }
+  /* SECTION */
+  .section-title { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--accent); letter-spacing:3px; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
 
-    .glitch-line {
-      position: fixed; left: 0; right: 0; height: 1px;
-      background: rgba(255,0,60,0.4);
-      animation: glitch-move 8s infinite; z-index: 1;
-    }
-    .glitch-line:nth-child(2) { animation-delay: 3s; background: rgba(0,255,136,0.3); }
-    @keyframes glitch-move {
-      0%   { top: -10%; opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      100% { top: 110%; opacity: 0; }
-    }
+  /* PARAM FORM */
+  .param-form { background:var(--bg2); border:1px solid var(--border); padding:18px; margin-bottom:16px; animation:fadeIn 0.4s ease; }
+  .param-group { margin-bottom:14px; }
+  .param-label { display:block; font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:6px; }
+  .param-input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:11px 14px; font-family:'Share Tech Mono',monospace; font-size:0.85rem; outline:none; transition:border-color 0.2s; }
+  .param-input:focus { border-color:var(--accent); }
+  .param-input::placeholder { color:var(--text-dim); }
+  select.param-input { cursor:pointer; }
 
-    header {
-      position: relative; z-index: 10;
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(0,255,136,0.2);
-      display: flex; align-items: center; justify-content: space-between;
-    }
+  /* CMD PREVIEW */
+  .cmd-preview { background:var(--bg3); border:1px solid var(--border); border-left:3px solid var(--accent2); padding:14px 16px; margin-bottom:16px; font-family:'Share Tech Mono',monospace; font-size:0.78rem; color:var(--accent2); line-height:1.6; word-break:break-all; }
+  .cmd-preview .cmd-label { font-size:0.6rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:6px; }
 
-    .logo { font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 3px; }
-    .logo span:first-child { color: #00ff88; }
-    .logo span:last-child  { color: #fff; }
+  /* RUN BUTTON */
+  .btn-run { width:100%; padding:14px; background:var(--accent); color:var(--bg); border:none; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem; letter-spacing:3px; cursor:pointer; transition:all 0.2s; clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); margin-bottom:16px; }
+  .btn-run:hover { background:white; }
+  .btn-run:disabled { opacity:0.5; cursor:not-allowed; }
 
-    .back-btn {
-      background: none; border: 1px solid rgba(0,255,136,0.4);
-      color: #00ff88; padding: 6px 14px;
-      font-family: 'Share Tech Mono', monospace; font-size: 12px;
-      cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
-    }
-    .back-btn:hover { background: rgba(0,255,136,0.1); border-color: #00ff88; }
+  /* TERMINAL OUTPUT */
+  .terminal { background:#000; border:1px solid var(--accent); padding:16px; font-family:'Share Tech Mono',monospace; font-size:0.8rem; line-height:1.8; color:#00ff88; max-height:420px; overflow-y:auto; display:none; animation:fadeIn 0.3s ease; position:relative; }
+  .terminal .t-line { margin-bottom:2px; }
+  .terminal .t-line.err { color:var(--accent3); }
+  .terminal .t-line.sys { color:var(--text-dim); }
+  .terminal .t-line.ok  { color:var(--accent); }
+  .terminal .t-cursor { display:inline-block; width:8px; height:14px; background:var(--accent); animation:blink 1s infinite; vertical-align:middle; margin-left:2px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .terminal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .terminal-label { font-size:0.65rem; color:var(--text-dim); letter-spacing:2px; }
+  .btn-copy { background:none; border:1px solid var(--border); color:var(--text-dim); padding:4px 12px; font-family:'Share Tech Mono',monospace; font-size:0.62rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+  .btn-copy:hover { border-color:var(--accent); color:var(--accent); }
 
-    main {
-      position: relative; z-index: 10;
-      padding: 24px 20px; max-width: 620px; margin: 0 auto;
-    }
+  /* AI CHAT */
+  .ai-chat { display:none; animation:fadeIn 0.4s ease; }
+  .ai-messages { background:var(--bg2); border:1px solid var(--border); padding:16px; min-height:200px; max-height:380px; overflow-y:auto; margin-bottom:12px; }
+  .ai-msg { margin-bottom:14px; }
+  .ai-msg .ai-msg-role { font-family:'Share Tech Mono',monospace; font-size:0.6rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:4px; }
+  .ai-msg .ai-msg-role.user-role { color:var(--accent2); }
+  .ai-msg .ai-msg-role.ai-role  { color:var(--accent); }
+  .ai-msg .ai-msg-body { font-size:0.85rem; color:var(--text); line-height:1.6; white-space:pre-wrap; }
+  .ai-input-row { display:flex; gap:10px; }
+  .ai-input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:11px 14px; font-family:'Share Tech Mono',monospace; font-size:0.82rem; outline:none; transition:border-color 0.2s; resize:none; min-height:48px; max-height:120px; }
+  .ai-input:focus { border-color:var(--accent); }
+  .ai-input::placeholder { color:var(--text-dim); }
+  .btn-send { background:var(--accent); color:var(--bg); border:none; padding:0 20px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:1px; cursor:pointer; font-weight:700; transition:all 0.2s; white-space:nowrap; }
+  .btn-send:hover { background:white; }
+  .btn-send:disabled { opacity:0.5; cursor:not-allowed; }
+  .ai-thinking { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); letter-spacing:2px; padding:8px 0; display:none; }
 
-    .tool-header { text-align: center; margin-bottom: 28px; }
-    .tool-label  { font-size: 11px; color: rgba(0,255,136,0.6); letter-spacing: 4px; margin-bottom: 8px; }
-    .tool-name   {
-      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 700;
-      color: #fff; text-shadow: 0 0 20px rgba(0,255,136,0.5); letter-spacing: 2px;
-    }
-    .tool-desc-text {
-      font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px; line-height: 1.6;
-    }
-    .tool-id-badge {
-      display: inline-block; margin-top: 8px;
-      border: 1px solid rgba(0,255,136,0.4); color: #00ff88;
-      padding: 3px 12px; font-size: 11px; letter-spacing: 2px;
-    }
-    .tool-type-badge {
-      display: inline-block; margin-top: 6px; margin-left: 6px;
-      border: 1px solid rgba(0,168,255,0.4); color: #00a8ff;
-      padding: 3px 12px; font-size: 11px; letter-spacing: 2px;
-    }
+  /* DOWNLOAD */
+  .download-box { display:none; background:var(--bg2); border:1px solid var(--border); padding:24px; text-align:center; animation:fadeIn 0.4s ease; }
+  .download-icon { font-size:2.5rem; margin-bottom:12px; }
+  .download-name { font-size:1rem; font-weight:700; letter-spacing:2px; color:white; margin-bottom:6px; }
+  .download-info { font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--text-dim); letter-spacing:1px; margin-bottom:20px; }
+  .btn-dl { background:var(--accent); color:var(--bg); border:none; padding:12px 32px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem; letter-spacing:3px; cursor:pointer; transition:all 0.2s; clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); }
+  .btn-dl:hover { background:white; }
 
-    .panel {
-      border: 1px solid rgba(0,255,136,0.2);
-      background: rgba(0,255,136,0.02);
-      padding: 20px; margin-bottom: 16px; position: relative;
-    }
-    .panel::before {
-      content: ''; position: absolute; top: 0; left: 0;
-      width: 3px; height: 100%; background: #00ff88;
-    }
-    .panel-label {
-      font-size: 10px; color: rgba(0,255,136,0.5);
-      letter-spacing: 3px; text-transform: uppercase; margin-bottom: 14px;
-    }
+  /* IFRAME SANDBOX */
+  .iframe-box { display:none; animation:fadeIn 0.4s ease; }
+  .iframe-toolbar { background:var(--bg2); border:1px solid var(--border); border-bottom:none; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .iframe-url { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text-dim); letter-spacing:1px; }
+  .iframe-sandbox { width:100%; height:520px; border:1px solid var(--border); background:#000; }
+  .iframe-placeholder { width:100%; height:520px; border:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; }
+  .iframe-placeholder p { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); text-align:center; letter-spacing:1px; }
+  .btn-open-external { background:none; border:1px solid var(--accent2); color:var(--accent2); padding:8px 20px; font-family:'Share Tech Mono',monospace; font-size:0.7rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+  .btn-open-external:hover { background:rgba(0,168,255,0.1); }
 
-    /* Dynamic inputs */
-    .param-group { margin-bottom: 14px; }
-    .param-label {
-      display: block; font-size: 10px; color: rgba(0,255,136,0.5);
-      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
-    }
-    .param-hint { font-size: 11px; color: rgba(255,255,255,0.2); margin-top: 5px; letter-spacing: 1px; }
+  /* STATUS / LOADING */
+  .status-msg { padding:10px 14px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:1px; margin-bottom:12px; display:none; }
+  .status-msg.ok  { border:1px solid var(--accent);  color:var(--accent);  background:rgba(0,245,196,0.05); }
+  .status-msg.err { border:1px solid var(--accent3); color:var(--accent3); background:rgba(255,0,60,0.05); }
+  .loading { text-align:center; padding:40px; color:var(--text-dim); font-family:'Share Tech Mono',monospace; font-size:0.8rem; letter-spacing:2px; }
+  .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px; }
 
-    .input-wrap {
-      display: flex; align-items: center;
-      border: 1px solid rgba(0,255,136,0.3);
-      background: rgba(0,0,0,0.6); padding: 0 14px; transition: border-color 0.2s;
-    }
-    .input-wrap:focus-within { border-color: #00ff88; box-shadow: 0 0 12px rgba(0,255,136,0.15); }
-    .input-prefix { color: #00ff88; font-size: 14px; margin-right: 8px; user-select: none; }
-
-    input, textarea, select {
-      flex: 1; background: none; border: none; color: #e0f0e0;
-      font-family: 'Share Tech Mono', monospace; font-size: 14px;
-      padding: 12px 0; outline: none; width: 100%;
-    }
-    textarea {
-      padding: 12px; resize: vertical; min-height: 80px;
-      border: 1px solid rgba(0,255,136,0.3); background: rgba(0,0,0,0.6);
-      transition: border-color 0.2s;
-    }
-    textarea:focus { border-color: #00ff88; box-shadow: 0 0 12px rgba(0,255,136,0.15); }
-    select {
-      background: rgba(0,0,0,0.6); border: 1px solid rgba(0,255,136,0.3);
-      cursor: pointer; padding: 12px; color: #e0f0e0;
-    }
-    select option { background: #0a1520; }
-    select:focus { border-color: #00ff88; }
-    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
-
-    .run-btn {
-      width: 100%; background: #00ff88; color: #000; border: none; padding: 16px;
-      font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 700;
-      letter-spacing: 3px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s;
-    }
-    .run-btn::before {
-      content: ''; position: absolute; top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.4s;
-    }
-    .run-btn:hover::before { left: 100%; }
-    .run-btn:hover { background: #00cc66; box-shadow: 0 0 20px rgba(0,255,136,0.4); }
-    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .terminal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .terminal-dots { display: flex; gap: 6px; }
-    .terminal-dots span { width: 10px; height: 10px; border-radius: 50%; }
-    .dot-red    { background: #ff5f56; }
-    .dot-yellow { background: #ffbd2e; }
-    .dot-green  { background: #27c93f; }
-
-    .copy-btn {
-      background: none; border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.4); padding: 4px 10px;
-      font-family: 'Share Tech Mono', monospace; font-size: 11px;
-      cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
-    }
-    .copy-btn:hover { color: #00ff88; border-color: #00ff88; }
-
-    pre#output {
-      background: rgba(0,0,0,0.8); border: 1px solid rgba(0,255,136,0.15);
-      padding: 16px; font-family: 'Share Tech Mono', monospace;
-      font-size: 12px; line-height: 1.7; white-space: pre-wrap; word-break: break-all;
-      min-height: 180px; max-height: 380px; overflow-y: auto; color: #7fff7f;
-    }
-    pre#output.idle    { color: rgba(255,255,255,0.2); }
-    pre#output.running { color: rgba(0,255,136,0.5); animation: blink 1s infinite; }
-    pre#output.error   { color: #ff4444; }
-    pre#output.success { color: #7fff7f; }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-    .status-bar {
-      display: flex; align-items: center; gap: 10px; margin-top: 12px;
-      font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 1px;
-    }
-    .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); }
-    .status-indicator.green  { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
-    .status-indicator.red    { background: #ff4444; box-shadow: 0 0 6px #ff4444; }
-    .status-indicator.yellow { background: #ffaa00; animation: blink 0.8s infinite; }
-
-    .loading-panel {
-      text-align: center; padding: 40px;
-      color: rgba(0,255,136,0.4); font-size: 12px; letter-spacing: 3px;
-    }
-    .error-panel {
-      border: 1px solid rgba(255,68,68,0.4); background: rgba(255,0,0,0.04);
-      padding: 20px; text-align: center; color: #ff4444; font-size: 13px;
-    }
-
-    pre::-webkit-scrollbar { width: 4px; }
-    pre::-webkit-scrollbar-track { background: #000; }
-    pre::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.3); }
-  </style>
+  @keyframes spin   { to { transform:rotate(360deg); } }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
 </head>
 <body>
 
-  <div class="grid-bg"></div>
-  <div class="glitch-line"></div>
-  <div class="glitch-line"></div>
+<nav>
+  <div class="nav-logo"><span class="g">GENESIS</span><span class="v">VAULT</span></div>
+  <button class="back-btn" onclick="goBack()">← BACK</button>
+</nav>
 
-  <header>
-    <div class="logo"><span>GENESIS</span><span>VAULT</span></div>
-    <button class="back-btn" onclick="history.back()">← BACK</button>
-  </header>
-
-  <main>
-    <div class="tool-header">
-      <div class="tool-label">// TOOL RUNNER</div>
-      <div class="tool-name" id="tool-name">LOADING...</div>
-      <div id="tool-desc-text" class="tool-desc-text"></div>
-      <div>
-        <span class="tool-id-badge" id="tool-badge">TOOL_ID: --</span>
-        <span class="tool-type-badge" id="tool-type-badge">--</span>
-      </div>
-    </div>
-
-    <div id="main-content">
-      <div class="loading-panel">// LOADING TOOL DATA...</div>
-    </div>
-
-    <button class="run-btn" id="run-btn" onclick="runTool()" style="display:none;">▶ EXECUTE TOOL</button>
-
-    <div class="panel" id="output-panel" style="margin-top:16px; display:none;">
-      <div class="terminal-header">
-        <div class="terminal-dots">
-          <span class="dot-red"></span>
-          <span class="dot-yellow"></span>
-          <span class="dot-green"></span>
-        </div>
-        <span class="panel-label" style="margin:0;">// SYS OUTPUT</span>
-        <button class="copy-btn" onclick="copyOutput()">COPY</button>
-      </div>
-      <pre id="output" class="idle">> awaiting execution...</pre>
-      <div class="status-bar">
-        <div class="status-indicator" id="status-dot"></div>
-        <span id="status-text">IDLE</span>
-      </div>
-    </div>
-  </main>
+<main>
+<div class="container" id="container">
+  <div class="loading"><span class="spinner"></span>Loading tool...</div>
+</div>
+</main>
 
 <script>
-  const params  = new URLSearchParams(window.location.search);
-  const TOOL_ID = parseInt(params.get('tool_id') || params.get('id')) || 0;
-  const API     = 'https://genesis-vault-backend.onrender.com/api';
+const API   = 'https://genesis-vault-backend.onrender.com/api';
+const token = localStorage.getItem('gv_token');
+if (!token) location.href = 'login.html';
 
-  let toolData = null;
+const params  = new URLSearchParams(location.search);
+const TOOL_ID = params.get('tool_id');
+if (!TOOL_ID) { location.href = 'market.html'; }
 
-  function getToken() {
-    return localStorage.getItem('gv_token') ||
-           localStorage.getItem('token') ||
-           sessionStorage.getItem('token') || '';
+let tool        = null;
+let paramValues = {};
+let aiHistory   = [];
+
+function h() { return { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` }; }
+async function fetchWithAuth(url, opts={}) {
+  opts.headers = { ...h(), ...(opts.headers||{}) };
+  const res = await fetch(url, opts);
+  if (res.status === 401) { localStorage.removeItem('gv_token'); location.href='login.html'; throw new Error('401'); }
+  return res;
+}
+
+function goBack() {
+  const ref = document.referrer;
+  if (ref && (ref.includes('market') || ref.includes('dashboard'))) history.back();
+  else location.href = 'market.html';
+}
+
+function esc(s) { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ── BOOT ── */
+async function boot() {
+  try {
+    const res  = await fetchWithAuth(`${API}/tools/${TOOL_ID}`);
+    const data = await res.json();
+    tool = data.tool || data;
+    if (!tool || !tool.id) throw new Error('Not found');
+    renderRunner();
+  } catch(e) {
+    document.getElementById('container').innerHTML =
+      `<div class="loading" style="color:var(--accent3)">// Could not load tool. <br><br><button class="back-btn" style="margin-top:12px" onclick="goBack()">← GO BACK</button></div>`;
   }
+}
 
-  function h() {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
-      'Origin': 'https://genesisvault8-beep.github.io'
-    };
-  }
+/* ── RENDER RUNNER ── */
+function renderRunner() {
+  const rt   = (tool.tool_run_type || '').toLowerCase();
+  const type = (tool.type || '').toLowerCase();
 
-  function setStatus(state, text) {
-    document.getElementById('status-dot').className = 'status-indicator ' + state;
-    document.getElementById('status-text').textContent = text;
-  }
+  let modeLabel = 'TOOL';
+  if      (rt === 'security')   modeLabel = 'SECURITY TOOL';
+  else if (rt === 'automation') modeLabel = 'AUTOMATION';
+  else if (rt === 'download')   modeLabel = 'DOWNLOAD';
+  else if (rt === 'ai')         modeLabel = 'AI TOOL';
+  else if (type === 'apps')     modeLabel = 'WEB APP';
 
-  function copyOutput() {
-    const output = document.getElementById('output');
-    navigator.clipboard.writeText(output.textContent)
-      .then(() => { document.getElementById('status-text').textContent = 'COPIED TO CLIPBOARD'; })
-      .catch(() => alert('Select text manually to copy'));
-  }
+  document.getElementById('container').innerHTML = `
+    <div class="tool-header">
+      <div class="breadcrumb">// VAULT RUNNER</div>
+      <h1>${esc(tool.title)}</h1>
+      <span class="tool-type-badge">${modeLabel}</span>
+      ${tool.description ? `<p class="tool-desc">${esc(tool.description)}</p>` : ''}
+    </div>
 
-  // ── Load tool data from API ──────────────────────────────────────
-  async function boot() {
-    if (!TOOL_ID) {
-      showError('No tool_id specified in URL.');
-      return;
-    }
-    const token = getToken();
-    if (!token) {
-      location.href = 'login.html';
-      return;
-    }
-    try {
-      // Fetch from marketplace to get tool details
-      const res  = await fetch(`${API}/marketplace`, { headers: h() });
-      const data = await res.json();
-      if (res.status === 401) { location.href = 'login.html'; return; }
+    <div class="status-msg" id="status-msg"></div>
 
-      const tools = data.tools || [];
-      toolData    = tools.find(t => String(t.id) === String(TOOL_ID));
-
-      if (!toolData) {
-        showError('Tool not found or not owned. Go back and purchase this tool first.');
-        return;
-      }
-      if (!toolData.owned) {
-        showError('You do not own this tool. Purchase it from the marketplace to access it.');
-        return;
-      }
-
-      renderToolUI(toolData);
-    } catch (e) {
-      showError('Failed to load tool data. Check your connection.');
-    }
-  }
-
-  function showError(msg) {
-    document.getElementById('main-content').innerHTML =
-      `<div class="error-panel">> ERROR: ${msg}</div>`;
-  }
-
-  // ── Render dynamic input fields from params_schema ───────────────
-  function renderToolUI(tool) {
-    document.getElementById('tool-name').textContent  = tool.title || `TOOL #${TOOL_ID}`;
-    document.getElementById('tool-badge').textContent = `TOOL_ID: ${TOOL_ID}`;
-    document.getElementById('tool-desc-text').textContent = tool.description || '';
-
-    const runType = (tool.tool_run_type || 'security').toLowerCase();
-    const typeLabelMap = { security: 'SECURITY', automation: 'AUTOMATION', script: 'SCRIPT', ai: 'AI TOOL' };
-    document.getElementById('tool-type-badge').textContent = typeLabelMap[runType] || runType.toUpperCase();
-
-    // Parse params_schema — array of { name, type, label, placeholder, hint, options }
-    let schema = [];
-    try {
-      if (tool.params_schema) {
-        schema = typeof tool.params_schema === 'string'
-          ? JSON.parse(tool.params_schema)
-          : tool.params_schema;
-      }
-    } catch(e) {}
-
-    // AI tools: default to a single textarea called "input"
-    if (runType === 'ai' && (!schema || !schema.length)) {
-      schema = [{
-        name:        'input',
-        type:        'textarea',
-        label:       tool.input_label || 'YOUR INPUT',
-        placeholder: tool.input_label || 'Type your question or paste your data here...',
-        hint:        'Rate limit: 30 AI requests per day'
-      }];
-    }
-
-    // Default schema for security/automation: just a "target" field
-    if (!schema || !schema.length) {
-      schema = [{ name: 'target', type: 'text', label: 'TARGET NODE', placeholder: 'Domain or IP (e.g. scanme.nmap.org)', hint: '> DOMAIN OR IP ONLY — NO SPECIAL CHARS' }];
-    }
-
-    const content = document.getElementById('main-content');
-    content.innerHTML = `
-      <div class="panel">
-        <div class="panel-label">// INPUT PARAMETERS</div>
-        <div id="params-container"></div>
+    <!-- SECURITY / AUTOMATION: param form + terminal -->
+    <div id="mode-security" style="display:none">
+      <div class="param-form" id="param-form">
+        <div class="section-title">// PARAMETERS</div>
+        <div id="param-fields"><!-- injected --></div>
       </div>
-    `;
+      <div class="cmd-preview" id="cmd-preview" style="display:none">
+        <div class="cmd-label">// COMMAND PREVIEW</div>
+        <div id="cmd-text"></div>
+      </div>
+      <button class="btn-run" id="btn-run" onclick="runTool()">[ RUN TOOL ]</button>
+      <div class="terminal" id="terminal">
+        <div class="terminal-header">
+          <span class="terminal-label">// OUTPUT</span>
+          <button class="btn-copy" onclick="copyOutput()">COPY</button>
+        </div>
+        <div id="terminal-lines"></div>
+      </div>
+    </div>
 
-    const container = document.getElementById('params-container');
-    schema.forEach(field => {
-      const group = document.createElement('div');
-      group.className = 'param-group';
+    <!-- AI TOOL: chat interface -->
+    <div id="mode-ai" class="ai-chat">
+      <div class="section-title">// AI TERMINAL — ${esc(tool.title)}</div>
+      <div class="ai-messages" id="ai-messages">
+        <div class="ai-msg">
+          <div class="ai-msg-role ai-role">// SYSTEM</div>
+          <div class="ai-msg-body" style="color:var(--text-dim);font-size:0.78rem;">${esc(tool.input_label || 'Enter your query below.')}</div>
+        </div>
+      </div>
+      <div class="ai-thinking" id="ai-thinking"><span class="spinner"></span>// Processing...</div>
+      <div class="ai-input-row">
+        <textarea class="ai-input" id="ai-input" placeholder="// Enter your query..." rows="2" onkeydown="aiKeyDown(event)"></textarea>
+        <button class="btn-send" id="btn-send" onclick="sendAI()">[ SEND ]</button>
+      </div>
+    </div>
 
-      const label = document.createElement('label');
-      label.className = 'param-label';
-      label.textContent = field.label || field.name.toUpperCase();
-      group.appendChild(label);
+    <!-- DOWNLOAD -->
+    <div id="mode-download" class="download-box">
+      <div class="download-icon">⬇</div>
+      <div class="download-name">${esc(tool.title)}</div>
+      <div class="download-info">// ${esc((tool.file_type||'FILE').toUpperCase())} · ${esc((tool.delivery||'DIRECT').toUpperCase())} DELIVERY</div>
+      <button class="btn-dl" id="btn-dl" onclick="doDownload()">[ DOWNLOAD FILE ]</button>
+    </div>
 
-      if (field.type === 'textarea') {
-        const ta = document.createElement('textarea');
-        ta.id = 'param_' + field.name;
-        ta.className = 'tool-param';
-        ta.dataset.name = field.name;
-        ta.placeholder = field.placeholder || '';
-        group.appendChild(ta);
+    <!-- APP / IFRAME -->
+    <div id="mode-app" class="iframe-box">
+      <div class="section-title">// RUNNING IN VAULT LABS</div>
+      <div id="iframe-container"><!-- injected --></div>
+    </div>
+  `;
 
-      } else if (field.type === 'select' && field.options) {
-        const sel = document.createElement('select');
-        sel.id = 'param_' + field.name;
-        sel.className = 'tool-param';
-        sel.dataset.name = field.name;
-        field.options.forEach(opt => {
-          const o = document.createElement('option');
-          o.value = typeof opt === 'object' ? opt.value : opt;
-          o.textContent = typeof opt === 'object' ? opt.label : opt;
-          sel.appendChild(o);
-        });
-        group.appendChild(sel);
+  // Dispatch to correct mode
+  if (rt === 'security' || rt === 'automation') {
+    initSecurityMode();
+  } else if (rt === 'ai') {
+    initAIMode();
+  } else if (rt === 'download' || type === 'scripts' || type === 'templates') {
+    initDownloadMode();
+  } else if (type === 'apps' || tool.content_url) {
+    initAppMode();
+  } else {
+    // Fallback: show all available options
+    initFallback();
+  }
+}
 
-      } else {
-        const wrap = document.createElement('div');
-        wrap.className = 'input-wrap';
-        const prefix = document.createElement('span');
-        prefix.className = 'input-prefix';
-        prefix.textContent = '$';
-        wrap.appendChild(prefix);
-        const inp = document.createElement('input');
-        inp.id = 'param_' + field.name;
-        inp.className = 'tool-param';
-        inp.dataset.name = field.name;
-        inp.type = field.type === 'number' ? 'number' : 'text';
-        inp.placeholder = field.placeholder || '';
-        inp.autocomplete = 'off';
-        inp.autocorrect = 'off';
-        inp.autocapitalize = 'off';
-        inp.spellcheck = false;
-        if (field.value !== undefined) inp.value = field.value;
-        inp.addEventListener('keydown', e => { if (e.key === 'Enter') runTool(); });
-        wrap.appendChild(inp);
-        group.appendChild(wrap);
-      }
+/* ── SECURITY / AUTOMATION MODE ── */
+function initSecurityMode() {
+  document.getElementById('mode-security').style.display = 'block';
+  const fields = document.getElementById('param-fields');
+  let schema = [];
+  try { schema = typeof tool.params_schema === 'string' ? JSON.parse(tool.params_schema) : (tool.params_schema || []); } catch(e){}
 
-      if (field.hint) {
-        const hint = document.createElement('p');
-        hint.className = 'param-hint';
-        hint.textContent = '> ' + field.hint;
-        group.appendChild(hint);
-      }
-
-      container.appendChild(group);
-    });
-
-    document.getElementById('run-btn').style.display = 'block';
-    document.getElementById('output-panel').style.display = 'block';
+  if (!schema.length) {
+    // No params needed — just show run button with command
+    fields.innerHTML = `<p style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--text-dim);">// No parameters required. Press RUN to execute.</p>`;
+    updateCmdPreview();
+    return;
   }
 
-  // ── Run the tool ─────────────────────────────────────────────────
-  async function runTool() {
-    const output  = document.getElementById('output');
-    const runBtn  = document.getElementById('run-btn');
+  fields.innerHTML = schema.map(f => `
+    <div class="param-group">
+      <label class="param-label">${esc(f.label || f.name)} ${f.required !== false ? '<span style="color:var(--accent3)">*</span>' : ''}</label>
+      ${f.type === 'select'
+        ? `<select class="param-input" id="param-${esc(f.name)}" onchange="updateCmdPreview()">
+             ${(f.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}
+           </select>`
+        : `<input class="param-input" type="${f.type==='number'?'number':'text'}" id="param-${esc(f.name)}"
+             placeholder="${esc(f.placeholder||'')}" oninput="updateCmdPreview()">`
+      }
+    </div>`).join('');
 
-    // Collect all params
-    const params = {};
-    document.querySelectorAll('.tool-param').forEach(el => {
-      params[el.dataset.name] = el.value.trim();
+  updateCmdPreview();
+}
+
+function getParamValues() {
+  let schema = [];
+  try { schema = typeof tool.params_schema === 'string' ? JSON.parse(tool.params_schema) : (tool.params_schema || []); } catch(e){}
+  const vals = {};
+  schema.forEach(f => {
+    const el = document.getElementById(`param-${f.name}`);
+    if (el) vals[f.name] = el.value.trim();
+  });
+  return vals;
+}
+
+function updateCmdPreview() {
+  const preview = document.getElementById('cmd-preview');
+  const cmdText = document.getElementById('cmd-text');
+  if (!tool.command_template) return;
+  const vals = getParamValues();
+  let cmd = tool.command_template;
+  Object.entries(vals).forEach(([k,v]) => { cmd = cmd.replace(new RegExp(`\\{${k}\\}`,'g'), v || `{${k}}`); });
+  cmdText.textContent = '$ ' + cmd;
+  preview.style.display = 'block';
+}
+
+async function runTool() {
+  const btn  = document.getElementById('btn-run');
+  const term = document.getElementById('terminal');
+  const lines = document.getElementById('terminal-lines');
+  const msg  = document.getElementById('status-msg');
+
+  // Validate required params
+  let schema = [];
+  try { schema = typeof tool.params_schema === 'string' ? JSON.parse(tool.params_schema) : (tool.params_schema || []); } catch(e){}
+  const vals = getParamValues();
+  for (const f of schema) {
+    if (f.required !== false && !vals[f.name]) {
+      showStatus(msg, `// Required: ${f.label || f.name}`, true); return;
+    }
+  }
+  msg.style.display = 'none';
+
+  btn.disabled = true; btn.textContent = '[ RUNNING... ]';
+  term.style.display = 'block';
+  lines.innerHTML = '';
+  addLine('// Initializing tool runner...', 'sys');
+  addLine(`// Tool: ${tool.title}`, 'sys');
+  addLine(`// Run type: ${tool.tool_run_type}`, 'sys');
+  addLine('', 'sys');
+
+  try {
+    const body = { tool_id: tool.id, params: vals };
+    const res = await fetchWithAuth(`${API}/tools/${tool.id}/run`, {
+      method:'POST', body: JSON.stringify(body)
     });
+    const data = await res.json();
 
-    // Validate at least one non-empty value
-    const allEmpty = Object.values(params).every(v => !v);
-    if (allEmpty) {
-      output.textContent = '> ERROR: please fill in at least one parameter.';
-      output.className = 'error';
-      setStatus('red', 'NO INPUT');
-      return;
+    if (data.output) {
+      data.output.split('\n').forEach(line => addLine(line, ''));
+    } else if (data.result) {
+      String(data.result).split('\n').forEach(line => addLine(line, ''));
+    } else if (data.error) {
+      addLine('// ERROR: ' + data.error, 'err');
+    } else if (data.status === 'queued' || data.status === 'pending') {
+      addLine('// Tool queued for execution.', 'ok');
+      addLine(`// Job ID: ${data.job_id || data.id || 'N/A'}`, 'sys');
+      addLine('// Check back shortly for results.', 'sys');
+      if (data.estimated_time) addLine(`// Estimated time: ${data.estimated_time}`, 'sys');
+    } else {
+      addLine(JSON.stringify(data, null, 2), '');
     }
-
-    const token = getToken();
-    if (!token) { location.href = 'login.html'; return; }
-
-    runBtn.disabled = true;
-    runBtn.textContent = '⏳ EXECUTING...';
-    output.textContent = '> initializing...\n> sending to backend...\n> running (max 30s)...';
-    output.className = 'running';
-    setStatus('yellow', 'RUNNING...');
-
-    try {
-      const res = await fetch(`${API}/tools/run`, {
-        method: 'POST',
-        headers: h(),
-        body: JSON.stringify({ tool_id: TOOL_ID, params }),
-      });
-
-      if (res.status === 401) { location.href = 'login.html'; return; }
-      if (res.status === 429) {
-        const errData = await res.json();
-        output.textContent = '> RATE LIMIT REACHED\n> ' + (errData.message || 'Daily AI limit reached. Resets at midnight UTC.');
-        output.className = 'error';
-        setStatus('red', 'RATE LIMITED');
-        runBtn.disabled = false;
-        runBtn.textContent = '▶ EXECUTE TOOL';
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data.status === 'success') {
-        output.textContent = data.output;
-        output.className = 'success';
-        const exitLabel = data.source === 'ai' ? 'AI' : `EXIT ${data.return_code ?? 0}`;
-        setStatus('green', `COMPLETE — ${exitLabel}`);
-      } else {
-        output.textContent = '> ERROR: ' + (data.message || 'Unknown error');
-        output.className = 'error';
-        setStatus('red', 'FAILED');
-      }
-    } catch (err) {
-      output.textContent = '> NETWORK ERROR\n> ' + err.message;
-      output.className = 'error';
-      setStatus('red', 'NETWORK ERROR');
-    }
-
-    runBtn.disabled = false;
-    runBtn.textContent = '▶ EXECUTE TOOL';
+    addLine('', 'sys');
+    addLine('// Execution complete.', 'ok');
+  } catch(e) {
+    addLine('// Network error — could not reach execution server.', 'err');
+    addLine(`// ${e.message}`, 'err');
   }
 
-  boot();
+  btn.disabled = false; btn.textContent = '[ RUN AGAIN ]';
+  term.scrollTop = term.scrollHeight;
+}
+
+function addLine(text, cls) {
+  const lines = document.getElementById('terminal-lines');
+  const div = document.createElement('div');
+  div.className = 't-line' + (cls ? ' ' + cls : '');
+  div.textContent = text;
+  lines.appendChild(div);
+}
+
+function copyOutput() {
+  const text = document.getElementById('terminal-lines').innerText;
+  navigator.clipboard.writeText(text).then(()=>toast('// Output copied.'));
+}
+
+/* ── AI MODE ── */
+function initAIMode() {
+  document.getElementById('mode-ai').style.display = 'block';
+}
+
+function aiKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
+}
+
+async function sendAI() {
+  const input  = document.getElementById('ai-input');
+  const btn    = document.getElementById('btn-send');
+  const think  = document.getElementById('ai-thinking');
+  const msgs   = document.getElementById('ai-messages');
+  const userMsg = input.value.trim();
+  if (!userMsg) return;
+
+  input.value = '';
+  btn.disabled = true;
+  think.style.display = 'block';
+
+  // Add user message
+  appendAIMsg('// YOU', userMsg, 'user-role');
+  aiHistory.push({ role:'user', content: userMsg });
+
+  try {
+    const res = await fetchWithAuth(`${API}/tools/${tool.id}/ai-run`, {
+      method:'POST',
+      body: JSON.stringify({ message: userMsg, history: aiHistory.slice(-10) })
+    });
+    const data = await res.json();
+    const reply = data.reply || data.output || data.message || '// No response.';
+    appendAIMsg('// AI', reply, 'ai-role');
+    aiHistory.push({ role:'assistant', content: reply });
+  } catch(e) {
+    appendAIMsg('// ERROR', 'Network error — could not reach AI.', 'ai-role');
+  }
+
+  think.style.display = 'none';
+  btn.disabled = false;
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendAIMsg(role, body, roleClass) {
+  const msgs = document.getElementById('ai-messages');
+  const div  = document.createElement('div');
+  div.className = 'ai-msg';
+  div.innerHTML = `<div class="ai-msg-role ${roleClass}">${esc(role)}</div><div class="ai-msg-body">${esc(body)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+/* ── DOWNLOAD MODE ── */
+function initDownloadMode() {
+  document.getElementById('mode-download').style.display = 'block';
+}
+
+function doDownload() {
+  if (tool.download_url) {
+    window.open(tool.download_url, '_blank');
+  } else {
+    toast('// Download link not available yet. Contact admin.');
+  }
+}
+
+/* ── APP / IFRAME MODE ── */
+function initAppMode() {
+  document.getElementById('mode-app').style.display = 'block';
+  const container = document.getElementById('iframe-container');
+  if (tool.content_url) {
+    container.innerHTML = `
+      <div class="iframe-toolbar">
+        <span class="iframe-url">// ${esc(tool.content_url)}</span>
+        <button class="btn-copy" onclick="window.open('${esc(tool.content_url)}','_blank')">OPEN FULL</button>
+      </div>
+      <iframe class="iframe-sandbox"
+        src="${esc(tool.content_url)}"
+        sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+        loading="lazy"
+        title="${esc(tool.title)}">
+      </iframe>`;
+  } else {
+    container.innerHTML = `
+      <div class="iframe-placeholder">
+        <p>// App content URL not configured yet.</p>
+        <p>// Admin needs to set the content_url for this tool.</p>
+      </div>`;
+  }
+}
+
+/* ── FALLBACK ── */
+function initFallback() {
+  const msg = document.getElementById('status-msg');
+  showStatus(msg, '// Tool configuration incomplete. Contact admin to set run type.', true);
+  document.getElementById('mode-security').style.display = 'block';
+  document.getElementById('param-fields').innerHTML =
+    `<p style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--text-dim);">// Awaiting tool configuration.</p>`;
+  document.getElementById('btn-run').style.display = 'none';
+}
+
+/* ── UTILS ── */
+function showStatus(el, msg, err) {
+  el.textContent = msg;
+  el.className   = 'status-msg ' + (err ? 'err' : 'ok');
+  el.style.display = 'block';
+}
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style,{position:'fixed',bottom:'30px',left:'50%',transform:'translateX(-50%)',background:'var(--bg2)',border:'1px solid var(--accent)',color:'var(--accent)',padding:'8px 20px',fontFamily:"'Share Tech Mono',monospace",fontSize:'0.75rem',letterSpacing:'1px',zIndex:'999',pointerEvents:'none',whiteSpace:'nowrap'});
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+boot();
 </script>
 </body>
 </html>
