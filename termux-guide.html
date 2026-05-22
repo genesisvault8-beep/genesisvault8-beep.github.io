@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termux Guide Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#020608; --bg2:#060d10; --bg3:#0a1520;
+    --accent:#00f5c4; --accent2:#00a8ff; --accent3:#ff003c;
+    --text:#c8e6f0; --text-dim:#4a7a8a; --border:#0f2a35;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; font-size:15px; }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:linear-gradient(rgba(0,245,196,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,196,0.02) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none; z-index:0;
+  }
+
+  .wrap { max-width:720px; margin:0 auto; padding:24px 18px 60px; position:relative; z-index:1; }
+
+  /* HEADER */
+  .hero { border:1px solid var(--border); border-left:4px solid var(--accent); background:var(--bg2); padding:20px; margin-bottom:24px; }
+  .hero .tag { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--accent); letter-spacing:3px; margin-bottom:8px; }
+  .hero h1 { font-size:1.6rem; font-weight:700; color:white; letter-spacing:2px; margin-bottom:6px; }
+  .hero h1 span { color:var(--accent); }
+  .hero p { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); line-height:1.7; }
+  .hero .badges { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .badge { font-family:'Share Tech Mono',monospace; font-size:0.58rem; padding:3px 10px; border:1px solid; letter-spacing:1px; }
+  .badge-green { color:var(--accent); border-color:var(--accent); }
+  .badge-blue  { color:var(--accent2); border-color:var(--accent2); }
+  .badge-red   { color:var(--accent3); border-color:var(--accent3); }
+
+  /* PROGRESS */
+  .progress-bar-wrap { background:var(--bg2); border:1px solid var(--border); padding:14px 18px; margin-bottom:24px; }
+  .progress-label { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; display:flex; justify-content:space-between; }
+  .progress-track { background:var(--bg3); height:6px; border-radius:0; }
+  .progress-fill { height:6px; background:var(--accent); transition:width 0.5s ease; width:0%; }
+
+  /* NAV TABS */
+  .tabs { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:20px; overflow-x:auto; }
+  .tab { padding:9px 16px; font-family:'Share Tech Mono',monospace; font-size:0.62rem; letter-spacing:2px; color:var(--text-dim); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all 0.2s; }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab:hover  { color:var(--text); }
+
+  /* SECTION */
+  .section { display:none; animation:fadeIn 0.3s ease; }
+  .section.active { display:block; }
+  .section-title { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--accent); letter-spacing:3px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+  /* STEP CARDS */
+  .step { background:var(--bg2); border:1px solid var(--border); padding:16px 18px; margin-bottom:12px; position:relative; transition:border-color 0.2s; }
+  .step.done { border-color:var(--accent); }
+  .step.done::after { content:'✓'; position:absolute; top:14px; right:16px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--accent); }
+  .step-num { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--accent2); letter-spacing:2px; margin-bottom:6px; }
+  .step h3 { font-size:1rem; font-weight:700; color:white; letter-spacing:1px; margin-bottom:8px; }
+  .step p  { font-size:0.82rem; color:var(--text-dim); line-height:1.6; margin-bottom:10px; }
+
+  /* CODE BLOCK */
+  .code-block { background:#000; border:1px solid var(--border); border-left:3px solid var(--accent2); padding:12px 14px; margin:10px 0; position:relative; }
+  .code-block pre { font-family:'Share Tech Mono',monospace; font-size:0.78rem; color:#00ff88; line-height:1.8; overflow-x:auto; white-space:pre-wrap; word-break:break-all; }
+  .code-block .comment { color:var(--text-dim); }
+  .btn-copy-code { position:absolute; top:8px; right:10px; background:none; border:1px solid var(--border); color:var(--text-dim); padding:3px 10px; font-family:'Share Tech Mono',monospace; font-size:0.58rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+  .btn-copy-code:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* MARK DONE BTN */
+  .btn-done { background:none; border:1px solid var(--border); color:var(--text-dim); padding:8px 18px; font-family:'Share Tech Mono',monospace; font-size:0.65rem; cursor:pointer; letter-spacing:2px; transition:all 0.2s; margin-top:6px; }
+  .btn-done:hover { border-color:var(--accent); color:var(--accent); }
+  .step.done .btn-done { border-color:var(--accent); color:var(--accent); background:rgba(0,245,196,0.05); }
+
+  /* INFO BOX */
+  .info { background:var(--bg3); border:1px solid var(--border); border-left:3px solid var(--accent2); padding:12px 16px; margin:10px 0; font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); line-height:1.8; }
+  .info span { color:var(--accent); }
+  .warn { border-left-color:var(--accent3); }
+  .warn span { color:var(--accent3); }
+
+  /* COMMAND REFERENCE TABLE */
+  .cmd-table { width:100%; border-collapse:collapse; margin-bottom:16px; }
+  .cmd-table th { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--accent); letter-spacing:2px; text-align:left; padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg3); }
+  .cmd-table td { font-family:'Share Tech Mono',monospace; font-size:0.72rem; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .cmd-table td:first-child { color:#00ff88; white-space:nowrap; }
+  .cmd-table td:last-child  { color:var(--text-dim); }
+  .cmd-table tr:hover td { background:var(--bg2); }
+
+  /* QUIZ */
+  .quiz-card { background:var(--bg2); border:1px solid var(--border); padding:18px; margin-bottom:12px; }
+  .quiz-q { font-size:0.9rem; font-weight:700; color:white; margin-bottom:14px; letter-spacing:1px; }
+  .quiz-options { display:flex; flex-direction:column; gap:8px; }
+  .quiz-opt { background:none; border:1px solid var(--border); color:var(--text-dim); padding:10px 14px; font-family:'Share Tech Mono',monospace; font-size:0.72rem; cursor:pointer; letter-spacing:1px; text-align:left; transition:all 0.2s; }
+  .quiz-opt:hover { border-color:var(--accent2); color:var(--text); }
+  .quiz-opt.correct { border-color:var(--accent); color:var(--accent); background:rgba(0,245,196,0.08); }
+  .quiz-opt.wrong   { border-color:var(--accent3); color:var(--accent3); background:rgba(255,0,60,0.08); }
+  .quiz-result { font-family:'Share Tech Mono',monospace; font-size:0.72rem; margin-top:10px; padding:8px 12px; display:none; }
+  .quiz-result.ok  { border:1px solid var(--accent);  color:var(--accent);  background:rgba(0,245,196,0.05); }
+  .quiz-result.err { border:1px solid var(--accent3); color:var(--accent3); background:rgba(255,0,60,0.05); }
+
+  /* COMPLETION */
+  .completion { text-align:center; padding:30px 20px; background:var(--bg2); border:1px solid var(--accent); display:none; animation:fadeIn 0.5s ease; }
+  .completion .big { font-size:2.5rem; margin-bottom:12px; }
+  .completion h2 { font-size:1.2rem; font-weight:700; color:var(--accent); letter-spacing:3px; margin-bottom:8px; }
+  .completion p  { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); line-height:1.8; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="tag">// GENESIS VAULT · TOOLKIT v1.0</div>
+    <h1>TERMUX <span>GUIDE</span></h1>
+    <p>Complete beginner's guide to setting up and using Termux on Android.<br>No experience needed. Follow each step carefully.</p>
+    <div class="badges">
+      <span class="badge badge-green">BEGINNER</span>
+      <span class="badge badge-blue">ANDROID</span>
+      <span class="badge badge-green">FREE</span>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>// YOUR PROGRESS</span>
+      <span id="progress-text">0 / 0 steps done</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('setup',this)">SETUP</div>
+    <div class="tab" onclick="showTab('basics',this)">BASICS</div>
+    <div class="tab" onclick="showTab('packages',this)">PACKAGES</div>
+    <div class="tab" onclick="showTab('commands',this)">COMMANDS</div>
+    <div class="tab" onclick="showTab('quiz',this)">QUIZ</div>
+  </div>
+
+  <!-- ═══ SETUP ═══ -->
+  <div class="section active" id="tab-setup">
+    <div class="section-title">// STEP 1 — INSTALL TERMUX</div>
+
+    <div class="info warn">
+      <span>⚠ WARNING:</span> Do NOT install Termux from Google Play Store. It is outdated and broken. Use F-Droid only.
+    </div>
+
+    <div class="step" id="step-1">
+      <div class="step-num">// STEP 01</div>
+      <h3>Download F-Droid</h3>
+      <p>F-Droid is a free app store for open-source Android apps. Termux on F-Droid is always up to date.</p>
+      <div class="code-block">
+        <pre><span class="comment"># Visit this URL on your Android browser:</span>
+https://f-droid.org</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <p>Tap <strong style="color:white">Download F-Droid</strong> → install the APK → open F-Droid → search <strong style="color:var(--accent)">Termux</strong> → install.</p>
+      <button class="btn-done" onclick="markDone('step-1')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-2">
+      <div class="step-num">// STEP 02</div>
+      <h3>Allow Unknown Sources</h3>
+      <p>Android blocks APK installs by default. You need to allow your browser to install apps.</p>
+      <div class="info">
+        <span>Android 8+:</span> Settings → Apps → Special App Access → Install Unknown Apps → enable for your browser.
+      </div>
+      <button class="btn-done" onclick="markDone('step-2')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-3">
+      <div class="step-num">// STEP 03</div>
+      <h3>First Launch — Update Everything</h3>
+      <p>Open Termux. You'll see a black terminal. Run these commands immediately after install:</p>
+      <div class="code-block">
+        <pre>pkg update && pkg upgrade</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <p>This will take a few minutes. Type <strong style="color:var(--accent)">Y</strong> and press Enter when asked. Wait for it to finish.</p>
+      <button class="btn-done" onclick="markDone('step-3')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-4">
+      <div class="step-num">// STEP 04</div>
+      <h3>Grant Storage Permission</h3>
+      <p>To access your phone's files from Termux, run:</p>
+      <div class="code-block">
+        <pre>termux-setup-storage</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <p>A popup will appear — tap <strong style="color:var(--accent)">Allow</strong>. Now you can access your SD card and internal storage.</p>
+      <button class="btn-done" onclick="markDone('step-4')">[ MARK DONE ]</button>
+    </div>
+  </div>
+
+  <!-- ═══ BASICS ═══ -->
+  <div class="section" id="tab-basics">
+    <div class="section-title">// STEP 2 — TERMINAL BASICS</div>
+
+    <div class="info">
+      <span>// TIP:</span> In a terminal, you type a command and press <span>Enter</span> to run it. There is no mouse — only keyboard.
+    </div>
+
+    <div class="step" id="step-5">
+      <div class="step-num">// STEP 05</div>
+      <h3>Where Am I? (pwd)</h3>
+      <p><code style="color:var(--accent)">pwd</code> means "Print Working Directory" — it shows you which folder you are currently in.</p>
+      <div class="code-block">
+        <pre>pwd
+<span class="comment"># Output example:</span>
+<span class="comment"># /data/data/com.termux/files/home</span></pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-5')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-6">
+      <div class="step-num">// STEP 06</div>
+      <h3>List Files (ls)</h3>
+      <p><code style="color:var(--accent)">ls</code> lists all files and folders in your current location.</p>
+      <div class="code-block">
+        <pre>ls
+<span class="comment"># Show hidden files too:</span>
+ls -la</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-6')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-7">
+      <div class="step-num">// STEP 07</div>
+      <h3>Move Between Folders (cd)</h3>
+      <p><code style="color:var(--accent)">cd</code> means "Change Directory" — it moves you into a folder.</p>
+      <div class="code-block">
+        <pre><span class="comment"># Go into a folder:</span>
+cd Downloads
+
+<span class="comment"># Go back one level:</span>
+cd ..
+
+<span class="comment"># Go to home directory:</span>
+cd ~</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-7')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-8">
+      <div class="step-num">// STEP 08</div>
+      <h3>Create & Delete Files/Folders</h3>
+      <div class="code-block">
+        <pre><span class="comment"># Create a new folder:</span>
+mkdir myfolder
+
+<span class="comment"># Create a new empty file:</span>
+touch myfile.txt
+
+<span class="comment"># Delete a file:</span>
+rm myfile.txt
+
+<span class="comment"># Delete a folder and everything in it:</span>
+rm -rf myfolder</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <div class="info warn"><span>⚠ CAREFUL:</span> <code>rm -rf</code> deletes permanently. There is no undo or trash bin.</div>
+      <button class="btn-done" onclick="markDone('step-8')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-9">
+      <div class="step-num">// STEP 09</div>
+      <h3>Read a File (cat)</h3>
+      <p>Use <code style="color:var(--accent)">cat</code> to display the contents of a text file.</p>
+      <div class="code-block">
+        <pre><span class="comment"># Print file contents to screen:</span>
+cat myfile.txt
+
+<span class="comment"># Write text into a file:</span>
+echo "Hello Vault" > myfile.txt
+
+<span class="comment"># Read it back:</span>
+cat myfile.txt</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-9')">[ MARK DONE ]</button>
+    </div>
+  </div>
+
+  <!-- ═══ PACKAGES ═══ -->
+  <div class="section" id="tab-packages">
+    <div class="section-title">// STEP 3 — INSTALLING PACKAGES</div>
+
+    <div class="info">
+      <span>// pkg</span> is Termux's package manager. It lets you install tools and programs with one command.
+    </div>
+
+    <div class="step" id="step-10">
+      <div class="step-num">// STEP 10</div>
+      <h3>Install Your First Tools</h3>
+      <p>These are essential tools every Termux user should have:</p>
+      <div class="code-block">
+        <pre><span class="comment"># Install Python:</span>
+pkg install python
+
+<span class="comment"># Install git (for downloading code):</span>
+pkg install git
+
+<span class="comment"># Install curl (for web requests):</span>
+pkg install curl
+
+<span class="comment"># Install wget (file downloader):</span>
+pkg install wget
+
+<span class="comment"># Install nano (simple text editor):</span>
+pkg install nano</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-10')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-11">
+      <div class="step-num">// STEP 11</div>
+      <h3>Install Multiple Packages At Once</h3>
+      <div class="code-block">
+        <pre>pkg install python git curl wget nano -y</pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <p>The <code style="color:var(--accent)">-y</code> flag auto-confirms all prompts — no need to type Y every time.</p>
+      <button class="btn-done" onclick="markDone('step-11')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-12">
+      <div class="step-num">// STEP 12</div>
+      <h3>Edit a File With Nano</h3>
+      <p>Nano is a beginner-friendly text editor inside the terminal.</p>
+      <div class="code-block">
+        <pre><span class="comment"># Open or create a file:</span>
+nano myfile.txt
+
+<span class="comment"># Type your text, then:</span>
+<span class="comment"># CTRL + X → exit</span>
+<span class="comment"># Y → confirm save</span>
+<span class="comment"># Enter → keep filename</span></pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-12')">[ MARK DONE ]</button>
+    </div>
+
+    <div class="step" id="step-13">
+      <div class="step-num">// STEP 13</div>
+      <h3>Run a Python Script</h3>
+      <div class="code-block">
+        <pre><span class="comment"># Create a simple python file:</span>
+echo 'print("Genesis Vault activated!")' > hello.py
+
+<span class="comment"># Run it:</span>
+python hello.py
+
+<span class="comment"># Output:</span>
+<span class="comment"># Genesis Vault activated!</span></pre>
+        <button class="btn-copy-code" onclick="copyCode(this)">COPY</button>
+      </div>
+      <button class="btn-done" onclick="markDone('step-13')">[ MARK DONE ]</button>
+    </div>
+  </div>
+
+  <!-- ═══ COMMANDS ═══ -->
+  <div class="section" id="tab-commands">
+    <div class="section-title">// QUICK REFERENCE — ALL COMMANDS</div>
+
+    <table class="cmd-table">
+      <tr><th>COMMAND</th><th>WHAT IT DOES</th></tr>
+      <tr><td>pwd</td><td>Show current directory path</td></tr>
+      <tr><td>ls</td><td>List files in current folder</td></tr>
+      <tr><td>ls -la</td><td>List all files including hidden</td></tr>
+      <tr><td>cd folder</td><td>Move into a folder</td></tr>
+      <tr><td>cd ..</td><td>Go back one folder</td></tr>
+      <tr><td>cd ~</td><td>Go to home directory</td></tr>
+      <tr><td>mkdir name</td><td>Create a new folder</td></tr>
+      <tr><td>touch file.txt</td><td>Create an empty file</td></tr>
+      <tr><td>cat file.txt</td><td>Read/print file contents</td></tr>
+      <tr><td>nano file.txt</td><td>Open file in text editor</td></tr>
+      <tr><td>rm file.txt</td><td>Delete a file</td></tr>
+      <tr><td>rm -rf folder</td><td>Delete folder + all contents</td></tr>
+      <tr><td>cp file dest</td><td>Copy a file</td></tr>
+      <tr><td>mv file dest</td><td>Move or rename a file</td></tr>
+      <tr><td>echo "text"</td><td>Print text to screen</td></tr>
+      <tr><td>pkg update</td><td>Update package list</td></tr>
+      <tr><td>pkg upgrade</td><td>Upgrade installed packages</td></tr>
+      <tr><td>pkg install X</td><td>Install package X</td></tr>
+      <tr><td>pkg uninstall X</td><td>Remove package X</td></tr>
+      <tr><td>pkg list-installed</td><td>Show all installed packages</td></tr>
+      <tr><td>python file.py</td><td>Run a Python script</td></tr>
+      <tr><td>curl URL</td><td>Fetch a URL / test connections</td></tr>
+      <tr><td>wget URL</td><td>Download a file from URL</td></tr>
+      <tr><td>git clone URL</td><td>Download a GitHub repo</td></tr>
+      <tr><td>clear</td><td>Clear the terminal screen</td></tr>
+      <tr><td>exit</td><td>Close Termux session</td></tr>
+      <tr><td>CTRL + C</td><td>Stop a running command</td></tr>
+      <tr><td>CTRL + Z</td><td>Pause a running command</td></tr>
+      <tr><td>history</td><td>Show command history</td></tr>
+      <tr><td>↑ arrow key</td><td>Repeat last command</td></tr>
+    </table>
+  </div>
+
+  <!-- ═══ QUIZ ═══ -->
+  <div class="section" id="tab-quiz">
+    <div class="section-title">// TEST YOUR KNOWLEDGE</div>
+
+    <div class="quiz-card" id="q1">
+      <div class="quiz-q">1. Which command shows you what folder you are currently in?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this,'q1',false)">ls</button>
+        <button class="quiz-opt" onclick="answer(this,'q1',true)">pwd</button>
+        <button class="quiz-opt" onclick="answer(this,'q1',false)">cd</button>
+        <button class="quiz-opt" onclick="answer(this,'q1',false)">cat</button>
+      </div>
+      <div class="quiz-result" id="q1-result"></div>
+    </div>
+
+    <div class="quiz-card" id="q2">
+      <div class="quiz-q">2. Where should you download Termux from?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this,'q2',false)">Google Play Store</button>
+        <button class="quiz-opt" onclick="answer(this,'q2',true)">F-Droid</button>
+        <button class="quiz-opt" onclick="answer(this,'q2',false)">APKPure</button>
+        <button class="quiz-opt" onclick="answer(this,'q2',false)">Any source is fine</button>
+      </div>
+      <div class="quiz-result" id="q2-result"></div>
+    </div>
+
+    <div class="quiz-card" id="q3">
+      <div class="quiz-q">3. What does <code style="color:var(--accent)">rm -rf folder</code> do?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this,'q3',false)">Renames the folder</button>
+        <button class="quiz-opt" onclick="answer(this,'q3',false)">Moves folder to trash</button>
+        <button class="quiz-opt" onclick="answer(this,'q3',true)">Permanently deletes the folder and all its contents</button>
+        <button class="quiz-opt" onclick="answer(this,'q3',false)">Creates a backup of the folder</button>
+      </div>
+      <div class="quiz-result" id="q3-result"></div>
+    </div>
+
+    <div class="quiz-card" id="q4">
+      <div class="quiz-q">4. Which command installs Python in Termux?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this,'q4',false)">apt install python</button>
+        <button class="quiz-opt" onclick="answer(this,'q4',false)">install python</button>
+        <button class="quiz-opt" onclick="answer(this,'q4',true)">pkg install python</button>
+        <button class="quiz-opt" onclick="answer(this,'q4',false)">pip install python</button>
+      </div>
+      <div class="quiz-result" id="q4-result"></div>
+    </div>
+
+    <div class="quiz-card" id="q5">
+      <div class="quiz-q">5. How do you stop a command that is currently running?</div>
+      <div class="quiz-options">
+        <button class="quiz-opt" onclick="answer(this,'q5',false)">CTRL + Z</button>
+        <button class="quiz-opt" onclick="answer(this,'q5',true)">CTRL + C</button>
+        <button class="quiz-opt" onclick="answer(this,'q5',false)">Type "stop"</button>
+        <button class="quiz-opt" onclick="answer(this,'q5',false)">Close Termux</button>
+      </div>
+      <div class="quiz-result" id="q5-result"></div>
+    </div>
+
+    <div class="completion" id="completion">
+      <div class="big">🎉</div>
+      <h2>TOOLKIT COMPLETE</h2>
+      <p>You've finished the Termux Guide Toolkit.<br>
+      You now know how to install, navigate, and use Termux.<br><br>
+      <span style="color:var(--accent)">// Next step: explore more tools in Genesis Vault.</span></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── PROGRESS TRACKING ──
+const TOTAL_STEPS = 13;
+let done = JSON.parse(localStorage.getItem('gv_termux_done') || '[]');
+
+function saveProgress() { localStorage.setItem('gv_termux_done', JSON.stringify(done)); }
+function updateProgress() {
+  const pct = Math.round((done.length / TOTAL_STEPS) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${done.length} / ${TOTAL_STEPS} steps done`;
+}
+
+function markDone(id) {
+  const el = document.getElementById(id);
+  if (done.includes(id)) {
+    done = done.filter(x => x !== id);
+    el.classList.remove('done');
+    el.querySelector('.btn-done').textContent = '[ MARK DONE ]';
+  } else {
+    done.push(id);
+    el.classList.add('done');
+    el.querySelector('.btn-done').textContent = '[ DONE ✓ ]';
+  }
+  saveProgress();
+  updateProgress();
+}
+
+function restoreProgress() {
+  done.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('done');
+      const btn = el.querySelector('.btn-done');
+      if (btn) btn.textContent = '[ DONE ✓ ]';
+    }
+  });
+  updateProgress();
+}
+
+// ── TABS ──
+function showTab(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── CODE COPY ──
+function copyCode(btn) {
+  const pre = btn.parentElement.querySelector('pre');
+  const text = pre.innerText.split('\n').filter(l => !l.trim().startsWith('#')).join('\n').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED!';
+    setTimeout(() => btn.textContent = 'COPY', 1500);
+  });
+}
+
+// ── QUIZ ──
+let quizScore = 0;
+let answered  = {};
+
+function answer(btn, qid, correct) {
+  if (answered[qid]) return;
+  answered[qid] = true;
+  const result = document.getElementById(qid + '-result');
+  const opts   = btn.parentElement.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+
+  if (correct) {
+    btn.classList.add('correct');
+    quizScore++;
+    result.textContent = '✓ Correct!';
+    result.className   = 'quiz-result ok';
+  } else {
+    btn.classList.add('wrong');
+    result.textContent = '✗ Wrong — try to remember this one.';
+    result.className   = 'quiz-result err';
+    // highlight correct answer
+    opts.forEach(o => { if(o.onclick.toString().includes('true')) o.classList.add('correct'); });
+  }
+  result.style.display = 'block';
+
+  // Check if all answered
+  if (Object.keys(answered).length === 5) {
+    setTimeout(() => {
+      document.getElementById('completion').style.display = 'block';
+      document.getElementById('completion').scrollIntoView({ behavior:'smooth' });
+    }, 800);
+  }
+}
+
+// ── INIT ──
+restoreProgress();
+</script>
+</body>
+</html>
