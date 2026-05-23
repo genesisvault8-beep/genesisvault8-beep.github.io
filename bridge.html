@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Genesis Vault // Bridge Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cyan: #00f5d4;
+  --cyan-dim: #00bfa5;
+  --green: #39ff14;
+  --orange: #ff6b00;
+  --red: #ff2d55;
+  --bg: #020c0a;
+  --bg2: #041a14;
+  --bg3: #061f18;
+  --border: #0d3d2e;
+  --text: #a0c4b8;
+  --text-dim: #4a7a6a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,245,212,0.015) 2px,
+    rgba(0,245,212,0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Grid background */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(2,12,10,0.95);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+}
+
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+.logo span:first-child { color: var(--cyan); }
+.logo span:last-child { color: #fff; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.back-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.back-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
+.network-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── MAIN ── */
+main {
+  position: relative;
+  z-index: 1;
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ── PAGE TITLE ── */
+.page-title {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-title .prefix {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.page-title h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 3px;
+}
+
+.page-title .sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* ── ACTIVE BRIDGE CARD ── */
+.active-bridge {
+  background: linear-gradient(135deg, rgba(0,245,212,0.05), rgba(0,245,212,0.02));
+  border: 1px solid var(--cyan);
+  border-left: 3px solid var(--cyan);
+  padding: 16px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.active-bridge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0,245,212,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.active-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.active-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.bridge-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.bridge-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+.status-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border: 1px solid;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-badge.connected {
+  color: var(--green);
+  border-color: var(--green);
+  background: rgba(57,255,20,0.05);
+}
+
+.status-badge.connected::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 1.5s infinite;
+}
+
+.status-badge.offline {
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+
+.bridge-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  line-height: 1.8;
+}
+
+.bridge-meta span { color: var(--cyan-dim); }
+
+.tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.tool-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--cyan);
+  border: 1px solid rgba(0,245,212,0.3);
+  padding: 3px 8px;
+  background: rgba(0,245,212,0.05);
+  letter-spacing: 1px;
+}
+
+.copy-cmd-box {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.copy-cmd-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.copy-cmd-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.copy-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 9px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.copy-btn:hover {
+  background: rgba(0,245,212,0.1);
+  box-shadow: 0 0 15px rgba(0,245,212,0.2);
+}
+
+.copy-btn.copied {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* No bridge state */
+.no-bridge {
+  background: var(--bg2);
+  border: 1px dashed var(--border);
+  border-left: 3px solid var(--text-dim);
+  padding: 20px 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.no-bridge .icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+.no-bridge p {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+/* ── SECTION HEADER ── */
+.section-header {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-header::before { content: '//'; color: var(--cyan-dim); }
+.section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ── UPGRADE ANNOUNCEMENTS ── */
+.upgrades-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.upgrade-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.upgrade-card:hover { border-color: var(--orange); }
+
+.upgrade-card.owned {
+  border-left-color: var(--green);
+  opacity: 0.7;
+}
+
+.upgrade-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle, rgba(255,107,0,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.upgrade-card.owned::after {
+  background: radial-gradient(circle, rgba(57,255,20,0.08) 0%, transparent 70%);
+}
+
+.upgrade-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.upgrade-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.upgrade-price {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--orange);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.upgrade-price.free { color: var(--green); }
+.upgrade-price.owned-tag { color: var(--green); }
+
+.upgrade-platform {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.upgrade-desc {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.upgrade-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.upgrade-tool {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--orange);
+  border: 1px solid rgba(255,107,0,0.3);
+  padding: 2px 7px;
+  background: rgba(255,107,0,0.05);
+}
+
+.upgrade-tool.new {
+  color: var(--cyan);
+  border-color: rgba(0,245,212,0.3);
+  background: rgba(0,245,212,0.05);
+}
+
+.upgrade-tool.new::before { content: '+ '; }
+
+.upgrade-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.upgrade-posted {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.upgrade-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  padding: 6px 14px;
+  border: 1px solid var(--orange);
+  color: var(--orange);
+  background: transparent;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.upgrade-btn:hover {
+  background: rgba(255,107,0,0.1);
+  box-shadow: 0 0 12px rgba(255,107,0,0.2);
+}
+
+.upgrade-btn.owned-btn {
+  border-color: var(--green);
+  color: var(--green);
+  cursor: default;
+}
+
+/* ── COMING SOON ── */
+.coming-soon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.coming-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-dim);
+  padding: 14px;
+  opacity: 0.5;
+  position: relative;
+}
+
+.coming-overlay {
+  position: absolute;
+  top: 8px; right: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  letter-spacing: 2px;
+}
+
+.coming-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.coming-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.stat-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 10px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cyan);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+/* ── GUIDE MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding-top: 40px; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--cyan);
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+}
+
+.modal-header {
+  background: rgba(0,245,212,0.05);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  color: var(--cyan);
+  letter-spacing: 2px;
+}
+
+.modal-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+
+.modal-body {
+  padding: 16px;
+}
+
+.guide-step {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.step-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-content { flex: 1; }
+
+.step-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.step-desc {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.step-code {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  margin-top: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--green);
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+/* ── UPGRADE CONFIRM MODAL ── */
+.confirm-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  z-index: 1001;
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.confirm-modal.active { display: flex; }
+
+.confirm-box {
+  background: var(--bg2);
+  border: 1px solid var(--orange);
+  width: 100%;
+  max-width: 360px;
+  padding: 20px;
+  text-align: center;
+}
+
+.confirm-icon { font-size: 32px; margin-bottom: 10px; }
+
+.confirm-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.confirm-desc {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.confirm-cost {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  color: var(--orange);
+  margin-bottom: 16px;
+}
+
+.confirm-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.btn-confirm {
+  background: rgba(255,107,0,0.1);
+  border: 1px solid var(--orange);
+  color: var(--orange);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.btn-confirm:hover { background: rgba(255,107,0,0.2); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(2,12,10,0.97);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0 8px;
+  text-decoration: none;
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.nav-item.active { color: var(--cyan); }
+.nav-item:hover { color: var(--cyan); }
+
+.nav-icon { font-size: 16px; }
+
+/* padding for bottom nav */
+.bottom-spacer { height: 70px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.active-bridge { animation: fadeInUp 0.4s ease both; }
+.upgrade-card:nth-child(1) { animation: fadeInUp 0.4s 0.1s ease both; }
+.upgrade-card:nth-child(2) { animation: fadeInUp 0.4s 0.2s ease both; }
+.upgrade-card:nth-child(3) { animation: fadeInUp 0.4s 0.3s ease both; }
+
+/* glitch on title */
+@keyframes glitch {
+  0%,95%,100% { text-shadow: none; transform: none; }
+  96% { text-shadow: -2px 0 var(--cyan), 2px 0 var(--orange); transform: translateX(1px); }
+  97% { text-shadow: 2px 0 var(--cyan), -2px 0 var(--orange); transform: translateX(-1px); }
+  98% { text-shadow: none; transform: none; }
+}
+
+.page-title h1 { animation: glitch 6s infinite; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg3);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 8px 16px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2000;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <span>GENESIS</span><span>VAULT</span>
+  </div>
+  <div class="header-right">
+    <a href="dashboard.html" class="back-btn">← BACK</a>
+    <div class="network-dot"></div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- PAGE TITLE -->
+  <div class="page-title">
+    <div class="prefix">// NETWORK ACCESS</div>
+    <h1>BRIDGE</h1>
+    <div class="sub">$ connect your device to the vault network</div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-box">
+      <div class="stat-num" id="statActive">—</div>
+      <div class="stat-label">ACTIVE NODES</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statJobs">—</div>
+      <div class="stat-label">JOBS TODAY</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statVC">—</div>
+      <div class="stat-label">VC BALANCE</div>
+    </div>
+  </div>
+
+  <!-- ACTIVE BRIDGE -->
+  <div class="section-header">ACTIVE BRIDGE</div>
+
+  <!-- STATE: No bridge -->
+  <div class="no-bridge" id="noBridgeBox">
+    <div class="icon">⬡</div>
+    <p>NO BRIDGE CONNECTED</p>
+    <p style="margin-top:4px;font-size:10px;">Purchase a bridge below to connect your device</p>
+  </div>
+
+  <!-- STATE: Has bridge (hidden by default, shown via JS) -->
+  <div class="active-bridge" id="activeBridgeBox" style="display:none;">
+    <div class="active-label">YOUR BRIDGE</div>
+    <div class="bridge-name-row">
+      <div class="bridge-name" id="activeBridgeName">GHOST BRIDGE</div>
+      <div class="status-badge connected" id="bridgeStatus">CONNECTED</div>
+    </div>
+    <div class="bridge-meta">
+      PLATFORM: <span id="activePlatform">TERMUX</span> &nbsp;|&nbsp;
+      TIER: <span id="activeTier">FREE</span>
+    </div>
+    <div class="tools-list" id="activeTools"></div>
+    <div class="copy-cmd-box">
+      <div class="copy-cmd-label">// INSTALL COMMAND</div>
+      <div class="copy-cmd-text" id="installCmd">Generating your secure install link...</div>
+    </div>
+    <button class="copy-btn" id="copyBtn" onclick="copyInstallCmd()">
+      <span>⬡</span> COPY INSTALL COMMAND
+    </button>
+  </div>
+
+  <!-- AVAILABLE UPGRADES -->
+  <div class="section-header" style="margin-top:8px;">AVAILABLE UPGRADES</div>
+
+  <div class="upgrades-list" id="upgradesList">
+    <!-- Populated by JS / will be admin-posted -->
+
+    <!-- GHOST BRIDGE — always free -->
+    <div class="upgrade-card" id="card-ghost">
+      <div class="upgrade-top">
+        <div>
+          <div class="upgrade-name">GHOST BRIDGE</div>
+          <div class="upgrade-platform">📱 TERMUX &amp; LINUX</div>
+        </div>
+        <div class="upgrade-price free">FREE</div>
+      </div>
+      <div class="upgrade-desc">Entry-level bridge. Connect your device and start learning the fundamentals of network recon.</div>
+      <div class="upgrade-tools">
+        <span class="upgrade-tool">nmap</span>
+        <span class="upgrade-tool">whois</span>
+        <span class="upgrade-tool">ping</span>
+        <span class="upgrade-tool">traceroute</span>
+      </div>
+      <div class="upgrade-footer">
+        <div class="upgrade-posted">POSTED BY ADMIN · ALWAYS AVAILABLE</div>
+        <button class="upgrade-btn" onclick="showGuide('ghost')">[ GUIDE ]</button>
+      </div>
+    </div>
+
+    <!-- HUNTER BRIDGE -->
+    <div class="upgrade-card" id="card-hunter">
+      <div class="upgrade-top">
+        <div>
+          <div class="upgrade-name">HUNTER BRIDGE</div>
+          <div class="upgrade-platform">📱 TERMUX</div>
+        </div>
+        <div class="upgrade-price">200 VC</div>
+      </div>
+      <div class="upgrade-desc">Upgrade your Termux bridge with recon tools used by real bug bounty hunters.</div>
+      <div class="upgrade-tools">
+        <span class="upgrade-tool">nmap</span>
+        <span class="upgrade-tool">whois</span>
+        <span class="upgrade-tool">ping</span>
+        <span class="upgrade-tool new">subfinder</span>
+        <span class="upgrade-tool new">httpx</span>
+        <span class="upgrade-tool new">waybackurls</span>
+        <span class="upgrade-tool new">amass</span>
+      </div>
+      <div class="upgrade-footer">
+        <div class="upgrade-posted">POSTED BY ADMIN · 3 DAYS AGO</div>
+        <div style="display:flex;gap:8px;">
+          <button class="upgrade-btn" style="border-color:var(--text-dim);color:var(--text-dim);" onclick="showGuide('hunter')">[ GUIDE ]</button>
+          <button class="upgrade-btn" onclick="confirmUpgrade('Hunter Bridge', 200, 'hunter')">[ UPGRADE ]</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINUX BRIDGE -->
+    <div class="upgrade-card" id="card-linux">
+      <div class="upgrade-top">
+        <div>
+          <div class="upgrade-name">LINUX BRIDGE</div>
+          <div class="upgrade-platform">🖥️ LINUX / VPS / KALI</div>
+        </div>
+        <div class="upgrade-price">200 VC</div>
+      </div>
+      <div class="upgrade-desc">Full desktop Linux environment. More power, heavier scans, serious recon pipeline.</div>
+      <div class="upgrade-tools">
+        <span class="upgrade-tool">nmap</span>
+        <span class="upgrade-tool">whois</span>
+        <span class="upgrade-tool new">subfinder</span>
+        <span class="upgrade-tool new">httpx</span>
+        <span class="upgrade-tool new">nuclei</span>
+        <span class="upgrade-tool new">ffuf</span>
+        <span class="upgrade-tool new">waybackurls</span>
+        <span class="upgrade-tool new">sqlmap</span>
+      </div>
+      <div class="upgrade-footer">
+        <div class="upgrade-posted">POSTED BY ADMIN · 3 DAYS AGO</div>
+        <div style="display:flex;gap:8px;">
+          <button class="upgrade-btn" style="border-color:var(--text-dim);color:var(--text-dim);" onclick="showGuide('linux')">[ GUIDE ]</button>
+          <button class="upgrade-btn" onclick="confirmUpgrade('Linux Bridge', 200, 'linux')">[ UPGRADE ]</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMING SOON -->
+  <div class="section-header">COMING SOON</div>
+  <div class="coming-soon-list">
+    <div class="coming-card">
+      <div class="coming-overlay">LOCKED</div>
+      <div class="coming-name">SPECTER BRIDGE</div>
+      <div class="coming-desc">Full arsenal. Admin approval required. For elite hunters only.</div>
+    </div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="nav-item">
+    <span class="nav-icon">⌂</span>
+    <span>HOME</span>
+  </a>
+  <a href="community.html" class="nav-item">
+    <span class="nav-icon">◈</span>
+    <span>COMMUNITY</span>
+  </a>
+  <a href="market.html" class="nav-item">
+    <span class="nav-icon">⊞</span>
+    <span>MARKET</span>
+  </a>
+  <a href="messages.html" class="nav-item">
+    <span class="nav-icon">✉</span>
+    <span>MESSAGES</span>
+  </a>
+  <a href="profile.html" class="nav-item">
+    <span class="nav-icon">◉</span>
+    <span>PROFILE</span>
+  </a>
+</nav>
+
+<!-- GUIDE MODAL -->
+<div class="modal-overlay" id="guideModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="guideTitle">BRIDGE GUIDE</div>
+      <button class="modal-close" onclick="closeGuide()">[ CLOSE ]</button>
+    </div>
+    <div class="modal-body" id="guideBody"></div>
+  </div>
+</div>
+
+<!-- UPGRADE CONFIRM MODAL -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon">⬡</div>
+    <div class="confirm-title" id="confirmTitle">UPGRADE BRIDGE</div>
+    <div class="confirm-desc" id="confirmDesc">This will upgrade your bridge and deduct VC from your balance.</div>
+    <div class="confirm-cost" id="confirmCost">200 VC</div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">CANCEL</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="executeUpgrade()">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://genesis-vault-backend.onrender.com";
+const AI_API = "https://genesis-ai-backend.onrender.com";
+const token = localStorage.getItem("vault_token");
+
+let pendingUpgrade = null;
+let userVC = 0;
+
+// ── INIT ──
+async function init() {
+  if (!token) { window.location.href = "index.html"; return; }
+  await loadUserData();
+  await loadBridgeStatus();
+}
+
+async function loadUserData() {
+  try {
+    const res = await fetch(`${API}/api/dashboard`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.user) {
+      userVC = data.user.vc_balance || 0;
+      document.getElementById("statVC").textContent = userVC.toLocaleString();
+    }
+  } catch(e) {
+    document.getElementById("statVC").textContent = "—";
+  }
+}
+
+async function loadBridgeStatus() {
+  try {
+    const res = await fetch(`${AI_API}/bridge/status`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    // Network stats
+    document.getElementById("statActive").textContent = data.active_nodes ?? "—";
+    document.getElementById("statJobs").textContent   = data.jobs_today  ?? "—";
+
+    if (data.bridge && data.bridge.tier) {
+      showActiveBridge(data.bridge);
+    }
+  } catch(e) {
+    document.getElementById("statActive").textContent = "0";
+    document.getElementById("statJobs").textContent   = "0";
+    // Show demo state for now (no backend yet)
+    showNoBridge();
+  }
+}
+
+function showNoBridge() {
+  document.getElementById("noBridgeBox").style.display = "block";
+  document.getElementById("activeBridgeBox").style.display = "none";
+}
+
+function showActiveBridge(bridge) {
+  document.getElementById("noBridgeBox").style.display = "none";
+  document.getElementById("activeBridgeBox").style.display = "block";
+
+  const names = { ghost: "GHOST BRIDGE", hunter: "HUNTER BRIDGE", linux: "LINUX BRIDGE", specter: "SPECTER BRIDGE" };
+  const platforms = { ghost: "TERMUX / LINUX", hunter: "TERMUX", linux: "LINUX / VPS", specter: "ANY" };
+  const tiers = { ghost: "FREE", hunter: "200 VC", linux: "200 VC", specter: "500 VC" };
+  const toolMap = {
+    ghost:   ["nmap","whois","ping","traceroute"],
+    hunter:  ["nmap","whois","ping","subfinder","httpx","waybackurls","amass"],
+    linux:   ["nmap","whois","subfinder","httpx","nuclei","ffuf","sqlmap","waybackurls"],
+    specter: ["nmap","subfinder","httpx","nuclei","ffuf","sqlmap","dalfox","waybackurls","amass","gf","paramspider"]
+  };
+
+  const tier = bridge.tier || "ghost";
+  document.getElementById("activeBridgeName").textContent = names[tier] || "GHOST BRIDGE";
+  document.getElementById("activePlatform").textContent   = platforms[tier] || "TERMUX";
+  document.getElementById("activeTier").textContent       = tiers[tier] || "FREE";
+
+  const toolsEl = document.getElementById("activeTools");
+  toolsEl.innerHTML = (toolMap[tier] || []).map(t => `<span class="tool-tag">${t}</span>`).join("");
+
+  // Install command (placeholder — real token generated by backend)
+  const cmd = `curl -s "${AI_API}/bridge/install?bridge_token=${bridge.install_token || 'YOUR_TOKEN'}&tier=${tier}" | python3`;
+  document.getElementById("installCmd").textContent = cmd;
+
+  // Mark owned card
+  const card = document.getElementById(`card-${tier}`);
+  if (card) {
+    card.classList.add("owned");
+    const btn = card.querySelector(".upgrade-btn:last-child");
+    if (btn) { btn.textContent = "[ OWNED ]"; btn.classList.add("owned-btn"); btn.onclick = null; }
+    const price = card.querySelector(".upgrade-price");
+    if (price) { price.classList.add("owned-tag"); price.textContent = "✓ OWNED"; }
+  }
+}
+
+// ── COPY INSTALL COMMAND ──
+function copyInstallCmd() {
+  const cmd = document.getElementById("installCmd").textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.classList.add("copied");
+    btn.innerHTML = "<span>✓</span> COPIED TO CLIPBOARD";
+    showToast("Install command copied!");
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      btn.innerHTML = "<span>⬡</span> COPY INSTALL COMMAND";
+    }, 2500);
+  });
+}
+
+// ── GUIDE MODAL ──
+const guides = {
+  ghost: {
+    title: "GHOST BRIDGE — SETUP GUIDE",
+    steps: [
+      { title: "INSTALL TERMUX", desc: "Download Termux from F-Droid (not Play Store). Open it and run:", code: "pkg update && pkg upgrade -y" },
+      { title: "INSTALL PYTHON", desc: "Ghost Bridge runs on Python 3:", code: "pkg install python -y\npip install requests" },
+      { title: "INSTALL TOOLS", desc: "Install the tools Ghost Bridge can run:", code: "pkg install nmap -y" },
+      { title: "RUN THE BRIDGE", desc: "Copy your install command from above and paste it into Termux. The bridge will start automatically and connect to the vault.", code: "# Paste your install command here" },
+      { title: "KEEP IT RUNNING", desc: "Keep Termux open in the background. Your bridge will stay ONLINE as long as Termux is running. Use a wake lock to prevent Android from killing it.", code: "" }
+    ]
+  },
+  hunter: {
+    title: "HUNTER BRIDGE — SETUP GUIDE",
+    steps: [
+      { title: "REQUIREMENTS", desc: "You need Ghost Bridge first. Hunter Bridge adds recon tools on top:", code: "pkg update && pkg upgrade -y" },
+      { title: "INSTALL GO", desc: "Most recon tools require Go:", code: "pkg install golang -y\nexport GOPATH=$HOME/go\nexport PATH=$PATH:$GOPATH/bin" },
+      { title: "INSTALL RECON TOOLS", desc: "Install the additional Hunter tools:", code: "go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest\ngo install github.com/projectdiscovery/httpx/cmd/httpx@latest\ngo install github.com/tomnomnom/waybackurls@latest" },
+      { title: "UPGRADE YOUR BRIDGE", desc: "Purchase Hunter Bridge (200 VC), then copy the new install command and re-run it in Termux:", code: "# New install command will appear above after upgrade" },
+      { title: "VERIFY", desc: "Your bridge will automatically detect the new tools and update your capabilities in the vault.", code: "subfinder -h # should work" }
+    ]
+  },
+  linux: {
+    title: "LINUX BRIDGE — SETUP GUIDE",
+    steps: [
+      { title: "REQUIREMENTS", desc: "A Linux machine, VPS, or Kali Linux installation. Ubuntu/Debian recommended:", code: "sudo apt update && sudo apt upgrade -y" },
+      { title: "INSTALL PYTHON", desc: "Linux Bridge requires Python 3.8+:", code: "sudo apt install python3 python3-pip -y\npip3 install requests" },
+      { title: "INSTALL TOOLS", desc: "Install the full Linux Bridge toolkit:", code: "sudo apt install nmap -y\n# Install Go tools:\ngo install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest\ngo install github.com/projectdiscovery/httpx/cmd/httpx@latest\ngo install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest\nsudo apt install ffuf sqlmap -y" },
+      { title: "RUN THE BRIDGE", desc: "Copy your install command and run it on your Linux machine:", code: "# Paste your install command here\n# Run with: python3 bridge.py" },
+      { title: "RUN AS SERVICE", desc: "Keep the bridge running 24/7 with systemd:", code: "# The bridge script includes a systemd setup\n# Follow the prompts after first run" }
+    ]
+  }
+};
+
+function showGuide(type) {
+  const guide = guides[type];
+  if (!guide) return;
+  document.getElementById("guideTitle").textContent = guide.title;
+  document.getElementById("guideBody").innerHTML = guide.steps.map((s, i) => `
+    <div class="guide-step">
+      <div class="step-num">${i+1}</div>
+      <div class="step-content">
+        <div class="step-title">${s.title}</div>
+        <div class="step-desc">${s.desc}</div>
+        ${s.code ? `<div class="step-code">${s.code}</div>` : ""}
+      </div>
+    </div>
+  `).join("");
+  document.getElementById("guideModal").classList.add("active");
+}
+
+function closeGuide() {
+  document.getElementById("guideModal").classList.remove("active");
+}
+
+// ── UPGRADE CONFIRM ──
+function confirmUpgrade(name, cost, tier) {
+  if (userVC < cost) {
+    showToast("Insufficient VC — buy more VC first");
+    return;
+  }
+  pendingUpgrade = { name, cost, tier };
+  document.getElementById("confirmTitle").textContent = `UPGRADE TO ${name.toUpperCase()}`;
+  document.getElementById("confirmDesc").textContent  = `This will upgrade your bridge and deduct ${cost} VC from your balance.`;
+  document.getElementById("confirmCost").textContent  = `${cost} VC`;
+  document.getElementById("confirmModal").classList.add("active");
+}
+
+function closeConfirm() {
+  document.getElementById("confirmModal").classList.remove("active");
+  pendingUpgrade = null;
+}
+
+async function executeUpgrade() {
+  if (!pendingUpgrade) return;
+  const btn = document.getElementById("confirmBtn");
+  btn.textContent = "PROCESSING...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${AI_API}/bridge/upgrade`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ tier: pendingUpgrade.tier })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeConfirm();
+      showToast(`✓ ${pendingUpgrade.name} activated!`);
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast(data.error || "Upgrade failed");
+    }
+  } catch(e) {
+    // Demo mode — show success for now
+    closeConfirm();
+    showToast("Bridge upgrade coming soon — backend in progress");
+  }
+
+  btn.textContent = "CONFIRM";
+  btn.disabled = false;
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// Close modals on overlay click
+document.getElementById("guideModal").addEventListener("click", function(e) {
+  if (e.target === this) closeGuide();
+});
+document.getElementById("confirmModal").addEventListener("click", function(e) {
+  if (e.target === this) closeConfirm();
+});
+
+init();
+</script>
+</body>
+</html>
