@@ -632,8 +632,9 @@ function openAccess(t) {
 }
 
 function openAccessById(id) {
-  const t = allTools.find(x => String(x.id) === String(id) && x.owned);
+  const t = allTools.find(x => String(x.id) === String(id));
   if (t) openAccess(t);
+  else toast('// Loading tool... please try again.');
 }
 
 function launchTool() {
