@@ -765,7 +765,7 @@
           </div>
           <div style="text-align:right;">
             <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent2);letter-spacing:1px;border:1px solid var(--accent2);padding:4px 10px;">[ + BUY VC ]</div>
-            <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:4px;">10 VC / $1 USDT</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:4px;">30 VC / $5 USDT · auto verified</div>
           </div>
         </div>
       </div>
@@ -1064,14 +1064,21 @@ async function fetchVCBalance() {
   try {
     const res  = await fetchWithAuth(`${API}/vc/balance`);
     const data = await res.json();
-    if (data.status === 'success') {
-      const bal = data.balance ?? 0;
+    const bal  = data.balance ?? data.vc_balance ?? 0;
+    const statEl = document.getElementById('stat-vc');
+    const menuEl = document.getElementById('menu-vc-balance');
+    if (statEl) statEl.textContent = Number(bal).toLocaleString();
+    if (menuEl) menuEl.textContent = Number(bal).toLocaleString();
+    localStorage.setItem('gv_vc', bal);
+  } catch(e) {
+    const cached = localStorage.getItem('gv_vc');
+    if (cached) {
       const statEl = document.getElementById('stat-vc');
       const menuEl = document.getElementById('menu-vc-balance');
-      if (statEl) statEl.textContent = bal.toLocaleString();
-      if (menuEl) menuEl.textContent = bal.toLocaleString();
+      if (statEl) statEl.textContent = Number(cached).toLocaleString();
+      if (menuEl) menuEl.textContent = Number(cached).toLocaleString();
     }
-  } catch(e) {}
+  }
 }
 
 // Refresh VC balance whenever user returns to this tab (e.g. after visiting market.html)
@@ -1549,7 +1556,7 @@ async function loadProfile() {
     const vcData = await vcRes.json();
     const u   = data.username || data.email?.split('@')[0] || 'Operative';
     const age = calcVaultAge(data.created_at);
-    const bal = vcData.balance ?? 0;
+    const bal = vcData.balance ?? vcData.vc_balance ?? 0;
 
     document.getElementById('profile-card').innerHTML = `
       <div class="profile-avatar">${u[0].toUpperCase()}</div>
