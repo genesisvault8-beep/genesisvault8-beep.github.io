@@ -138,7 +138,8 @@
 </main>
 
 <script>
-const API   = 'https://genesis-vault-backend.onrender.com/api';
+const API        = 'https://genesis-vault-backend.onrender.com/api';
+const BRIDGE_API = 'https://genesis-bridge-backend.onrender.com';
 const token = localStorage.getItem('gv_token');
 if (!token) location.href = 'login.html';
 
@@ -446,12 +447,26 @@ function initDownloadMode() {
   document.getElementById('mode-download').style.display = 'block';
 }
 
-function doDownload() {
-  if (tool.download_url) {
-    window.open(tool.download_url, '_blank');
-  } else {
-    toast('// Download link not available yet. Contact admin.');
+async function doDownload() {
+  const btn = document.getElementById('btn-dl');
+  btn.disabled = true;
+  btn.textContent = '[ GENERATING LINK... ]';
+  try {
+    const res  = await fetchWithAuth(`${BRIDGE_API}/bridge/download/${tool.id}`, { method:'POST' });
+    const data = await res.json();
+    if (data.download_url) {
+      toast('✓ Link ready — expires in 60 seconds');
+      window.open(data.download_url, '_blank');
+      btn.textContent = '[ DOWNLOAD FILE ]';
+    } else {
+      toast('// ' + (data.error || 'Download failed.'));
+      btn.textContent = '[ DOWNLOAD FILE ]';
+    }
+  } catch(e) {
+    toast('// Network error. Try again.');
+    btn.textContent = '[ DOWNLOAD FILE ]';
   }
+  btn.disabled = false;
 }
 
 /* ── APP / IFRAME MODE ── */
