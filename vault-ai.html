@@ -157,6 +157,51 @@
     @media (max-width: 360px) {
       .sys-label, .statusbar .mid { display: none; }
     }
+
+    /* TOKEN QUOTA BAR */
+    .quota-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 4px 12px; background: #000508;
+      border-bottom: 1px solid #001a0a; flex-shrink: 0;
+    }
+    .quota-left { display: flex; align-items: center; gap: 8px; }
+    .quota-label { font-size: 8px; color: #1a4a2a; letter-spacing: 1px; }
+    .quota-track { width: 80px; height: 3px; background: #001a0a; border-radius: 0; }
+    .quota-fill  { height: 3px; background: var(--green); transition: width 0.5s ease; border-radius: 0; }
+    .quota-fill.warn { background: #ffaa00; }
+    .quota-fill.low  { background: var(--red); }
+    .quota-count { font-size: 8px; color: var(--green-dim); letter-spacing: 1px; }
+    .quota-right { display: flex; gap: 6px; align-items: center; }
+    .btn-buy-tokens { background: none; border: 1px solid var(--green-dim); color: var(--green);
+      font-family: 'JetBrains Mono', monospace; font-size: 7px; padding: 2px 7px; cursor: pointer;
+      letter-spacing: 1px; transition: all 0.15s; }
+    .btn-buy-tokens:hover { background: var(--green-dark); }
+    .bridge-status { font-size: 8px; letter-spacing: 1px; display: flex; align-items: center; gap: 4px; }
+    .bridge-dot { width: 5px; height: 5px; border-radius: 50%; background: #333; }
+    .bridge-dot.connected { background: var(--green); animation: pulse 2s infinite; }
+    .bridge-dot.connecting { background: #ffaa00; animation: pulse 0.5s infinite; }
+
+    /* TOKEN PURCHASE MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999; align-items:center; justify-content:center; }
+    .modal-overlay.active { display:flex; }
+    .token-modal { background:#050a05; border:1px solid var(--green-dim); padding:20px; width:90%; max-width:340px; font-family:'JetBrains Mono',monospace; }
+    .token-modal h3 { font-size:11px; color:var(--green); letter-spacing:2px; margin-bottom:16px; border-bottom:1px solid #001a0a; padding-bottom:10px; }
+    .token-pkg { border:1px solid #001a0a; padding:12px; margin-bottom:8px; cursor:pointer; transition:all 0.15s; display:flex; justify-content:space-between; align-items:center; }
+    .token-pkg:hover { border-color:var(--green-dim); background:var(--green-dark); }
+    .token-pkg.active { border-color:var(--green); background:var(--green-dark); }
+    .pkg-name { font-size:10px; color:var(--green); letter-spacing:1px; }
+    .pkg-info { font-size:8px; color:var(--green-dim); margin-top:3px; }
+    .pkg-price { font-size:11px; color:#ffaa00; font-weight:700; }
+    .modal-balance { font-size:9px; color:var(--green-dim); margin-bottom:12px; }
+    .modal-btns { display:flex; gap:8px; margin-top:14px; }
+    .btn-modal { flex:1; padding:8px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; cursor:pointer; border:1px solid; transition:all 0.15s; }
+    .btn-confirm { background:var(--green); color:#000; border-color:var(--green); }
+    .btn-confirm:hover { background:#00cc66; }
+    .btn-cancel  { background:none; color:var(--green-dim); border-color:#1a3322; }
+    .btn-cancel:hover { border-color:var(--green-dim); }
+    .modal-status { font-size:9px; margin-top:8px; padding:6px; text-align:center; display:none; }
+    .modal-status.ok  { color:var(--green); border:1px solid var(--green); background:var(--green-dark); }
+    .modal-status.err { color:var(--red); border:1px solid var(--red); }
   </style>
 </head>
 <body>
@@ -178,6 +223,51 @@
   <div class="tdot y"></div>
   <div class="tdot g"></div>
   <div class="ttitle">VAULT-AI // SECURE CHANNEL</div>
+</div>
+
+
+<div class="quota-bar">
+  <div class="quota-left">
+    <span class="quota-label">TOKENS</span>
+    <div class="quota-track"><div class="quota-fill" id="quota-fill" style="width:100%"></div></div>
+    <span class="quota-count" id="quota-count">5000 / 5000</span>
+  </div>
+  <div class="quota-right">
+    <div class="bridge-status">
+      <div class="bridge-dot" id="bridge-dot"></div>
+      <span id="bridge-label" style="color:#333;font-size:8px;letter-spacing:1px;">BRIDGE OFF</span>
+    </div>
+    <button class="btn-buy-tokens" onclick="openTokenModal()">+ TOKENS</button>
+  </div>
+</div>
+
+<!-- TOKEN PURCHASE MODAL -->
+<div class="modal-overlay" id="token-modal">
+  <div class="token-modal">
+    <h3>// EXPAND TOKEN QUOTA</h3>
+    <div class="modal-balance">YOUR VC BALANCE: <span id="modal-vc-balance" style="color:#ffaa00;">-- VC</span></div>
+    <div class="token-pkg" onclick="selectPkg(this, 10000, 50)" data-tokens="10000" data-vc="50">
+      <div><div class="pkg-name">10,000 TOKENS</div><div class="pkg-info">// +5,000 extra · resets daily</div></div>
+      <div class="pkg-price">50 VC</div>
+    </div>
+    <div class="token-pkg" onclick="selectPkg(this, 15000, 80)" data-tokens="15000" data-vc="80">
+      <div><div class="pkg-name">15,000 TOKENS</div><div class="pkg-info">// +10,000 extra · resets daily</div></div>
+      <div class="pkg-price">80 VC</div>
+    </div>
+    <div class="token-pkg" onclick="selectPkg(this, 25000, 120)" data-tokens="25000" data-vc="120">
+      <div><div class="pkg-name">25,000 TOKENS</div><div class="pkg-info">// +20,000 extra · resets daily</div></div>
+      <div class="pkg-price">120 VC</div>
+    </div>
+    <div class="token-pkg" onclick="selectPkg(this, 50000, 200)" data-tokens="50000" data-vc="200">
+      <div><div class="pkg-name">50,000 TOKENS</div><div class="pkg-info">// +45,000 extra · resets daily</div></div>
+      <div class="pkg-price">200 VC</div>
+    </div>
+    <div class="modal-status" id="modal-status"></div>
+    <div class="modal-btns">
+      <button class="btn-modal btn-cancel" onclick="closeTokenModal()">CANCEL</button>
+      <button class="btn-modal btn-confirm" id="btn-confirm-tokens" onclick="purchaseTokens()">PURCHASE</button>
+    </div>
+  </div>
 </div>
 
 <div id="output"></div>
@@ -269,6 +359,7 @@ async function boot() {
   print('[SYS]: ALL SYSTEMS NOMINAL. VAULT ONLINE.', 'sys');
   divider();
   print('[LOG]: Type "help" for commands.', 'logc');
+  print('[LOG]: Type "bridge connect" to link Termux.', 'logc');
   divider();
 } 
 
@@ -283,6 +374,9 @@ function local(cmd) {
     print('  status       → system status', 'logc');
     print('  methodology  → bug bounty steps', 'logc');
     print('  [anything]   → ask Genesis Vault AI', 'logc');
+    print('  run <cmd>    → execute on Termux bridge', 'logc');
+    print('  bridge connect / disconnect / status', 'logc');
+    print('  tokens / quota → show token balance', 'logc');
     divider();
     return true;
   }
@@ -310,6 +404,18 @@ function local(cmd) {
     divider();
     return true;
   }
+  if (c === 'bridge connect' || c === 'bridge on') { connectBridge(); return true; }
+  if (c === 'bridge disconnect' || c === 'bridge off') { disconnectBridge(); return true; }
+  if (c === 'bridge status') {
+    const s = wsClient && wsClient.readyState === WebSocket.OPEN;
+    print(`[BRIDGE]: ${s ? '✓ CONNECTED' : '✗ DISCONNECTED'}`, s ? 'sys' : 'err'); return true;
+  }
+  if (c === 'tokens' || c === 'quota') {
+    const rem = Math.max(0, tokenQuota - tokenUsed);
+    print(`[SYS]: TOKEN QUOTA → ${rem.toLocaleString()} / ${tokenQuota.toLocaleString()} REMAINING`, 'sys');
+    print('[LOG]: Type "+ TOKENS" button or "buy tokens" to expand.', 'logc'); return true;
+  }
+  if (c.startsWith('run ')) { sendBridgeCommand(cmd.slice(4)); return true; }
   return false;
 }
 
@@ -397,7 +503,7 @@ async function send(msg) {
     const res = await fetch(`${BACKEND_URL}/api/vault-ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("gv_token")}` },
-      body: JSON.stringify({ message: msg, rank: USER_RANK, user_id: USER_ID, username: USERNAME })
+      body: JSON.stringify({ message: msg, rank: USER_RANK, user_id: USER_ID, username: USERNAME, token_quota: tokenQuota })
     });
     const data = await res.json();
     analyzing.remove();
@@ -414,6 +520,9 @@ async function send(msg) {
       out.appendChild(el);
       scrollBottom();
       await typewrite(el, data.response, 7);
+      // Estimate tokens used (~4 chars per token)
+      const est = Math.ceil((msg.length + data.response.length) / 4);
+      deductTokens(est);
     } else {
       print('[ERR]: UNEXPECTED RESPONSE.', 'err');
     }
@@ -475,7 +584,185 @@ async function init() {
   }
   boot();
 }
+
+
+// ── TOKEN QUOTA SYSTEM ─────────────────────────────────────
+const API = 'https://genesis-vault-backend.onrender.com';
+let tokenQuota   = 5000;
+let tokenUsed    = 0;
+let selectedPkg  = null;
+let vcBalance    = 0;
+let wsClient     = null;
+
+function updateQuotaBar() {
+  const remaining = Math.max(0, tokenQuota - tokenUsed);
+  const pct       = tokenQuota > 0 ? (remaining / tokenQuota) * 100 : 0;
+  const fill      = document.getElementById('quota-fill');
+  const count     = document.getElementById('quota-count');
+  fill.style.width = pct + '%';
+  fill.className   = 'quota-fill' + (pct < 20 ? ' low' : pct < 50 ? ' warn' : '');
+  count.textContent = remaining.toLocaleString() + ' / ' + tokenQuota.toLocaleString();
+}
+
+async function loadTokenQuota() {
+  try {
+    const res  = await fetch(`${API}/api/ai/quota`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
+    });
+    const data = await res.json();
+    if (data.quota !== undefined) {
+      tokenQuota = data.quota;
+      tokenUsed  = data.used || 0;
+      updateQuotaBar();
+    }
+  } catch(e) { /* use defaults */ }
+}
+
+function deductTokens(n) {
+  tokenUsed = Math.min(tokenUsed + n, tokenQuota);
+  updateQuotaBar();
+  if (tokenUsed >= tokenQuota) {
+    print('[WARN]: TOKEN QUOTA EXHAUSTED. PURCHASE MORE OR WAIT FOR DAILY RESET.', 'err');
+  }
+}
+
+// ── TOKEN PURCHASE MODAL ────────────────────────────────────
+function openTokenModal() {
+  document.getElementById('token-modal').classList.add('active');
+  document.getElementById('modal-status').style.display = 'none';
+  loadVCBalance();
+}
+
+function closeTokenModal() {
+  document.getElementById('token-modal').classList.remove('active');
+  selectedPkg = null;
+  document.querySelectorAll('.token-pkg').forEach(p => p.classList.remove('active'));
+}
+
+function selectPkg(el, tokens, vc) {
+  document.querySelectorAll('.token-pkg').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  selectedPkg = { tokens, vc };
+}
+
+async function loadVCBalance() {
+  try {
+    const res  = await fetch(`${API}/api/vc/balance`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
+    });
+    const data = await res.json();
+    vcBalance  = data.balance || 0;
+    document.getElementById('modal-vc-balance').textContent = vcBalance.toLocaleString() + ' VC';
+  } catch(e) {}
+}
+
+async function purchaseTokens() {
+  if (!selectedPkg) { showModalStatus('// Select a package first.', true); return; }
+  if (vcBalance < selectedPkg.vc) {
+    showModalStatus(`// Insufficient VC. Need ${selectedPkg.vc} VC.`, true); return;
+  }
+  const btn = document.getElementById('btn-confirm-tokens');
+  btn.disabled = true; btn.textContent = 'PROCESSING...';
+  try {
+    const res  = await fetch(`${API}/api/ai/tokens/purchase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` },
+      body: JSON.stringify({ tokens: selectedPkg.tokens, vc_cost: selectedPkg.vc })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      tokenQuota = data.new_quota || (tokenQuota + selectedPkg.tokens);
+      updateQuotaBar();
+      showModalStatus(`✓ ${selectedPkg.tokens.toLocaleString()} tokens added!`, false);
+      vcBalance -= selectedPkg.vc;
+      document.getElementById('modal-vc-balance').textContent = vcBalance.toLocaleString() + ' VC';
+      print(`[SYS]: TOKEN QUOTA EXPANDED → ${tokenQuota.toLocaleString()} TOKENS TODAY.`, 'sys');
+      setTimeout(closeTokenModal, 1500);
+    } else {
+      showModalStatus(data.message || '// Purchase failed.', true);
+    }
+  } catch(e) {
+    showModalStatus('// Network error.', true);
+  }
+  btn.disabled = false; btn.textContent = 'PURCHASE';
+}
+
+function showModalStatus(msg, err) {
+  const el = document.getElementById('modal-status');
+  el.textContent = msg;
+  el.className   = 'modal-status ' + (err ? 'err' : 'ok');
+  el.style.display = 'block';
+}
+
+// ── WEBSOCKET BRIDGE ────────────────────────────────────────
+function connectBridge() {
+  if (wsClient && wsClient.readyState === WebSocket.OPEN) {
+    print('[BRIDGE]: Already connected.', 'sys'); return;
+  }
+  const token = localStorage.getItem('gv_token');
+  const wsUrl = `wss://genesis-vault-backend.onrender.com/ws/bridge?token=${token}`;
+  
+  setBridgeStatus('connecting');
+  print('[BRIDGE]: CONNECTING TO VAULT BRIDGE...', 'sys');
+
+  wsClient = new WebSocket(wsUrl);
+
+  wsClient.onopen = () => {
+    setBridgeStatus('connected');
+    print('[BRIDGE]: ✓ BRIDGE CONNECTED. YOUR TERMUX IS LINKED.', 'sys');
+    print('[BRIDGE]: Commands prefixed with "run " will execute on your device.', 'logc');
+  };
+
+  wsClient.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'result') {
+        const el = document.createElement('div');
+        el.className = 'line ai';
+        el.innerHTML = `<span style="color:var(--green);opacity:.7">[BRIDGE]:</span> `;
+        out.appendChild(el);
+        typewrite(el, msg.output, 3);
+      }
+    } catch(err) {}
+  };
+
+  wsClient.onerror = () => {
+    setBridgeStatus('off');
+    print('[BRIDGE]: Connection error. Is your Termux bridge script running?', 'err');
+  };
+
+  wsClient.onclose = () => {
+    setBridgeStatus('off');
+    print('[BRIDGE]: DISCONNECTED.', 'err');
+    wsClient = null;
+  };
+}
+
+function disconnectBridge() {
+  if (wsClient) { wsClient.close(); wsClient = null; }
+  setBridgeStatus('off');
+  print('[BRIDGE]: DISCONNECTED.', 'sys');
+}
+
+function setBridgeStatus(state) {
+  const dot   = document.getElementById('bridge-dot');
+  const label = document.getElementById('bridge-label');
+  dot.className = 'bridge-dot' + (state !== 'off' ? ' ' + state : '');
+  label.style.color = state === 'connected' ? 'var(--green)' : state === 'connecting' ? '#ffaa00' : '#333';
+  label.textContent = state === 'connected' ? 'BRIDGE ON' : state === 'connecting' ? 'CONNECTING' : 'BRIDGE OFF';
+}
+
+function sendBridgeCommand(cmd) {
+  if (!wsClient || wsClient.readyState !== WebSocket.OPEN) {
+    print('[ERR]: BRIDGE NOT CONNECTED. Type "bridge connect" first.', 'err');
+    return;
+  }
+  wsClient.send(JSON.stringify({ type: 'command', command: cmd }));
+  print(`[BRIDGE]: EXECUTING → ${cmd}`, 'sys');
+}
+
 init();
+loadTokenQuota();
 </script>
 </body>
 </html>
