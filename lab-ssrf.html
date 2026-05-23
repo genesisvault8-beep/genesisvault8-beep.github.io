@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InternalReach — SSRF Lab</title>
+<style>
+  :root {
+    --bg: #010a0e;
+    --bg2: #041018;
+    --bg3: #071a26;
+    --accent: #00f5c4;
+    --accent2: #00a8ff;
+    --red: #ff003c;
+    --yellow: #ffaa00;
+    --text: #c8e6f0;
+    --dim: #3a6a7a;
+    --border: #0f2535;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    min-height: 100vh;
+  }
+
+  /* grid bg */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: rgba(4,16,24,0.98);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top:0; z-index:100;
+  }
+  .topbar-brand {
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+  .topbar-brand span { color: var(--text); }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{ opacity:1; } 50%{ opacity:0.3; }
+  }
+  .topbar-status {
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 2px;
+  }
+
+  /* ── SCENARIO BANNER ── */
+  .scenario {
+    background: linear-gradient(135deg, #020f18, #041520);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    margin: 20px;
+    padding: 20px;
+    position: relative; z-index:1;
+  }
+  .scenario-tag {
+    font-size: 0.6rem;
+    letter-spacing: 4px;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .scenario h1 {
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    color: #fff;
+    margin-bottom: 10px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .scenario h1 span { color: var(--accent); }
+  .scenario p {
+    font-size: 0.78rem;
+    color: var(--dim);
+    line-height: 1.7;
+  }
+  .badge-row {
+    display: flex; gap: 8px;
+    margin-top: 14px; flex-wrap:wrap;
+  }
+  .badge {
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    border: 1px solid;
+  }
+  .badge.hard { border-color: var(--red); color: var(--red); }
+  .badge.web  { border-color: var(--accent2); color: var(--accent2); }
+  .badge.ssrf { border-color: var(--yellow); color: var(--yellow); }
+
+  /* ── WARNING BOX ── */
+  .warn-box {
+    background: rgba(255,0,60,0.06);
+    border: 1px solid rgba(255,0,60,0.25);
+    border-left: 3px solid var(--red);
+    margin: 0 20px 20px;
+    padding: 12px 16px;
+    font-size: 0.72rem;
+    color: #ff6680;
+    letter-spacing: 1px;
+    position: relative; z-index:1;
+  }
+
+  /* ── APP WRAPPER ── */
+  .app-wrap {
+    margin: 0 20px 20px;
+    position: relative; z-index:1;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 0.62rem;
+    letter-spacing: 4px;
+    color: var(--dim);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── URL FETCHER ── */
+  .fetcher-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .fetcher-title {
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .fetcher-desc {
+    font-size: 0.72rem;
+    color: var(--dim);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .url-row {
+    display: flex; gap: 8px;
+  }
+  .url-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    padding: 10px 14px;
+    outline: none;
+    letter-spacing: 1px;
+    transition: border-color 0.2s;
+  }
+  .url-input:focus { border-color: var(--accent); }
+  .url-input::placeholder { color: var(--dim); }
+  .fetch-btn {
+    background: none;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .fetch-btn:hover { background: var(--accent); color: var(--bg); }
+  .fetch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── RESPONSE PANEL ── */
+  .response-panel {
+    background: #000d14;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    min-height: 160px;
+  }
+  .response-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .response-label {
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: var(--dim);
+  }
+  .response-status {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+  }
+  .response-status.ok { color: var(--accent); }
+  .response-status.err { color: var(--red); }
+  .response-body {
+    padding: 14px;
+    font-size: 0.72rem;
+    color: var(--text);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-all;
+    min-height: 120px;
+  }
+  .response-body.dim { color: var(--dim); font-style: italic; }
+
+  /* ── INTERNAL SERVICES ── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .service-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+  .service-addr {
+    font-size: 0.65rem;
+    color: var(--accent2);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .service-name {
+    font-size: 0.78rem;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .service-desc {
+    font-size: 0.65rem;
+    color: var(--dim);
+  }
+  .service-status {
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+  .service-status.internal { color: var(--yellow); }
+
+  /* ── HINT STRIP ── */
+  .hint-strip {
+    background: rgba(255,170,0,0.05);
+    border: 1px solid rgba(255,170,0,0.2);
+    border-left: 3px solid var(--yellow);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.72rem;
+    color: var(--yellow);
+    line-height: 1.6;
+  }
+
+  /* ── FLAG BOX ── */
+  .flag-box {
+    background: rgba(0,245,196,0.04);
+    border: 1px solid rgba(0,245,196,0.2);
+    padding: 16px;
+    margin-bottom: 16px;
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)} }
+  .flag-box.show { display: block; }
+  .flag-label {
+    font-size: 0.6rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .flag-value {
+    font-size: 1rem;
+    color: #fff;
+    letter-spacing: 2px;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    padding: 10px 14px;
+    word-break: break-all;
+  }
+  .flag-msg {
+    font-size: 0.7rem;
+    color: var(--dim);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  /* ── ATTEMPT LOG ── */
+  .log-box {
+    background: #000;
+    border: 1px solid var(--border);
+    padding: 12px;
+    max-height: 140px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  .log-entry {
+    font-size: 0.68rem;
+    line-height: 1.8;
+    border-bottom: 1px solid #0a1a22;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+  }
+  .log-entry .ts { color: var(--dim); }
+  .log-entry .url-logged { color: var(--accent2); }
+  .log-entry .blocked { color: var(--red); }
+  .log-entry .allowed { color: var(--accent); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--dim); }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">INTERNAL<span>REACH</span> // URL FETCH SERVICE</div>
+  <div class="topbar-status"><span class="status-dot"></span>SERVER ONLINE</div>
+</div>
+
+<!-- SCENARIO -->
+<div class="scenario">
+  <div class="scenario-tag">// GENESIS VAULT · SSRF LAB</div>
+  <h1>BLIND THE <span>SERVER</span></h1>
+  <p>
+    InternalReach is a corporate URL fetching microservice that allows employees to 
+    preview external web pages. The dev team "secured" it by blocking direct access 
+    to internal IPs — but they forgot about alternative representations.
+    Your mission: reach the internal metadata service and retrieve the secret flag.
+  </p>
+  <div class="badge-row">
+    <span class="badge hard">HARD</span>
+    <span class="badge web">WEB</span>
+    <span class="badge ssrf">SSRF</span>
+  </div>
+</div>
+
+<!-- WARNING -->
+<div class="warn-box">
+  ⚠ EDUCATIONAL LAB — All targets are intentionally vulnerable. Do not use these techniques on real systems without authorization.
+</div>
+
+<div class="app-wrap">
+
+  <!-- INTERNAL SERVICES MAP -->
+  <div class="section-label">// KNOWN INTERNAL NETWORK MAP</div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-addr">http://127.0.0.1/</div>
+      <div class="service-name">Localhost</div>
+      <div class="service-desc">Main web server</div>
+      <div class="service-status internal">⚠ INTERNAL</div>
+    </div>
+    <div class="service-card">
+      <div class="service-addr">http://169.254.169.254/</div>
+      <div class="service-name">Cloud Metadata</div>
+      <div class="service-desc">AWS/GCP metadata endpoint</div>
+      <div class="service-status internal">⚠ INTERNAL</div>
+    </div>
+    <div class="service-card">
+      <div class="service-addr">http://internal-api/</div>
+      <div class="service-name">Internal API</div>
+      <div class="service-desc">Employee-only REST API</div>
+      <div class="service-status internal">⚠ INTERNAL</div>
+    </div>
+    <div class="service-card">
+      <div class="service-addr">http://0x7f000001/</div>
+      <div class="service-name">Hex Localhost</div>
+      <div class="service-desc">Alternative IP notation</div>
+      <div class="service-status internal">⚠ INTERNAL</div>
+    </div>
+  </div>
+
+  <!-- HINT -->
+  <div class="hint-strip">
+    💡 INTEL: The firewall blocks "127.0.0.1" and "localhost" by string match. 
+    But IP addresses have many representations... try decimal, hex, or octal encoding. 
+    Target endpoint: <strong>/admin/secret</strong>
+  </div>
+
+  <!-- URL FETCHER -->
+  <div class="fetcher-box">
+    <div class="fetcher-title">// URL FETCH SERVICE</div>
+    <div class="fetcher-desc">
+      Enter a URL to fetch. The server will retrieve the page and return its contents.<br>
+      <span style="color:var(--red)">Blocked:</span> Direct use of "127.0.0.1", "localhost", "::1", "169.254.169.254"
+    </div>
+    <div class="url-row">
+      <input class="url-input" id="url-input" type="text" 
+             placeholder="https://example.com" 
+             onkeydown="if(event.key==='Enter') fetchURL()">
+      <button class="fetch-btn" id="fetch-btn" onclick="fetchURL()">[ FETCH ]</button>
+    </div>
+  </div>
+
+  <!-- RESPONSE -->
+  <div class="section-label">// SERVER RESPONSE</div>
+  <div class="response-panel">
+    <div class="response-header">
+      <span class="response-label">RESPONSE BODY</span>
+      <span class="response-status" id="resp-status">AWAITING REQUEST</span>
+    </div>
+    <div class="response-body dim" id="resp-body">// No request made yet. Enter a URL above and click FETCH.</div>
+  </div>
+
+  <!-- FLAG (hidden until found) -->
+  <div class="flag-box" id="flag-box">
+    <div class="flag-label">// FLAG CAPTURED</div>
+    <div class="flag-value" id="flag-value"></div>
+    <div class="flag-msg">
+      ✓ You successfully exploited an SSRF vulnerability using IP obfuscation to bypass 
+      the naive string-matching filter. In real systems this can expose cloud credentials, 
+      internal APIs, and sensitive configuration data.
+    </div>
+  </div>
+
+  <!-- ATTEMPT LOG -->
+  <div class="section-label">// REQUEST LOG</div>
+  <div class="log-box" id="log-box">
+    <div class="log-entry dim" style="color:var(--dim); font-size:0.68rem">// Awaiting requests...</div>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const FLAG = 'GV{SSRF_1P_0bfusc4t10n_byp4ss_pwned}';
+
+// Strings that are blocked by the naive filter
+const BLOCKED_STRINGS = [
+  '127.0.0.1', 'localhost', '::1',
+  '169.254.169.254', '0.0.0.0',
+  'internal-api', '[::1]'
+];
+
+// All the bypass payloads that SHOULD work (simulate server reaching internal)
+const BYPASS_PAYLOADS = [
+  // Decimal integer representation of 127.0.0.1
+  '2130706433',
+  'http://2130706433',
+  'http://2130706433/',
+  'http://2130706433/admin/secret',
+  // Hex representation
+  '0x7f000001',
+  'http://0x7f000001',
+  'http://0x7f000001/',
+  'http://0x7f000001/admin/secret',
+  // Octal
+  '0177.0.0.1',
+  'http://0177.0.0.1',
+  'http://0177.0.0.1/',
+  'http://0177.0.0.1/admin/secret',
+  // Mixed encodings
+  '127.000.000.001',
+  'http://127.000.000.001',
+  'http://127.000.000.001/admin/secret',
+  // URL encoded
+  'http://127%2e0%2e0%2e1',
+  'http://127%2e0%2e0%2e1/admin/secret',
+  // Double URL encoded
+  'http://127%252e0%252e0%252e1',
+  // IPv6 localhost variants
+  'http://[::ffff:127.0.0.1]',
+  'http://[::ffff:127.0.0.1]/admin/secret',
+  'http://[0:0:0:0:0:ffff:7f00:1]',
+  // Decimal with path
+  'http://2130706433/admin',
+  'http://2130706433/admin/',
+  // Short notation
+  'http://127.1',
+  'http://127.1/',
+  'http://127.1/admin/secret',
+];
+
+let requestCount = 0;
+
+function isBlocked(url) {
+  const lower = url.toLowerCase();
+  return BLOCKED_STRINGS.some(b => lower.includes(b.toLowerCase()));
+}
+
+function isBypass(url) {
+  const lower = url.toLowerCase().replace(/\s/g, '');
+  return BYPASS_PAYLOADS.some(p => lower.includes(p.toLowerCase()));
+}
+
+function getTime() {
+  return new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+
+function addLog(url, result) {
+  const log = document.getElementById('log-box');
+  // Remove placeholder
+  const placeholder = log.querySelector('.dim');
+  if (placeholder) placeholder.remove();
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const resultClass = result === 'BLOCKED' ? 'blocked' : 'allowed';
+  entry.innerHTML = `<span class="ts">[${getTime()}]</span> → <span class="url-logged">${escHtml(url.substring(0,60))}</span> <span class="${resultClass}">[${result}]</span>`;
+  log.insertBefore(entry, log.firstChild);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fetchURL() {
+  const input = document.getElementById('url-input');
+  const url = input.value.trim();
+  if (!url) return;
+
+  requestCount++;
+  const btn = document.getElementById('fetch-btn');
+  btn.disabled = true;
+  btn.textContent = '[ FETCHING... ]';
+
+  const statusEl = document.getElementById('resp-status');
+  const bodyEl   = document.getElementById('resp-body');
+  bodyEl.className = 'response-body';
+
+  setTimeout(() => {
+    if (isBlocked(url)) {
+      // Blocked by naive filter
+      statusEl.textContent = '403 FORBIDDEN';
+      statusEl.className   = 'response-status err';
+      bodyEl.textContent   =
+`// SECURITY FILTER TRIGGERED
+// ─────────────────────────────────
+// Blocked keyword detected in URL.
+// Direct internal address access is not permitted.
+// 
+// Error: URL contains restricted hostname or IP.
+// Request ID: REQ-${String(requestCount).padStart(4,'0')}`;
+      addLog(url, 'BLOCKED');
+
+    } else if (isBypass(url)) {
+      // Successful SSRF bypass!
+      const reachesSecret = url.toLowerCase().includes('/admin');
+      if (reachesSecret) {
+        // Flag revealed!
+        statusEl.textContent = '200 OK';
+        statusEl.className   = 'response-status ok';
+        bodyEl.textContent   =
+`// HTTP/1.1 200 OK
+// Content-Type: application/json
+// X-Internal-Service: admin-secret-store
+// ─────────────────────────────────────────
+{
+  "service": "admin-secret-store",
+  "classification": "TOP_SECRET",
+  "flag": "${FLAG}",
+  "message": "Congratulations. You reached the internal admin endpoint via SSRF.",
+  "server": "internal-admin-api:8080",
+  "note": "In production, this would expose AWS keys, tokens, and configs."
+}`;
+        document.getElementById('flag-value').textContent = FLAG;
+        document.getElementById('flag-box').classList.add('show');
+        addLog(url, 'SSRF SUCCESS');
+      } else {
+        // Reached internal but not /admin/secret yet
+        statusEl.textContent = '200 OK';
+        statusEl.className   = 'response-status ok';
+        bodyEl.textContent   =
+`// HTTP/1.1 200 OK  
+// Content-Type: text/html
+// X-Internal-Server: true
+// ─────────────────────────────────
+<!DOCTYPE html>
+<html>
+<head><title>Internal Server</title></head>
+<body>
+  <h1>Internal Web Server</h1>
+  <p>You reached the internal network!</p>
+  <ul>
+    <li><a href="/admin">/admin</a></li>
+    <li><a href="/admin/secret">/admin/secret</a> ← target</li>
+    <li><a href="/config">/config</a></li>
+    <li><a href="/env">/env</a></li>
+  </ul>
+</body>
+</html>`;
+        addLog(url, 'INTERNAL REACHED');
+      }
+    } else {
+      // Normal external fetch simulation
+      statusEl.textContent = '200 OK';
+      statusEl.className   = 'response-status ok';
+      bodyEl.textContent   =
+`// HTTP/1.1 200 OK
+// Content-Type: text/html
+// Server: external
+// ─────────────────────────────────
+<!DOCTYPE html>
+<html>
+<head><title>External Page</title></head>
+<body>
+  <p>External page fetched successfully.</p>
+  <p>This is a simulated external response.</p>
+</body>
+</html>
+
+// Tip: The internal network is at 127.0.0.1 — but that's blocked.
+// How else can you represent that IP address?`;
+      addLog(url, 'EXTERNAL OK');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '[ FETCH ]';
+  }, 800);
+}
+</script>
+</body>
+</html>
