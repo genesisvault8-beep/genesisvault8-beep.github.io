@@ -307,11 +307,12 @@
   <!-- VC LOGS -->
   <div class="page" id="page-vc">
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
-      <div id="vc-sub-purchases" onclick="switchVCTab('purchases')" style="padding:7px 16px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;border-bottom:2px solid var(--accent);color:var(--accent);">PENDING TOPUPS</div>
+      <div id="vc-sub-purchases" onclick="switchVCTab('purchases')" style="padding:7px 16px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;border-bottom:2px solid var(--accent);color:var(--accent);">PURCHASE HISTORY</div>
       <div id="vc-sub-logs"      onclick="switchVCTab('logs')"      style="padding:7px 16px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-dim);">SPEND LOGS</div>
     </div>
     <div id="vc-purchases-panel">
-      <div class="section-title">// Pending VC Top-Ups <button class="refresh-btn" onclick="loadVCPurchases()">↻ REFRESH</button></div>
+      <div class="section-title">// VC Purchase History <button class="refresh-btn" onclick="loadVCPurchases()">↻ REFRESH</button></div>
+      <div id="vc-stats-purchases" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;"></div>
       <div id="vc-purchases-container"><div class="loading"><span class="spinner"></span>Loading...</div></div>
     </div>
     <div id="vc-logs-panel" style="display:none;">
@@ -877,42 +878,51 @@ function switchVCTab(tab) {
 }
 async function loadVCPurchases() {
   const c=document.getElementById('vc-purchases-container');
+  const s=document.getElementById('vc-stats-purchases');
   c.innerHTML='<div class="loading"><span class="spinner"></span>Loading...</div>';
+  s.innerHTML='';
   try {
-    const res=await apiFetch(`${API}/admin/vc/pending`); if(!res)return;
+    const res=await apiFetch(`${API}/admin/vc/purchases`); if(!res)return;
     const data=await res.json(); const ps=data.purchases||[];
-    if(!ps.length){c.innerHTML='<div class="empty">// No pending VC purchases. ✓</div>';return;}
-    c.innerHTML=ps.map(p=>`<div class="item-card" id="vc-purchase-${p.id}" style="margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px;">
-        <div><div style="font-weight:700;color:white;letter-spacing:1px;">${esc(p.username||p.user_id)}</div><div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-top:3px;">Balance: ⬡ ${p.current_balance??'?'} VC · ${esc(p.package||'?')} package</div></div>
-        <div style="text-align:right;"><div style="font-family:'Share Tech Mono',monospace;font-size:1rem;color:#f5c400;font-weight:700;">⬡ ${p.vc_amount??p.vc_received??'?'} VC</div><div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent);">$${p.usdt_amount} USDT</div></div>
-      </div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);margin-bottom:10px;word-break:break-all;">TX: <span style="color:var(--accent2);">${esc(p.binance_tx_id||'—')}</span></div>
-      <div style="display:flex;gap:8px;"><button class="btn-approve" onclick="confirmVCPurchase(${p.id},this)" style="flex:1;">[ ✓ CONFIRM ]</button><button class="btn-reject" onclick="rejectVCPurchase(${p.id},this)" style="flex:1;">[ ✗ REJECT ]</button></div>
-    </div>`).join('');
+
+    // Stats bar
+    const confirmed=ps.filter(p=>p.status==='confirmed');
+    const failed=ps.filter(p=>p.status==='failed');
+    const totalUsdt=confirmed.reduce((a,p)=>a+(parseFloat(p.usdt_amount)||0),0);
+    const totalVc=confirmed.reduce((a,p)=>a+(parseInt(p.vc_amount)||0),0);
+    s.innerHTML=`
+      <div class="stat-card green"><div class="stat-label">TOTAL USDT</div><div class="stat-value" style="font-size:1.3rem;">$${totalUsdt.toFixed(2)}</div><div class="stat-sub">${confirmed.length} confirmed</div></div>
+      <div class="stat-card yellow"><div class="stat-label">VC SOLD</div><div class="stat-value" style="font-size:1.3rem;color:#f5c400;">⬡${totalVc}</div><div class="stat-sub">all time</div></div>
+      <div class="stat-card red"><div class="stat-label">FAILED TX</div><div class="stat-value" style="font-size:1.3rem;">${failed.length}</div><div class="stat-sub">rejected by chain</div></div>`;
+
+    if(!ps.length){c.innerHTML='<div class="empty">// No VC purchases yet.</div>';return;}
+
+    c.innerHTML=ps.map(p=>{
+      const isOk=p.status==='confirmed';
+      const isFail=p.status==='failed';
+      const color=isOk?'var(--accent)':isFail?'var(--accent3)':'var(--accent4)';
+      const label=isOk?'✓ VERIFIED':isFail?'✗ FAILED':'⏳ PENDING';
+      const txShort=(p.tx_hash||'—').slice(0,20)+'...';
+      const bscLink=p.tx_hash?`<a href="https://bscscan.com/tx/${p.tx_hash}" target="_blank" style="color:var(--accent2);text-decoration:none;">${txShort}</a>`:'—';
+      return`<div class="item-card" style="border-left:3px solid ${color};margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div>
+            <div style="font-weight:700;color:white;letter-spacing:1px;">${esc(p.username||p.user_id)}</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);margin-top:3px;">${timeAgo(p.created_at)} · ${esc(p.package_key||'?')}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:1rem;color:#f5c400;font-weight:700;">⬡ ${p.vc_amount??'?'} VC</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--accent);">$${p.usdt_amount} USDT</div>
+          </div>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);margin-bottom:8px;word-break:break-all;">TX: ${bscLink}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:${color};border:1px solid ${color};padding:2px 8px;">${label}</span>
+          ${isOk?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);">verified ${timeAgo(p.verified_at)}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
   }catch(e){c.innerHTML='<div class="empty">// Failed to load VC purchases.</div>';}
-}
-async function confirmVCPurchase(id,btn) {
-  if(!confirm('Confirm this VC purchase and credit the user?'))return;
-  if(btn){btn.disabled=true;btn.textContent='...';}
-  try {
-    const res=await apiFetch(`${API}/admin/vc/confirm/${id}`,{method:'POST',body:JSON.stringify({})});
-    if(!res){if(btn){btn.disabled=false;btn.textContent='[ ✓ CONFIRM ]';}return;}
-    const data=await res.json();
-    if(data.status==='success'){toast('✓ '+(data.message||'VC credited successfully'));const card=document.getElementById('vc-purchase-'+id);if(card)card.remove();loadVCPendingCount();}
-    else{toast('// Error: '+(data.message||'Confirm failed'),'var(--accent3)');if(btn){btn.disabled=false;btn.textContent='[ ✓ CONFIRM ]';}}
-  }catch(e){toast('// Network error','var(--accent3)');if(btn){btn.disabled=false;btn.textContent='[ ✓ CONFIRM ]';}}
-}
-async function rejectVCPurchase(id,btn) {
-  if(!confirm('Reject this VC purchase?'))return;
-  if(btn){btn.disabled=true;btn.textContent='...';}
-  try {
-    const res=await apiFetch(`${API}/admin/vc/reject/${id}`,{method:'POST',body:JSON.stringify({})});
-    if(!res){if(btn){btn.disabled=false;btn.textContent='[ ✗ REJECT ]';}return;}
-    const data=await res.json();
-    if(data.status==='success'){toast('// Purchase rejected.','var(--accent3)');const card=document.getElementById('vc-purchase-'+id);if(card)card.remove();loadVCPendingCount();}
-    else{toast('// Error: '+(data.message||'Reject failed'),'var(--accent3)');if(btn){btn.disabled=false;btn.textContent='[ ✗ REJECT ]';}}
-  }catch(e){toast('// Network error','var(--accent3)');if(btn){btn.disabled=false;btn.textContent='[ ✗ REJECT ]';}}
 }
 async function loadVCLogs() {
   const c=document.getElementById('vc-container');const s=document.getElementById('vc-stats');
