@@ -177,6 +177,12 @@
 
   @keyframes spin   { to { transform:rotate(360deg); } }
   @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .tool-thumbnail { width:100%; height:160px; overflow:hidden; background:var(--bg3); border-bottom:1px solid var(--border); }
+  .tool-thumbnail img { width:100%; height:100%; object-fit:cover; opacity:0.85; transition:opacity 0.2s; }
+  .tool-card:hover .tool-thumbnail img { opacity:1; }
+  .kit-thumbnail { width:100%; height:140px; overflow:hidden; background:var(--bg3); border-bottom:1px solid var(--border); margin-bottom:0; }
+  .kit-thumbnail img { width:100%; height:100%; object-fit:cover; opacity:0.85; }
 </style>
 </head>
 <body>
@@ -389,7 +395,7 @@ function renderTools() {
 
   c.innerHTML = filtered.map(t => {
     const isKit  = (t.type||'').toLowerCase() === 'kits' || t.is_kit;
-    const isFree = t.price === 0;
+    const isFree = (t.vc_price||0) === 0 && (t.price||0) === 0;
     return isKit ? renderKit(t) : renderTool(t);
   }).join('');
 }
@@ -413,10 +419,11 @@ function renderTool(t) {
   const footerBtn = t.owned
     ? `<button class="btn-owned" onclick="openAccessById(${t.id})">[ ACCESS TOOL ]</button>`
     : isFree
-      ? `<button class="btn-free" onclick="openFree(allTools[${allTools.indexOf(t)}])">[ GET FREE ]</button>`
-      : `<button class="btn-buy"  onclick="openBuy(allTools[${allTools.indexOf(t)}])">[ BUY NOW ]</button>`;
+      ? `<button class="btn-free" onclick="handleToolClick('${t.id}',true)">[ GET FREE ]</button>`
+      : `<button class="btn-buy"  onclick="handleToolClick('${t.id}',false)">[ BUY NOW ]</button>`;
   return `
   <div class="tool-card">
+    ${t.thumbnail_url ? `<div class="tool-thumbnail"><img src="${esc(t.thumbnail_url)}" alt="${esc(t.title)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="tool-card-top">
       <h3>${esc(t.title)}</h3>
       <div class="tool-badges">${badges}</div>
@@ -435,10 +442,11 @@ function renderKit(t) {
   const footerBtn = t.owned
     ? `<button class="btn-owned" onclick="openAccessById(${t.id})">[ ACCESS KIT ]</button>`
     : ((t.price||0) === 0 || (t.vc_price||0) === 0)
-      ? `<button class="btn-free" onclick="openFree(allTools[${allTools.indexOf(t)}])">[ GET KIT ]</button>`
-      : `<button class="btn-buy" onclick="openBuy(allTools[${allTools.indexOf(t)}])">[ GET KIT ]</button>`;
+      ? `<button class="btn-free" onclick="handleToolClick('${t.id}',true)">[ GET KIT ]</button>`
+      : `<button class="btn-buy" onclick="handleToolClick('${t.id}',false)">[ GET KIT ]</button>`;
   return `
   <div class="kit-card">
+    ${t.thumbnail_url ? `<div class="kit-thumbnail"><img src="${esc(t.thumbnail_url)}" alt="${esc(t.title)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="tool-card-top" style="margin-bottom:8px;">
       <h3 style="color:#ffaa00;">${esc(t.title)}</h3>
       <span class="badge badge-kit">KIT</span>
@@ -493,6 +501,14 @@ function toggleOwned() {
 }
 
 /* ── BUY FLOW ── */
+function handleToolClick(id, isFree) {
+  const t = allTools.find(x => String(x.id) === String(id));
+  if (!t) { console.error('Tool not found:', id); return; }
+  if (t.owned) { openAccessById(id); return; }
+  if (isFree) openFree(t);
+  else openBuy(t);
+}
+
 function openBuy(t) {
   activeTool = t;
   const vcPrice = t.vc_price || 0;
