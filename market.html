@@ -307,7 +307,8 @@
 </div>
 
 <script>
-const API   = 'https://genesis-vault-backend.onrender.com/api';
+const API        = 'https://genesis-vault-backend.onrender.com/api';
+const BRIDGE_API = 'https://genesis-bridge-backend.onrender.com';
 let token = localStorage.getItem('gv_token');
 if (!token) location.href = 'login.html';
 
@@ -652,10 +653,9 @@ function launchTool() {
     location.href = `vault-ai.html?tool=${activeTool.id}`;
     return;
   }
-  // Downloadable tools
+  // Downloadable tools — use secure bridge endpoint
   if (type === 'scripts' || type === 'templates' || runType === 'download') {
-    if (activeTool.download_url) window.open(activeTool.download_url, '_blank');
-    else toast('// Download link will be available soon.');
+    secureDownload(activeTool.id, activeTool.title);
     return;
   }
   // Default → tool-runner if no download_url, else vault-labs
@@ -664,6 +664,30 @@ function launchTool() {
   } else {
     location.href = `vault-labs.html?tool=${activeTool.id}`;
   }
+}
+
+/* ── SECURE DOWNLOAD (via Genesis Bridge → Backblaze B2) ── */
+async function secureDownload(toolId, title) {
+  const btn = document.getElementById('btn-access-go');
+  btn.disabled = true;
+  btn.textContent = '[ GENERATING LINK... ]';
+  try {
+    const res  = await fetchWithAuth(`${BRIDGE_API}/bridge/download/${toolId}`, { method:'POST' });
+    const data = await res.json();
+    if (data.download_url) {
+      toast(`✓ Download ready — link expires in 60 seconds`);
+      // Open the signed URL immediately
+      window.open(data.download_url, '_blank');
+      btn.textContent = '[ DOWNLOAD ]';
+    } else {
+      toast('// ' + (data.error || 'Download failed.'));
+      btn.textContent = '[ DOWNLOAD ]';
+    }
+  } catch(e) {
+    toast('// Network error. Try again.');
+    btn.textContent = '[ DOWNLOAD ]';
+  }
+  btn.disabled = false;
 }
 
 /* ── UTILS ── */
