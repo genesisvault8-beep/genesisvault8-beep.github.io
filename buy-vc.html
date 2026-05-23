@@ -386,7 +386,7 @@
     </div>
     <div class="how-step">
       <div class="step-num">4</div>
-      <div class="step-text">Admin verifies within <strong>24 hours</strong> and your VC balance updates once confirmed.</div>
+      <div class="step-text">Your transaction is <strong>automatically verified</strong> — VC is credited to your balance instantly once confirmed on the blockchain.</div>
     </div>
   </div>
 
@@ -417,7 +417,7 @@
         <div>// Send exact USDT <span>(BEP-20 / BSC)</span> to this address:</div>
         <span class="wallet-addr" id="modal-wallet-addr"><span class="spinner"></span> Loading...</span>
         <div style="margin-top:6px;">// Then paste your TX ID below &amp; submit</div>
-        <div>// Admin confirms within <span>24 hours</span></div>
+        <div>// VC credited <span>automatically</span> once blockchain confirms</div>
       </div>
 
       <label>Your Binance TX ID</label>
@@ -431,9 +431,9 @@
     <!-- Confirmation view (shown after success) -->
     <div class="confirm-screen" id="modal-confirm-view">
       <div class="confirm-icon">✓</div>
-      <h4>// PAYMENT SUBMITTED</h4>
-      <p id="confirm-msg">Your purchase request has been received.<br>Admin will verify and credit your VC within 24 hours.</p>
-      <button class="btn-submit" onclick="closeModal()" style="clip-path:none;">[ CLOSE ]</button>
+      <h4>// PAYMENT VERIFIED</h4>
+      <p id="confirm-msg">Transaction verified on blockchain.<br>Your VC has been credited instantly.</p>
+      <button class="btn-submit" onclick="closeModal(); loadBalance();" style="clip-path:none;">[ CLOSE ]</button>
     </div>
 
   </div>
@@ -534,7 +534,7 @@ async function submitPayment() {
   if (!tx) { showStatus(msg, '// TX ID is required.', true); return; }
 
   btn.disabled = true;
-  btn.textContent = '[ SUBMITTING... ]';
+  btn.textContent = '[ VERIFYING ON BLOCKCHAIN... ]';
 
   try {
     const res = await fetchWithAuth(`${API}/vc/purchase`, {
@@ -549,15 +549,19 @@ async function submitPayment() {
 
     const data = await res.json();
 
-    if (res.ok || data.status === 'success' || data.status === 'pending') {
-      // Show confirmation screen
+    if (res.ok && data.status === 'success') {
+      // Auto-verified — show success with new balance
+      const newBal = data.new_balance ?? null;
       document.getElementById('confirm-msg').innerHTML =
-        `Purchase request for <strong style="color:var(--vc);">${activePkg.vc} VC</strong> (${activePkg.usdt} USDT) received.<br>
-         Admin will verify your transaction and credit your balance within <strong>24 hours</strong>.`;
+        `<strong style="color:var(--vc);">${activePkg.vc} VC</strong> has been credited to your account instantly!${newBal !== null ? `<br>New balance: <strong style="color:var(--vc);">${newBal} VC</strong>` : ''}`;
+      if (newBal !== null) {
+        localStorage.setItem('gv_vc', newBal);
+        document.getElementById('hero-vc-balance').textContent = `⬡ ${Number(newBal).toLocaleString()} VC`;
+      }
       document.getElementById('modal-form-view').style.display = 'none';
       document.getElementById('modal-confirm-view').classList.add('active');
     } else {
-      showStatus(msg, data.message || '// Submission failed. Please try again.', true);
+      showStatus(msg, data.message || '// Verification failed. Please try again.', true);
       btn.disabled = false;
       btn.textContent = '[ SUBMIT PAYMENT ]';
     }
