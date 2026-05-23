@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultBank — SQL Injection Lab</title>
+<style>
+  :root {
+    --bg: #010810;
+    --bg2: #03101a;
+    --bg3: #061828;
+    --accent: #00f5c4;
+    --accent2: #00a8ff;
+    --red: #ff003c;
+    --yellow: #ffaa00;
+    --text: #c8e6f0;
+    --dim: #3a6a7a;
+    --border: #0f2535;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.018) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: rgba(3,16,26,0.98);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top:0; z-index:100;
+  }
+  .topbar-brand { font-size:0.75rem; letter-spacing:3px; color:var(--accent2); }
+  .topbar-brand span { color:var(--text); }
+  .status-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--accent); display:inline-block;
+    margin-right:6px; animation:pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .topbar-status { font-size:0.65rem; color:var(--dim); letter-spacing:2px; }
+
+  /* ── SCENARIO ── */
+  .scenario {
+    background: linear-gradient(135deg, #020f18, #041520);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--red);
+    margin: 20px;
+    padding: 20px;
+    position: relative; z-index:1;
+  }
+  .scenario-tag { font-size:0.6rem; letter-spacing:4px; color:var(--red); margin-bottom:8px; }
+  .scenario h1 { font-size:1.4rem; letter-spacing:2px; color:#fff; margin-bottom:10px; }
+  .scenario h1 span { color:var(--red); }
+  .scenario p { font-size:0.78rem; color:var(--dim); line-height:1.7; }
+  .badge-row { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .badge { font-size:0.6rem; letter-spacing:2px; padding:4px 10px; border:1px solid; }
+  .badge.hard { border-color:var(--red); color:var(--red); }
+  .badge.web  { border-color:var(--accent2); color:var(--accent2); }
+  .badge.sqli { border-color:var(--yellow); color:var(--yellow); }
+
+  /* ── WARNING ── */
+  .warn-box {
+    background: rgba(255,0,60,0.06);
+    border: 1px solid rgba(255,0,60,0.25);
+    border-left: 3px solid var(--red);
+    margin: 0 20px 20px;
+    padding: 12px 16px;
+    font-size:0.72rem; color:#ff6680; letter-spacing:1px;
+    position:relative; z-index:1;
+  }
+
+  /* ── BANK APP WRAPPER ── */
+  .bank-wrap {
+    margin: 0 20px 20px;
+    position: relative; z-index:1;
+  }
+
+  .section-label {
+    font-size:0.62rem; letter-spacing:4px; color:var(--dim);
+    margin-bottom:10px; padding-bottom:6px;
+    border-bottom:1px solid var(--border);
+  }
+
+  /* ── TABS ── */
+  .tabs { display:flex; gap:0; margin-bottom:16px; border:1px solid var(--border); }
+  .tab-btn {
+    flex:1; padding:10px;
+    background:none; border:none;
+    color:var(--dim); font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; letter-spacing:2px; cursor:pointer;
+    border-right:1px solid var(--border);
+    transition:all 0.2s;
+  }
+  .tab-btn:last-child { border-right:none; }
+  .tab-btn.active { background:var(--bg3); color:var(--accent); }
+  .tab-btn:hover:not(.active) { color:var(--text); }
+
+  /* ── LOGIN PANEL ── */
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .login-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .login-title {
+    font-size:0.7rem; letter-spacing:3px; color:var(--accent2);
+    margin-bottom:4px;
+  }
+  .login-sub {
+    font-size:0.68rem; color:var(--dim); margin-bottom:20px; line-height:1.5;
+  }
+  .field-label {
+    font-size:0.62rem; letter-spacing:3px; color:var(--dim);
+    margin-bottom:6px; display:block;
+  }
+  .field-input {
+    width:100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size:0.78rem;
+    padding: 10px 14px;
+    outline:none;
+    margin-bottom:14px;
+    letter-spacing:1px;
+    transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color:var(--accent2); }
+  .field-input::placeholder { color:var(--dim); }
+
+  .login-btn {
+    width:100%;
+    background:none;
+    border:1px solid var(--accent2);
+    color:var(--accent2);
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.72rem;
+    letter-spacing:3px;
+    padding:12px;
+    cursor:pointer;
+    transition:all 0.2s;
+    margin-bottom:14px;
+  }
+  .login-btn:hover { background:var(--accent2); color:var(--bg); }
+
+  /* ── QUERY DISPLAY ── */
+  .query-display {
+    background:#000;
+    border:1px solid var(--border);
+    border-left:3px solid var(--dim);
+    padding:12px 14px;
+    font-size:0.7rem;
+    color:var(--dim);
+    line-height:1.7;
+    margin-bottom:14px;
+    transition: border-color 0.3s;
+  }
+  .query-display.danger { border-left-color:var(--red); }
+  .query-display .q-label { font-size:0.6rem; letter-spacing:3px; color:var(--dim); margin-bottom:4px; }
+  .query-display .q-text { color:#8899aa; }
+  .query-display .q-inject { color:var(--red); }
+
+  /* ── RESULT BOX ── */
+  .result-box {
+    padding:14px;
+    border:1px solid var(--border);
+    margin-bottom:14px;
+    min-height:60px;
+    font-size:0.75rem;
+    line-height:1.7;
+    display:none;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .result-box.show { display:block; }
+  .result-box.success { background:rgba(0,245,196,0.05); border-color:rgba(0,245,196,0.3); color:var(--accent); }
+  .result-box.error   { background:rgba(255,0,60,0.05);  border-color:rgba(255,0,60,0.3);  color:#ff6680; }
+  .result-box.warning { background:rgba(255,170,0,0.05); border-color:rgba(255,170,0,0.3); color:var(--yellow); }
+
+  /* ── FLAG BOX ── */
+  .flag-box {
+    background:rgba(0,245,196,0.04);
+    border:1px solid rgba(0,245,196,0.25);
+    padding:16px; margin-bottom:16px;
+    display:none; animation:fadeIn 0.5s ease;
+  }
+  .flag-box.show { display:block; }
+  .flag-label { font-size:0.6rem; letter-spacing:4px; color:var(--accent); margin-bottom:8px; }
+  .flag-value {
+    font-size:0.95rem; color:#fff; letter-spacing:2px;
+    background:var(--bg3); border:1px solid var(--accent);
+    padding:10px 14px; word-break:break-all; margin-bottom:8px;
+  }
+  .flag-msg { font-size:0.7rem; color:var(--dim); line-height:1.6; }
+
+  /* ── HINT STRIP ── */
+  .hint-strip {
+    background:rgba(255,170,0,0.05);
+    border:1px solid rgba(255,170,0,0.2);
+    border-left:3px solid var(--yellow);
+    padding:12px 16px; margin-bottom:16px;
+    font-size:0.72rem; color:var(--yellow); line-height:1.6;
+  }
+
+  /* ── SEARCH PANEL ── */
+  .search-box {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:20px; margin-bottom:14px;
+  }
+  .search-title { font-size:0.7rem; letter-spacing:3px; color:var(--accent2); margin-bottom:6px; }
+  .search-sub { font-size:0.68rem; color:var(--dim); margin-bottom:14px; line-height:1.5; }
+  .search-row { display:flex; gap:8px; }
+  .search-input {
+    flex:1;
+    background:var(--bg3); border:1px solid var(--border);
+    color:var(--accent); font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; padding:10px 14px; outline:none;
+    transition:border-color 0.2s;
+  }
+  .search-input:focus { border-color:var(--accent2); }
+  .search-input::placeholder { color:var(--dim); }
+  .search-btn {
+    background:none; border:1px solid var(--accent2);
+    color:var(--accent2); font-family:'Share Tech Mono',monospace;
+    font-size:0.7rem; letter-spacing:2px; padding:10px 16px;
+    cursor:pointer; transition:all 0.2s; white-space:nowrap;
+  }
+  .search-btn:hover { background:var(--accent2); color:var(--bg); }
+
+  /* ── TABLE ── */
+  .data-table {
+    width:100%; border-collapse:collapse;
+    font-size:0.7rem; margin-bottom:14px;
+    display:none;
+  }
+  .data-table.show { display:table; }
+  .data-table th {
+    background:var(--bg3); color:var(--dim);
+    letter-spacing:2px; font-size:0.6rem;
+    padding:8px 10px; text-align:left;
+    border:1px solid var(--border);
+  }
+  .data-table td {
+    padding:8px 10px;
+    border:1px solid var(--border);
+    color:var(--text);
+  }
+  .data-table tr:nth-child(even) td { background:rgba(255,255,255,0.02); }
+  .data-table td.secret { color:var(--red); }
+
+  /* ── ATTEMPT LOG ── */
+  .log-box {
+    background:#000; border:1px solid var(--border);
+    padding:12px; max-height:130px; overflow-y:auto;
+    margin-bottom:16px;
+  }
+  .log-entry { font-size:0.67rem; line-height:1.8; border-bottom:1px solid #0a1a22; padding-bottom:2px; margin-bottom:2px; }
+  .log-entry .ts { color:var(--dim); }
+  .log-entry .injected { color:var(--red); }
+  .log-entry .normal { color:var(--accent2); }
+  .log-entry .success { color:var(--accent); }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--dim); }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">VAULT<span>BANK</span> // CUSTOMER PORTAL</div>
+  <div class="topbar-status"><span class="status-dot"></span>SECURE CONNECTION</div>
+</div>
+
+<!-- SCENARIO -->
+<div class="scenario">
+  <div class="scenario-tag">// GENESIS VAULT · SQL INJECTION LAB</div>
+  <h1>BREAK THE <span>QUERY</span></h1>
+  <p>
+    VaultBank's customer portal uses a backend MySQL database for authentication and 
+    account lookups. The dev team built the queries using string concatenation — 
+    classic mistake. Your mission: bypass the login as admin without knowing the 
+    password, then extract the hidden flag from the database.
+  </p>
+  <div class="badge-row">
+    <span class="badge hard">HARD</span>
+    <span class="badge web">WEB</span>
+    <span class="badge sqli">SQL INJECTION</span>
+  </div>
+</div>
+
+<!-- WARNING -->
+<div class="warn-box">
+  ⚠ EDUCATIONAL LAB — All targets are intentionally vulnerable. Do not use these techniques on real systems without authorization.
+</div>
+
+<div class="bank-wrap">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('login')">[ LOGIN ]</button>
+    <button class="tab-btn" onclick="switchTab('search')" id="tab-search" style="opacity:0.4;pointer-events:none">[ ACCOUNT SEARCH ]</button>
+  </div>
+
+  <!-- LOGIN PANEL -->
+  <div class="panel active" id="panel-login">
+
+    <div class="hint-strip">
+      💡 INTEL: The login query looks like this:<br>
+      <code>SELECT * FROM users WHERE username='INPUT' AND password='INPUT'</code><br>
+      The inputs are directly concatenated — no sanitization. What if you made the WHERE clause always true?
+    </div>
+
+    <div class="login-box">
+      <div class="login-title">// CUSTOMER LOGIN</div>
+      <div class="login-sub">Enter your VaultBank credentials to access your account.</div>
+
+      <label class="field-label">USERNAME</label>
+      <input class="field-input" id="login-user" type="text" placeholder="username" 
+             onkeydown="if(event.key==='Enter') doLogin()">
+
+      <label class="field-label">PASSWORD</label>
+      <input class="field-input" id="login-pass" type="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter') doLogin()">
+
+      <button class="login-btn" onclick="doLogin()">[ LOGIN TO ACCOUNT ]</button>
+
+      <div class="result-box" id="login-result"></div>
+    </div>
+
+    <!-- Query display -->
+    <div class="query-display" id="query-display">
+      <div class="q-label">// BACKEND QUERY (debug mode ON)</div>
+      <div class="q-text" id="query-text">SELECT * FROM users WHERE username='' AND password=''</div>
+    </div>
+
+    <!-- Flag box -->
+    <div class="flag-box" id="flag-box-login">
+      <div class="flag-label">// FLAG CAPTURED — STAGE 1</div>
+      <div class="flag-value" id="flag-value-login"></div>
+      <div class="flag-msg">
+        ✓ You bypassed authentication using SQL injection! The comment sequence (--) 
+        terminated the password check, making the WHERE clause always evaluate to true. 
+        Now explore the Account Search panel for Stage 2. 🔓
+      </div>
+    </div>
+
+    <!-- Attempt log -->
+    <div class="section-label">// QUERY LOG</div>
+    <div class="log-box" id="log-login">
+      <div style="color:var(--dim);font-size:0.68rem">// Awaiting login attempts...</div>
+    </div>
+
+  </div>
+
+  <!-- SEARCH PANEL -->
+  <div class="panel" id="panel-search">
+
+    <div class="hint-strip">
+      💡 INTEL: The search query:<br>
+      <code>SELECT id,name,balance FROM accounts WHERE name='INPUT'</code><br>
+      There's a hidden <strong>secret_flag</strong> column in the accounts table. 
+      Use a UNION-based injection to extract it!<br><br>
+      Try: <code>' UNION SELECT 1,secret_flag,3 FROM secrets--</code>
+    </div>
+
+    <div class="search-box">
+      <div class="search-title">// ACCOUNT SEARCH</div>
+      <div class="search-sub">Search for customer accounts by name.</div>
+      <div class="search-row">
+        <input class="search-input" id="search-input" type="text" 
+               placeholder="Customer name..." 
+               onkeydown="if(event.key==='Enter') doSearch()">
+        <button class="search-btn" onclick="doSearch()">[ SEARCH ]</button>
+      </div>
+    </div>
+
+    <!-- Query display -->
+    <div class="query-display" id="search-query-display">
+      <div class="q-label">// BACKEND QUERY (debug mode ON)</div>
+      <div class="q-text" id="search-query-text">SELECT id,name,balance FROM accounts WHERE name=''</div>
+    </div>
+
+    <!-- Results table -->
+    <table class="data-table" id="results-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>NAME</th>
+          <th>BALANCE</th>
+        </tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+
+    <div class="result-box" id="search-result"></div>
+
+    <!-- Flag box stage 2 -->
+    <div class="flag-box" id="flag-box-search">
+      <div class="flag-label">// FLAG CAPTURED — STAGE 2 COMPLETE</div>
+      <div class="flag-value" id="flag-value-search"></div>
+      <div class="flag-msg">
+        ✓ UNION-based SQL injection complete! You extracted data from a hidden table 
+        by injecting a UNION SELECT statement. In real systems this can expose 
+        passwords, API keys, PII, and entire database contents. 💀
+      </div>
+    </div>
+
+    <!-- Attempt log -->
+    <div class="section-label">// QUERY LOG</div>
+    <div class="log-box" id="log-search">
+      <div style="color:var(--dim);font-size:0.68rem">// Awaiting search queries...</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ── FLAGS ────────────────────────────────────────────
+const FLAG_1 = 'GV{SQL1_AUTH_BYP4SS_4dm1n_pwn3d}';
+const FLAG_2 = 'GV{SQL1_UN10N_S3CR3T_T4BL3_dump3d}';
+
+// ── STAGE STATE ──────────────────────────────────────
+let stage1Done = false;
+let stage2Done = false;
+
+// ── HELPERS ──────────────────────────────────────────
+function getTime() {
+  return new Date().toLocaleTimeString('en-US', { hour12:false });
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function addLog(logId, input, type) {
+  const log = document.getElementById(logId);
+  const ph = log.querySelector('div');
+  if (ph && ph.style.color) ph.remove();
+  const e = document.createElement('div');
+  e.className = 'log-entry';
+  e.innerHTML = `<span class="ts">[${getTime()}]</span> → <span class="${type}">${esc(input.substring(0,70))}</span>`;
+  log.insertBefore(e, log.firstChild);
+}
+
+// ── TAB SWITCH ───────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── LOGIN INJECTION DETECTION ────────────────────────
+function isLoginBypass(user, pass) {
+  const u = user.toLowerCase();
+  const p = pass.toLowerCase();
+  // Classic bypass patterns
+  const bypassPatterns = [
+    /'\s*or\s*'1'\s*=\s*'1/i,
+    /'\s*or\s*1\s*=\s*1/i,
+    /'\s*--/i,
+    /'\s*#/i,
+    /admin'\s*--/i,
+    /admin'\s*#/i,
+    /'\s*or\s*'a'\s*=\s*'a/i,
+    /'\s*or\s*true/i,
+    /'\s*\/\*/i,
+  ];
+  return bypassPatterns.some(p => p.test(u) || p.test(pass));
+}
+
+// ── RENDER QUERY ─────────────────────────────────────
+function renderLoginQuery(user, pass) {
+  const qEl = document.getElementById('query-text');
+  const box  = document.getElementById('query-display');
+  const safe = esc(user);
+  const safeP= esc(pass);
+  const isInject = isLoginBypass(user, pass);
+
+  if (isInject) {
+    box.classList.add('danger');
+    qEl.innerHTML = `SELECT * FROM users WHERE username='<span class="q-inject">${safe}</span>' AND password='<span class="q-inject">${safeP}</span>'`;
+  } else {
+    box.classList.remove('danger');
+    qEl.innerHTML = `SELECT * FROM users WHERE username='${safe}' AND password='${safeP}'`;
+  }
+}
+
+// ── DO LOGIN ─────────────────────────────────────────
+function doLogin() {
+  const user = document.getElementById('login-user').value;
+  const pass = document.getElementById('login-pass').value;
+  const resultEl = document.getElementById('login-result');
+
+  renderLoginQuery(user, pass);
+
+  if (!user) {
+    resultEl.className = 'result-box show error';
+    resultEl.textContent = '// ERROR: Username required.';
+    return;
+  }
+
+  if (isLoginBypass(user, pass)) {
+    // Successful injection!
+    resultEl.className = 'result-box show success';
+    resultEl.innerHTML = `// ACCESS GRANTED<br>// Logged in as: <strong>admin</strong><br>// Role: ADMINISTRATOR<br>// Accounts: 1,247 customers`;
+
+    if (!stage1Done) {
+      stage1Done = true;
+      document.getElementById('flag-value-login').textContent = FLAG_1;
+      document.getElementById('flag-box-login').classList.add('show');
+      // Unlock search tab
+      const searchTab = document.getElementById('tab-search');
+      searchTab.style.opacity = '1';
+      searchTab.style.pointerEvents = 'auto';
+    }
+    addLog('log-login', user, 'success');
+  } else if (user === 'admin' && pass === '') {
+    resultEl.className = 'result-box show error';
+    resultEl.textContent = '// ERROR: Password required.';
+    addLog('log-login', user, 'normal');
+  } else {
+    resultEl.className = 'result-box show error';
+    resultEl.textContent = `// ERROR: Invalid credentials.\n// Username or password incorrect.\n// Attempts are logged.`;
+    addLog('log-login', user, 'normal');
+  }
+}
+
+// ── SEARCH UNION DETECTION ───────────────────────────
+function isUnionInject(q) {
+  return /union\s+select/i.test(q);
+}
+
+function isSecretExtract(q) {
+  return /union\s+select/i.test(q) && /secret/i.test(q);
+}
+
+// Normal account data
+const ACCOUNTS = [
+  { id:'001', name:'John Mercer',    balance:'$12,450.00' },
+  { id:'002', name:'Sarah Okafor',   balance:'$8,720.50'  },
+  { id:'003', name:'David Chen',     balance:'$45,200.00' },
+  { id:'004', name:'Amara Diallo',   balance:'$3,100.75'  },
+];
+
+// ── RENDER SEARCH QUERY ───────────────────────────────
+function renderSearchQuery(q) {
+  const qEl = document.getElementById('search-query-text');
+  const box  = document.getElementById('search-query-display');
+  const safe = esc(q);
+  const isInject = isUnionInject(q);
+  if (isInject) {
+    box.classList.add('danger');
+    qEl.innerHTML = `SELECT id,name,balance FROM accounts WHERE name='<span class="q-inject">${safe}</span>'`;
+  } else {
+    box.classList.remove('danger');
+    qEl.innerHTML = `SELECT id,name,balance FROM accounts WHERE name='${safe}'`;
+  }
+}
+
+// ── DO SEARCH ─────────────────────────────────────────
+function doSearch() {
+  const q = document.getElementById('search-input').value;
+  const resultEl = document.getElementById('search-result');
+  const table    = document.getElementById('results-table');
+  const tbody    = document.getElementById('results-body');
+
+  renderSearchQuery(q);
+  resultEl.className = 'result-box';
+  table.classList.remove('show');
+  tbody.innerHTML = '';
+
+  if (!q) {
+    resultEl.className = 'result-box show error';
+    resultEl.textContent = '// ERROR: Search term required.';
+    return;
+  }
+
+  if (isSecretExtract(q)) {
+    // UNION injection — extract secret flag!
+    table.classList.add('show');
+    tbody.innerHTML = `
+      <tr>
+        <td>1</td>
+        <td class="secret">${FLAG_2}</td>
+        <td>3</td>
+      </tr>`;
+    resultEl.className = 'result-box show warning';
+    resultEl.textContent = '// UNION SELECT executed — data from secrets table extracted!';
+
+    if (!stage2Done) {
+      stage2Done = true;
+      document.getElementById('flag-value-search').textContent = FLAG_2;
+      document.getElementById('flag-box-search').classList.add('show');
+    }
+    addLog('log-search', q, 'injected');
+
+  } else if (isUnionInject(q)) {
+    // UNION but not targeting secrets yet
+    table.classList.add('show');
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="3" style="color:var(--yellow)">
+          // UNION SELECT detected — but target table not found.<br>
+          // Hint: try targeting the 'secrets' table with column 'secret_flag'
+        </td>
+      </tr>`;
+    addLog('log-search', q, 'injected');
+
+  } else {
+    // Normal search
+    const lower = q.toLowerCase();
+    const matches = ACCOUNTS.filter(a => a.name.toLowerCase().includes(lower));
+    if (matches.length > 0) {
+      table.classList.add('show');
+      matches.forEach(a => {
+        tbody.innerHTML += `<tr><td>${a.id}</td><td>${esc(a.name)}</td><td>${a.balance}</td></tr>`;
+      });
+      addLog('log-search', q, 'normal');
+    } else {
+      resultEl.className = 'result-box show error';
+      resultEl.textContent = `// No accounts found matching: "${esc(q)}"`;
+      addLog('log-search', q, 'normal');
+    }
+  }
+}
+
+// Live query preview on typing
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('login-user').addEventListener('input', () => {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    renderLoginQuery(u, p);
+  });
+  document.getElementById('login-pass').addEventListener('input', () => {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    renderLoginQuery(u, p);
+  });
+  document.getElementById('search-input').addEventListener('input', () => {
+    renderSearchQuery(document.getElementById('search-input').value);
+  });
+});
+</script>
+</body>
+</html>
