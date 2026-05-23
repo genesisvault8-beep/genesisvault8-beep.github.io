@@ -440,7 +440,9 @@
         <div><label>DELIVERY TYPE</label><select id="t-delivery"><option value="download">DOWNLOAD</option><option value="vault labs">VAULT LABS</option><option value="terminal">TERMINAL</option></select></div>
         <div><label>FILE TYPE</label><input type="text" id="t-filetype" placeholder=".zip, .py..."></div>
       </div>
-      <label>FILE URL (for downloads)</label><input type="text" id="t-fileurl" placeholder="https://github.com/...">
+      <label>FILE URL (for downloads)</label><input type="text" id="t-fileurl" placeholder="https://mediafire.com/...">
+      <label>THUMBNAIL URL <span style="color:#4a7a8a;font-size:0.7rem;">(tool preview image)</span></label><input type="text" id="t-thumbnail" placeholder="https://i.imgur.com/yourimage.png">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:#4a7a8a;letter-spacing:1px;margin-bottom:12px;">// Upload screenshot to Imgur, ImgBB or any image host → paste URL here</div>
       <label>CONTENT URL (for apps running in Vault Labs)</label><input type="text" id="t-contenturl" placeholder="https://yourusername.github.io/repo/tool.html">
       <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:#4a7a8a;letter-spacing:1px;margin-bottom:12px;">// Paste GitHub Pages URL. Tool runs inside Vault Labs iframe.</div>
     </div>
@@ -753,6 +755,7 @@ function openEditTool(id) {
   const ft=document.getElementById('t-filetype'); if(ft)ft.value=t.file_type||'';
   const fu=document.getElementById('t-fileurl');  if(fu)fu.value=t.download_url||'';
   const cu=document.getElementById('t-contenturl'); if(cu)cu.value=t.content_url||'';
+  const tu=document.getElementById('t-thumbnail'); if(tu)tu.value=t.thumbnail_url||'';
   const dv=document.getElementById('t-delivery'); if(dv)dv.value=t.delivery||'download';
   document.getElementById('t-params-schema').value=t.params_schema?JSON.stringify(t.params_schema,null,2):'';
   setToggle('kit',t.is_kit||false); setToggle('featured',t.is_featured||false); setToggle('new-badge',t.is_new||false);
@@ -801,7 +804,7 @@ async function submitTool() {
 }
 
 function clearToolForm() {
-  ['t-title','t-desc','t-filetype','t-fileurl','t-contenturl','t-cmd','t-script','t-params-schema','t-system-prompt','t-input-label'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['t-title','t-desc','t-filetype','t-fileurl','t-contenturl','t-thumbnail','t-cmd','t-script','t-params-schema','t-system-prompt','t-input-label'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const rt=document.getElementById('t-run-type'); if(rt){rt.value='security';onRunTypeChange();}
   document.getElementById('t-price').value=0; document.getElementById('t-cat').value='automation';
   setToggle('kit',false);setToggle('featured',false);setToggle('new-badge',false);
