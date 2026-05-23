@@ -1018,10 +1018,12 @@
 </div>
 
 <script>
-const API = 'https://genesis-ai-backend.onrender.com/api';
+const API    = 'https://genesis-vault-backend.onrender.com/api';
+const AI_API = 'https://genesis-ai-backend.onrender.com/api';
 
 // Keep-alive ping
-setInterval(() => fetch(`${API}/health`).catch(()=>{}), 14 * 60 * 1000);
+setInterval(() => fetch(`${API}/ping`).catch(()=>{}), 14 * 60 * 1000);
+setInterval(() => fetch(`${AI_API}/ping`).catch(()=>{}), 14 * 60 * 1000);
 let token  = localStorage.getItem('gv_token');
 if (!token) location.href = 'login.html';
 
@@ -1659,7 +1661,7 @@ async function callAI(prompt, btnId, outId, cpyId, label) {
   btn.disabled = true; btn.textContent = '[ THINKING... ]';
   out.style.display = 'none'; cpy.style.display = 'none';
   try {
-    const res  = await fetchWithAuth(`${API}/vault-ai`, {
+    const res  = await fetchWithAuth(`${AI_API}/vault-ai`, {
       method:'POST',
       body: JSON.stringify({ message: prompt })
     });
