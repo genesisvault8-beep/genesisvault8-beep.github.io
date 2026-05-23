@@ -135,6 +135,13 @@
   .status-msg.ok{border:1px solid var(--accent);color:var(--accent);background:rgba(0,245,196,0.05);}
   .status-msg.err{border:1px solid var(--accent3);color:var(--accent3);background:rgba(255,0,60,0.05);}
 
+  /* POST TYPE CARDS */
+  .post-type-card{background:var(--bg2);border:1px solid var(--border);padding:16px;cursor:pointer;transition:all 0.2s;text-align:center;animation:fadeIn 0.3s ease;}
+  .post-type-card:hover,.post-type-card.selected{border-color:var(--accent3);background:rgba(255,0,60,0.04);}
+  .post-type-card.selected{border-left:3px solid var(--accent3);}
+  .post-type-name{font-weight:700;letter-spacing:2px;color:white;font-size:0.9rem;margin-bottom:4px;}
+  .post-type-desc{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;line-height:1.5;}
+
   /* MARKET TABS */
   .section-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto;}
   .section-tab{padding:8px 14px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:2px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;display:flex;align-items:center;gap:6px;}
@@ -255,6 +262,7 @@
   <div class="page" id="page-tools">
     <div class="section-tabs">
       <div class="section-tab active" data-tab="mkt-stats"    onclick="switchMktTab('mkt-stats',this)">OVERVIEW</div>
+      <div class="section-tab"        data-tab="mkt-post"     onclick="switchMktTab('mkt-post',this)">+ POST</div>
       <div class="section-tab"        data-tab="mkt-queue"    onclick="switchMktTab('mkt-queue',this)">QUEUE <span class="tab-dot"></span></div>
       <div class="section-tab"        data-tab="mkt-listings" onclick="switchMktTab('mkt-listings',this)">LISTINGS</div>
       <div class="section-tab"        data-tab="mkt-promos"   onclick="switchMktTab('mkt-promos',this)">PROMOS</div>
@@ -272,7 +280,131 @@
       <div class="s-title">// QUICK ACTIONS</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn-add" onclick="switchMktTab('mkt-queue',document.querySelector('[data-tab=mkt-queue]'))">VIEW PENDING QUEUE</button>
-        <button class="btn-add" style="background:var(--accent2);" onclick="openAddTool()">+ ADD NEW TOOL</button>
+        <button class="btn-add" style="background:var(--accent3);" onclick="switchMktTab('mkt-post',document.querySelector('[data-tab=mkt-post]'))">+ POST NEW PRODUCT</button>
+      </div>
+    </div>
+
+    <!-- POST NEW PRODUCT PANEL -->
+    <div class="section-panel" id="panel-mkt-post">
+      <div class="s-title">// POST TO MARKETPLACE</div>
+
+      <!-- STEP 1: PICK TYPE -->
+      <div id="post-step-1">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:14px;">// SELECT PRODUCT TYPE</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div class="post-type-card" onclick="selectPostType('script')" id="ptype-script">
+            <div style="font-size:1.4rem;margin-bottom:6px;">⌨</div>
+            <div class="post-type-name">SCRIPT</div>
+            <div class="post-type-desc">Downloadable file — Python, Bash, JS</div>
+          </div>
+          <div class="post-type-card" onclick="selectPostType('webapp')" id="ptype-webapp">
+            <div style="font-size:1.4rem;margin-bottom:6px;">◈</div>
+            <div class="post-type-name">WEB APP</div>
+            <div class="post-type-desc">Runs inside Genesis Vault iframe</div>
+          </div>
+          <div class="post-type-card" onclick="selectPostType('kit')" id="ptype-kit">
+            <div style="font-size:1.4rem;margin-bottom:6px;">📦</div>
+            <div class="post-type-name">TOOL KIT</div>
+            <div class="post-type-desc">Bundled security tools as a web app</div>
+          </div>
+          <div class="post-type-card" onclick="selectPostType('automation')" id="ptype-automation">
+            <div style="font-size:1.4rem;margin-bottom:6px;">⚡</div>
+            <div class="post-type-name">AUTOMATION</div>
+            <div class="post-type-desc">AI-powered bot (email, PDF, hashtags...)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: FORM (changes based on type) -->
+      <div id="post-step-2" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <button onclick="resetPostForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:1px;cursor:pointer;">← BACK</button>
+          <div id="post-type-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent3);border:1px solid var(--accent3);padding:3px 10px;letter-spacing:2px;"></div>
+        </div>
+
+        <div class="status-msg" id="post-status"></div>
+
+        <!-- COMMON FIELDS -->
+        <label>TITLE</label>
+        <input type="text" id="p-title" placeholder="Product name...">
+
+        <label>DESCRIPTION</label>
+        <textarea id="p-desc" rows="3" placeholder="What does it do? Who is it for?"></textarea>
+
+        <label>PRICE (VC) <span style="color:var(--text-dim);font-size:0.7rem;">— set 0 for FREE</span></label>
+        <input type="number" id="p-vc-price" placeholder="0" min="0" step="1">
+
+        <label>THUMBNAIL URL <span style="color:var(--text-dim);font-size:0.7rem;">— optional preview image</span></label>
+        <input type="text" id="p-thumbnail" placeholder="https://i.imgur.com/yourimage.png">
+
+        <!-- SCRIPT FIELDS -->
+        <div id="post-fields-script" style="display:none;">
+          <div class="divider-line"></div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// SCRIPT DELIVERY</div>
+          <label>FILE TYPE</label>
+          <select id="p-script-filetype">
+            <option value=".py">Python (.py)</option>
+            <option value=".sh">Bash (.sh)</option>
+            <option value=".js">JavaScript (.js)</option>
+            <option value=".zip">ZIP Archive (.zip)</option>
+            <option value=".txt">Text (.txt)</option>
+          </select>
+          <label>CLOUDFLARE R2 FILE KEY <span style="color:var(--text-dim);font-size:0.7rem;">— internal path only, never shown to users</span></label>
+          <input type="text" id="p-script-r2key" placeholder="scripts/my-tool-v1.py">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// Upload your file to Cloudflare R2 first → paste the file key here. Genesis Bridge will serve it securely.</div>
+        </div>
+
+        <!-- WEB APP FIELDS -->
+        <div id="post-fields-webapp" style="display:none;">
+          <div class="divider-line"></div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// WEB APP DELIVERY</div>
+          <label>APP URL <span style="color:var(--text-dim);font-size:0.7rem;">— Vercel / Netlify / GitHub Pages</span></label>
+          <input type="text" id="p-webapp-url" placeholder="https://your-app.vercel.app">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// URL is stored privately. Users access it through a secure Genesis Vault iframe — they never see the real URL.</div>
+        </div>
+
+        <!-- KIT FIELDS -->
+        <div id="post-fields-kit" style="display:none;">
+          <div class="divider-line"></div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// TOOL KIT DELIVERY</div>
+          <label>KIT APP URL <span style="color:var(--text-dim);font-size:0.7rem;">— bundled tools web app URL</span></label>
+          <input type="text" id="p-kit-url" placeholder="https://your-kit.vercel.app">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px;">// Build your kit tools as a web app (e.g. Clickjacking Tester + Header Analyzer etc), host it, paste the URL.</div>
+          <label>WHAT'S INCLUDED <span style="color:var(--text-dim);font-size:0.7rem;">— list the tools inside</span></label>
+          <div id="kit-post-items-list"></div>
+          <button class="btn-kit-add" onclick="addKitPostItem()">[ + ADD ITEM ]</button>
+          <div style="height:12px;"></div>
+        </div>
+
+        <!-- AUTOMATION FIELDS -->
+        <div id="post-fields-automation" style="display:none;">
+          <div class="divider-line"></div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// AUTOMATION BOT CONFIG</div>
+          <label>BOT TYPE</label>
+          <select id="p-auto-subtype">
+            <option value="email">Email Sender</option>
+            <option value="pdf">PDF Writer</option>
+            <option value="hashtags">Hashtag Generator</option>
+            <option value="trending">Trending Bot</option>
+            <option value="custom">Custom Bot</option>
+          </select>
+          <label>INPUT LABEL <span style="color:var(--text-dim);font-size:0.7rem;">— what the user fills in</span></label>
+          <input type="text" id="p-auto-input-label" placeholder="e.g. Enter your niche or topic...">
+          <label>AI SYSTEM PROMPT <span style="color:var(--text-dim);font-size:0.7rem;">— instructions for the AI</span></label>
+          <textarea id="p-auto-prompt" rows="6" placeholder="You are a TikTok hashtag expert. The user will give you a niche or topic. Generate 20 trending, relevant hashtags optimized for maximum reach..."></textarea>
+        </div>
+
+        <div class="divider-line"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div class="toggle-track" id="toggle-post-featured" onclick="togglePostField('featured')"><div class="toggle-knob"></div></div>
+          <span class="toggle-lbl">MARK AS FEATURED</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <div class="toggle-track" id="toggle-post-new" onclick="togglePostField('new')"><div class="toggle-knob"></div></div>
+          <span class="toggle-lbl">SHOW "NEW" BADGE</span>
+        </div>
+
+        <button class="btn-modal-submit" id="btn-post-submit" onclick="submitPost()">[ POST TO MARKETPLACE ]</button>
       </div>
     </div>
 
@@ -282,7 +414,7 @@
     </div>
 
     <div class="section-panel" id="panel-mkt-listings">
-      <div class="section-action-row"><button class="btn-add" onclick="openAddTool()">[ + ADD NEW TOOL ]</button></div>
+      <div class="section-action-row"><button class="btn-add" onclick="switchMktTab('mkt-post',document.querySelector('[data-tab=mkt-post]'))">[ + POST NEW PRODUCT ]</button></div>
       <div class="s-title">// TOOL LISTINGS</div>
       <div id="tools-mgr-container"><div class="loading"><span class="spinner"></span>Loading tools...</div></div>
     </div>
@@ -974,6 +1106,129 @@ function renderCourses(courses){const c=document.getElementById('courses-contain
 async function viewCourse(id,title){document.getElementById('modal-course-title').textContent='// '+title;document.getElementById('modal-course-body').innerHTML='<div class="loading"><span class="spinner"></span>Loading...</div>';document.getElementById('modal-course-view').style.display='block';try{const res=await apiFetch(`${API}/courses/${id}`);if(!res){document.getElementById('modal-course-body').innerHTML='// Failed to load.';return;}const d=await res.json();const raw=d.content||d.course?.content||'No content available.';document.getElementById('modal-course-body').innerHTML=marked.parse(raw);}catch(e){document.getElementById('modal-course-body').innerHTML='// Failed to load.';}}
 async function editCourse(id){const res=await apiFetch(`${API}/courses/${id}`);if(!res)return;const d=await res.json();const course=d.course||d;document.getElementById('c-title').value=course.title||'';document.getElementById('c-desc').value=course.description||'';document.getElementById('c-content').value=course.content||'';document.getElementById('c-category').value=course.category||'Beginner';document.getElementById('c-price').value=course.price||0;const vcLocked=course.vc_locked??false;document.getElementById('c-vc-lock').checked=vcLocked;document.getElementById('vc-lock-input').style.display=vcLocked?'flex':'none';if(vcLocked)document.getElementById('c-vc-cost').value=course.vc_cost??'';const btn=document.querySelector('[onclick="postCourse()"]');btn.textContent='[ UPDATE COURSE ]';btn.onclick=async()=>{const title=document.getElementById('c-title').value.trim();const desc=document.getElementById('c-desc').value.trim();const content=document.getElementById('c-content').value.trim();const category=document.getElementById('c-category').value;const price=parseFloat(document.getElementById('c-price').value)||0;const vcLock=document.getElementById('c-vc-lock').checked;const vcCost=vcLock?(parseInt(document.getElementById('c-vc-cost').value)||0):0;if(!title||!content){toast('// Title and content are required.','var(--accent3)');return;}btn.disabled=true;btn.textContent='[ UPDATING... ]';try{const ur=await apiFetch(`${API}/admin/courses/${id}/update`,{method:'POST',body:JSON.stringify({title,description:desc,content,category,price,is_free:price===0&&!vcLock,vc_locked:vcLock,vc_cost:vcCost})});if(!ur){btn.disabled=false;btn.textContent='[ UPDATE COURSE ]';return;}const ud=await ur.json();if(ud.status==='success'){toast('// Course updated!');['c-title','c-desc','c-content','c-price','c-vc-cost'].forEach(id=>document.getElementById(id).value='');document.getElementById('c-vc-lock').checked=false;document.getElementById('vc-lock-input').style.display='none';btn.textContent='[ PUBLISH COURSE ]';btn.onclick=postCourse;loadCourses();}else{toast(`// ${ud.message||'Update failed.'}`,'var(--accent3)');btn.disabled=false;btn.textContent='[ UPDATE COURSE ]';}}catch(e){toast('// Network error.','var(--accent3)');btn.disabled=false;btn.textContent='[ UPDATE COURSE ]';}};showPage('courses',document.querySelector('.nav-item:nth-child(5)'));document.getElementById('c-title').scrollIntoView({behavior:'smooth'});toast('// Course loaded for editing.');}
 async function deleteCourse(id,btn){if(!confirm('Permanently delete this course?'))return;btn.disabled=true;btn.textContent='...';try{const res=await apiFetch(`${API}/admin/courses/${id}/delete`,{method:'POST'});if(!res)return;if(res.ok){document.getElementById('course-'+id).remove();toast('// Course deleted.','var(--accent3)');}else{const d=await res.json();toast(`// ${d.message||'Delete failed.'}`,'var(--accent3)');btn.disabled=false;btn.textContent='[ DELETE ]';}}catch(e){toast('// Network error.','var(--accent3)');btn.disabled=false;btn.textContent='[ DELETE ]';}}
+
+// ── QUICK POST FLOW ──────────────────────────────────────────────────
+let currentPostType = null;
+let postToggles = { featured: false, new: false };
+let kitPostItems = [];
+
+function selectPostType(type) {
+  currentPostType = type;
+  // Highlight selected card
+  document.querySelectorAll('.post-type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('ptype-' + type).classList.add('selected');
+
+  // Update badge
+  const labels = { script:'SCRIPT', webapp:'WEB APP', kit:'TOOL KIT', automation:'AUTOMATION' };
+  document.getElementById('post-type-badge').textContent = '// ' + labels[type];
+
+  // Show/hide type-specific fields
+  ['script','webapp','kit','automation'].forEach(t => {
+    document.getElementById('post-fields-' + t).style.display = t === type ? 'block' : 'none';
+  });
+
+  // Show step 2
+  document.getElementById('post-step-1').style.display = 'none';
+  document.getElementById('post-step-2').style.display = 'block';
+  document.getElementById('post-status').style.display = 'none';
+}
+
+function resetPostForm() {
+  currentPostType = null;
+  kitPostItems = [];
+  postToggles = { featured: false, new: false };
+  ['p-title','p-desc','p-vc-price','p-thumbnail','p-script-r2key','p-webapp-url','p-kit-url','p-auto-input-label','p-auto-prompt'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('p-vc-price').value = 0;
+  document.getElementById('toggle-post-featured').classList.remove('on');
+  document.getElementById('toggle-post-new').classList.remove('on');
+  document.getElementById('kit-post-items-list').innerHTML = '';
+  document.querySelectorAll('.post-type-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('post-step-1').style.display = 'block';
+  document.getElementById('post-step-2').style.display = 'none';
+}
+
+function togglePostField(name) {
+  postToggles[name] = !postToggles[name];
+  document.getElementById('toggle-post-' + name).classList.toggle('on', postToggles[name]);
+}
+
+function addKitPostItem() {
+  kitPostItems.push('');
+  renderKitPostItems();
+}
+
+function renderKitPostItems() {
+  document.getElementById('kit-post-items-list').innerHTML = kitPostItems.map((v, i) =>
+    `<div class="kit-item-row"><input type="text" value="${esc(v)}" placeholder="Tool ${i+1} name..." oninput="kitPostItems[${i}]=this.value"></div>`
+  ).join('');
+}
+
+async function submitPost() {
+  const btn = document.getElementById('btn-post-submit');
+  const msg = document.getElementById('post-status');
+  const title = document.getElementById('p-title').value.trim();
+  const desc  = document.getElementById('p-desc').value.trim();
+  const price = parseInt(document.getElementById('p-vc-price').value) || 0;
+  const thumb = document.getElementById('p-thumbnail').value.trim();
+
+  if (!title) { showStatus(msg, '// Title is required.', true); return; }
+  if (!desc)  { showStatus(msg, '// Description is required.', true); return; }
+
+  // Build payload based on type
+  let payload = {
+    title, description: desc, vc_price: price, price: 0,
+    thumbnail_url: thumb || null,
+    is_featured: postToggles.featured,
+    is_new: postToggles.new,
+  };
+
+  if (currentPostType === 'script') {
+    const r2key = document.getElementById('p-script-r2key').value.trim();
+    const ftype = document.getElementById('p-script-filetype').value;
+    if (!r2key) { showStatus(msg, '// R2 file key is required for scripts.', true); return; }
+    payload = { ...payload, type: 'scripts', tool_run_type: 'download', delivery: 'download', file_type: ftype, download_url: r2key, is_kit: false };
+
+  } else if (currentPostType === 'webapp') {
+    const url = document.getElementById('p-webapp-url').value.trim();
+    if (!url) { showStatus(msg, '// App URL is required.', true); return; }
+    payload = { ...payload, type: 'apps', tool_run_type: 'download', delivery: 'vault labs', content_url: url, is_kit: false };
+
+  } else if (currentPostType === 'kit') {
+    const url = document.getElementById('p-kit-url').value.trim();
+    if (!url) { showStatus(msg, '// Kit app URL is required.', true); return; }
+    const items = kitPostItems.filter(Boolean);
+    if (!items.length) { showStatus(msg, '// Add at least one item to the kit.', true); return; }
+    payload = { ...payload, type: 'kits', tool_run_type: 'download', delivery: 'vault labs', content_url: url, is_kit: true, kit_items: items };
+
+  } else if (currentPostType === 'automation') {
+    const prompt = document.getElementById('p-auto-prompt').value.trim();
+    const inputLabel = document.getElementById('p-auto-input-label').value.trim();
+    if (!prompt) { showStatus(msg, '// AI system prompt is required.', true); return; }
+    payload = { ...payload, type: 'automation', tool_run_type: 'ai', system_prompt: prompt, input_label: inputLabel || 'Enter your input...', is_kit: false };
+  }
+
+  btn.disabled = true; btn.textContent = '[ POSTING... ]';
+  try {
+    const res = await apiFetch(`${API}/admin/tools`, { method: 'POST', body: JSON.stringify(payload) });
+    if (!res) { btn.disabled = false; btn.textContent = '[ POST TO MARKETPLACE ]'; return; }
+    const data = await res.json();
+    if (data.status === 'success') {
+      toast('✓ Posted to marketplace!');
+      resetPostForm();
+      loadToolsMgr();
+      loadMarketStats();
+      switchMktTab('mkt-listings', document.querySelector('[data-tab=mkt-listings]'));
+    } else {
+      showStatus(msg, data.message || '// Failed to post.', true);
+      btn.disabled = false; btn.textContent = '[ POST TO MARKETPLACE ]';
+    }
+  } catch(e) {
+    showStatus(msg, '// Network error.', true);
+    btn.disabled = false; btn.textContent = '[ POST TO MARKETPLACE ]';
+  }
+}
 
 // ── INIT ─────────────────────────────────────────────────────────────
 async function initAdmin() {
