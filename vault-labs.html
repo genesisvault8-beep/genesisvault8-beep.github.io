@@ -1004,8 +1004,8 @@ async function openLab(id) {
     } else {
       btn.textContent = '[ SOLVE LAB TO COMPLETE ]';
       btn.classList.remove('done');
-      btn.classList.add('locked');
-      btn.disabled = true;
+      btn.classList.remove('locked');
+      btn.disabled = false;
     }
   } catch(e) {
     document.getElementById('viewer-loading').classList.remove('show');
