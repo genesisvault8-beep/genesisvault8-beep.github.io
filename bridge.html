@@ -749,34 +749,7 @@ main {
 
 .btn-confirm:hover { background: rgba(255,107,0,0.2); }
 
-/* ── BOTTOM NAV ── */
-.bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(2,12,10,0.97);
-  border-top: 1px solid var(--border);
-  display: flex;
-  z-index: 100;
-  backdrop-filter: blur(10px);
-}
 
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 0 8px;
-  text-decoration: none;
-  color: var(--text-dim);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 1px;
-  gap: 4px;
-  transition: color 0.2s;
-}
-
-.nav-item.active { color: var(--cyan); }
-.nav-item:hover { color: var(--cyan); }
 
 .nav-icon { font-size: 16px; }
 
@@ -790,7 +763,9 @@ main {
 }
 
 .active-bridge { animation: fadeInUp 0.4s ease both; }
-
+.upgrade-card:nth-child(1) { animation: fadeInUp 0.4s 0.1s ease both; }
+.upgrade-card:nth-child(2) { animation: fadeInUp 0.4s 0.2s ease both; }
+.upgrade-card:nth-child(3) { animation: fadeInUp 0.4s 0.3s ease both; }
 
 /* glitch on title */
 @keyframes glitch {
@@ -884,7 +859,7 @@ main {
   <div class="active-bridge" id="activeBridgeBox" style="display:none;">
     <div class="active-label">YOUR BRIDGE</div>
     <div class="bridge-name-row">
-      <div class="bridge-name" id="activeBridgeName">VAULT BRIDGE</div>
+      <div class="bridge-name" id="activeBridgeName">GHOST BRIDGE</div>
       <div class="status-badge connected" id="bridgeStatus">CONNECTED</div>
     </div>
     <div class="bridge-meta">
@@ -904,114 +879,132 @@ main {
     </button>
   </div>
 
-  <!-- WHAT THE BRIDGE DOES -->
-  <div class="section-header" style="margin-top:8px;">WHAT BRIDGE DOES</div>
+  <!-- AVAILABLE UPGRADES -->
+  <div class="section-header" style="margin-top:8px;">AVAILABLE UPGRADES</div>
 
-  <div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:16px;margin-bottom:12px;">
-    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:2px;margin-bottom:10px;">// HOW IT WORKS</div>
-    <div style="font-size:13px;color:var(--text);line-height:1.8;">
-      The bridge connects your <span style="color:var(--cyan);">Termux</span> to the Vault AI terminal.
-      Once connected, CIPHER can run real tools on <span style="color:var(--cyan);">your device</span>
-      and analyze the results live.
+  <div class="upgrades-list" id="upgradesList">
+    <!-- Populated by JS / will be admin-posted -->
+
+    <!-- GHOST BRIDGE — always free -->
+    <div class="upgrade-card" id="card-ghost">
+      <div class="upgrade-top">
+        <div>
+          <div class="upgrade-name">GHOST BRIDGE</div>
+          <div class="upgrade-platform">📱 TERMUX &amp; LINUX</div>
+        </div>
+        <div class="upgrade-price free">FREE</div>
+      </div>
+      <div class="upgrade-desc">Entry-level bridge. Connect your device and start learning the fundamentals of network recon.</div>
+      <div class="upgrade-tools">
+        <span class="upgrade-tool">nmap</span>
+        <span class="upgrade-tool">whois</span>
+        <span class="upgrade-tool">ping</span>
+        <span class="upgrade-tool">traceroute</span>
+      </div>
+      <div class="upgrade-footer">
+        <div class="upgrade-posted">POSTED BY ADMIN · ALWAYS AVAILABLE</div>
+        <button class="upgrade-btn" onclick="showGuide('ghost')">[ GUIDE ]</button>
+      </div>
+    </div>
+
+    <!-- HUNTER BRIDGE -->
+    <div class="upgrade-card" id="card-hunter">
+      <div class="upgrade-top">
+        <div>
+          <div class="upgrade-name">HUNTER BRIDGE</div>
+          <div class="upgrade-platform">📱 TERMUX</div>
+        </div>
+        <div class="upgrade-price">200 VC</div>
+      </div>
+      <div class="upgrade-desc">Upgrade your Termux bridge with recon tools used by real bug bounty hunters.</div>
+      <div class="upgrade-tools">
+        <span class="upgrade-tool">nmap</span>
+        <span class="upgrade-tool">whois</span>
+        <span class="upgrade-tool">ping</span>
+        <span class="upgrade-tool new">subfinder</span>
+        <span class="upgrade-tool new">httpx</span>
+        <span class="upgrade-tool new">waybackurls</span>
+        <span class="upgrade-tool new">amass</span>
+      </div>
+      <div class="upgrade-footer">
+        <div class="upgrade-posted">POSTED BY ADMIN · 3 DAYS AGO</div>
+        <div style="display:flex;gap:8px;">
+          <button class="upgrade-btn" style="border-color:var(--text-dim);color:var(--text-dim);" onclick="showGuide('hunter')">[ GUIDE ]</button>
+          <button class="upgrade-btn" onclick="confirmUpgrade('Hunter Bridge', 200, 'hunter')">[ UPGRADE ]</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINUX BRIDGE -->
+    <div class="upgrade-card" id="card-linux">
+      <div class="upgrade-top">
+        <div>
+          <div class="upgrade-name">LINUX BRIDGE</div>
+          <div class="upgrade-platform">🖥️ LINUX / VPS / KALI</div>
+        </div>
+        <div class="upgrade-price">200 VC</div>
+      </div>
+      <div class="upgrade-desc">Full desktop Linux environment. More power, heavier scans, serious recon pipeline.</div>
+      <div class="upgrade-tools">
+        <span class="upgrade-tool">nmap</span>
+        <span class="upgrade-tool">whois</span>
+        <span class="upgrade-tool new">subfinder</span>
+        <span class="upgrade-tool new">httpx</span>
+        <span class="upgrade-tool new">nuclei</span>
+        <span class="upgrade-tool new">ffuf</span>
+        <span class="upgrade-tool new">waybackurls</span>
+        <span class="upgrade-tool new">sqlmap</span>
+      </div>
+      <div class="upgrade-footer">
+        <div class="upgrade-posted">POSTED BY ADMIN · 3 DAYS AGO</div>
+        <div style="display:flex;gap:8px;">
+          <button class="upgrade-btn" style="border-color:var(--text-dim);color:var(--text-dim);" onclick="showGuide('linux')">[ GUIDE ]</button>
+          <button class="upgrade-btn" onclick="confirmUpgrade('Linux Bridge', 200, 'linux')">[ UPGRADE ]</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMING SOON -->
+  <div class="section-header">COMING SOON</div>
+  <div class="coming-soon-list">
+    <div class="coming-card">
+      <div class="coming-overlay">LOCKED</div>
+      <div class="coming-name">SPECTER BRIDGE</div>
+      <div class="coming-desc">Full arsenal. Admin approval required. For elite hunters only.</div>
     </div>
   </div>
 
-  <!-- TOOLS INFO -->
-  <div style="background:var(--bg2);border:1px solid var(--border);padding:14px;margin-bottom:12px;">
-    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:10px;">// TOOLS AVAILABLE DEPEND ON YOUR TERMUX SETUP</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">nmap</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">whois</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">ping</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">subfinder</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">httpx</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">nuclei</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">waybackurls</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">ffuf</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">sqlmap</span>
-      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);border:1px solid rgba(0,245,212,0.3);padding:3px 8px;background:rgba(0,245,212,0.05);">dalfox</span>
-    </div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);">Install any tool in Termux and CIPHER will automatically detect and use it.</div>
-  </div>
-
-  <!-- SETUP GUIDE -->
-  <div class="section-header">SETUP GUIDE</div>
-
-  <div style="background:var(--bg2);border:1px solid var(--border);padding:16px;margin-bottom:20px;">
-    <div style="display:flex;flex-direction:column;gap:14px;">
-
-      <div style="display:flex;gap:12px;">
-        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);border:1px solid var(--cyan);width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-        <div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;margin-bottom:4px;">GET TERMUX</div>
-          <div style="font-size:12px;color:var(--text);line-height:1.5;">Download Termux from F-Droid (not Play Store). Then run:</div>
-          <div style="background:rgba(0,0,0,0.5);border:1px solid var(--border);padding:8px 10px;margin-top:6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);">pkg update && pkg upgrade -y<br>pkg install python nmap -y<br>pip install requests</div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;">
-        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);border:1px solid var(--cyan);width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-        <div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;margin-bottom:4px;">GENERATE YOUR TOKEN</div>
-          <div style="font-size:12px;color:var(--text);line-height:1.5;">Scroll up and click <span style="color:var(--cyan);">GENERATE BRIDGE TOKEN</span>. A unique install command will appear — copy it.</div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;">
-        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);border:1px solid var(--cyan);width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-        <div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;margin-bottom:4px;">RUN IN TERMUX</div>
-          <div style="font-size:12px;color:var(--text);line-height:1.5;">Paste your install command in Termux and run it. The bridge will download and connect automatically.</div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;">
-        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);border:1px solid var(--cyan);width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
-        <div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;margin-bottom:4px;">USE THE AI TERMINAL</div>
-          <div style="font-size:12px;color:var(--text);line-height:1.5;">Go to <a href="vault-ai.html" style="color:var(--cyan);text-decoration:none;">AI Terminal</a> and type <span style="color:var(--green);">bridge connect</span>. CIPHER will confirm your bridge is live.</div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;">
-        <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--orange);border:1px solid var(--orange);width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">!</div>
-        <div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--orange);margin-bottom:4px;">KEEP IT RUNNING</div>
-          <div style="font-size:12px;color:var(--text);line-height:1.5;">Keep Termux open in the background. Use a wake lock to prevent Android from killing it. Bridge goes OFFLINE when Termux closes.</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="bottom-spacer"></div>
+  
 </main>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <a href="dashboard.html" class="nav-item">
-    <span class="nav-icon">⌂</span>
-    <span>HOME</span>
-  </a>
-  <a href="community.html" class="nav-item">
-    <span class="nav-icon">◈</span>
-    <span>COMMUNITY</span>
-  </a>
-  <a href="market.html" class="nav-item">
-    <span class="nav-icon">⊞</span>
-    <span>MARKET</span>
-  </a>
-  <a href="messages.html" class="nav-item">
-    <span class="nav-icon">✉</span>
-    <span>MESSAGES</span>
-  </a>
-  <a href="profile.html" class="nav-item">
-    <span class="nav-icon">◉</span>
-    <span>PROFILE</span>
-  </a>
-</nav>
 
-<!-- Modals removed — no upgrade tiers -->
+
+<!-- GUIDE MODAL -->
+<div class="modal-overlay" id="guideModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="guideTitle">BRIDGE GUIDE</div>
+      <button class="modal-close" onclick="closeGuide()">[ CLOSE ]</button>
+    </div>
+    <div class="modal-body" id="guideBody"></div>
+  </div>
+</div>
+
+<!-- UPGRADE CONFIRM MODAL -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon">⬡</div>
+    <div class="confirm-title" id="confirmTitle">UPGRADE BRIDGE</div>
+    <div class="confirm-desc" id="confirmDesc">This will upgrade your bridge and deduct VC from your balance.</div>
+    <div class="confirm-cost" id="confirmCost">200 VC</div>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">CANCEL</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="executeUpgrade()">CONFIRM</button>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -1118,20 +1111,37 @@ function showActiveBridge(bridge) {
   document.getElementById("noBridgeBox").style.display = "none";
   document.getElementById("activeBridgeBox").style.display = "block";
 
-  document.getElementById("activeBridgeName").textContent = "VAULT BRIDGE";
-  document.getElementById("activePlatform").textContent   = "TERMUX / LINUX";
-  document.getElementById("activeTier").textContent       = "FREE";
+  const names = { ghost: "GHOST BRIDGE", hunter: "HUNTER BRIDGE", linux: "LINUX BRIDGE", specter: "SPECTER BRIDGE" };
+  const platforms = { ghost: "TERMUX / LINUX", hunter: "TERMUX", linux: "LINUX / VPS", specter: "ANY" };
+  const tiers = { ghost: "FREE", hunter: "200 VC", linux: "200 VC", specter: "500 VC" };
+  const toolMap = {
+    ghost:   ["nmap","whois","ping","traceroute"],
+    hunter:  ["nmap","whois","ping","subfinder","httpx","waybackurls","amass"],
+    linux:   ["nmap","whois","subfinder","httpx","nuclei","ffuf","sqlmap","waybackurls"],
+    specter: ["nmap","subfinder","httpx","nuclei","ffuf","sqlmap","dalfox","waybackurls","amass","gf","paramspider"]
+  };
 
-  // Show detected tools placeholder — bridge.py will report these later
+  const tier = bridge.tier || "ghost";
+  document.getElementById("activeBridgeName").textContent = names[tier] || "GHOST BRIDGE";
+  document.getElementById("activePlatform").textContent   = platforms[tier] || "TERMUX";
+  document.getElementById("activeTier").textContent       = tiers[tier] || "FREE";
+
   const toolsEl = document.getElementById("activeTools");
-  toolsEl.innerHTML = ["nmap","whois","ping","subfinder","httpx","nuclei","waybackurls","ffuf","sqlmap","dalfox"]
-    .map(t => `<span class="tool-tag">${t}</span>`).join("");
+  toolsEl.innerHTML = (toolMap[tier] || []).map(t => `<span class="tool-tag">${t}</span>`).join("");
 
-  // Real install command with bridge token
-  const cmd = bridge.bridge_token
-    ? `curl -s "${AI_API}/bridge/install?bt=${bridge.bridge_token}" | python3`
-    : `curl -s "${AI_API}/bridge/install?bt=YOUR_TOKEN" | python3`;
+  // Install command (placeholder — real token generated by backend)
+  const cmd = bridge.bridge_token ? `curl -s "${AI_API}/bridge/install?bt=${bridge.bridge_token}" | python3` : `curl -s "${AI_API}/bridge/install?bt=YOUR_TOKEN" | python3`;
   document.getElementById("installCmd").textContent = cmd;
+
+  // Mark owned card
+  const card = document.getElementById(`card-${tier}`);
+  if (card) {
+    card.classList.add("owned");
+    const btn = card.querySelector(".upgrade-btn:last-child");
+    if (btn) { btn.textContent = "[ OWNED ]"; btn.classList.add("owned-btn"); btn.onclick = null; }
+    const price = card.querySelector(".upgrade-price");
+    if (price) { price.classList.add("owned-tag"); price.textContent = "✓ OWNED"; }
+  }
 }
 
 // ── COPY INSTALL COMMAND ──
@@ -1149,7 +1159,111 @@ function copyInstallCmd() {
   });
 }
 
-// Upgrade/guide logic removed — one bridge, no tiers
+// ── GUIDE MODAL ──
+const guides = {
+  ghost: {
+    title: "GHOST BRIDGE — SETUP GUIDE",
+    steps: [
+      { title: "INSTALL TERMUX", desc: "Download Termux from F-Droid (not Play Store). Open it and run:", code: "pkg update && pkg upgrade -y" },
+      { title: "INSTALL PYTHON", desc: "Ghost Bridge runs on Python 3:", code: "pkg install python -y\npip install requests" },
+      { title: "INSTALL TOOLS", desc: "Install the tools Ghost Bridge can run:", code: "pkg install nmap -y" },
+      { title: "RUN THE BRIDGE", desc: "Copy your install command from above and paste it into Termux. The bridge will start automatically and connect to the vault.", code: "# Paste your install command here" },
+      { title: "KEEP IT RUNNING", desc: "Keep Termux open in the background. Your bridge will stay ONLINE as long as Termux is running. Use a wake lock to prevent Android from killing it.", code: "" }
+    ]
+  },
+  hunter: {
+    title: "HUNTER BRIDGE — SETUP GUIDE",
+    steps: [
+      { title: "REQUIREMENTS", desc: "You need Ghost Bridge first. Hunter Bridge adds recon tools on top:", code: "pkg update && pkg upgrade -y" },
+      { title: "INSTALL GO", desc: "Most recon tools require Go:", code: "pkg install golang -y\nexport GOPATH=$HOME/go\nexport PATH=$PATH:$GOPATH/bin" },
+      { title: "INSTALL RECON TOOLS", desc: "Install the additional Hunter tools:", code: "go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest\ngo install github.com/projectdiscovery/httpx/cmd/httpx@latest\ngo install github.com/tomnomnom/waybackurls@latest" },
+      { title: "UPGRADE YOUR BRIDGE", desc: "Purchase Hunter Bridge (200 VC), then copy the new install command and re-run it in Termux:", code: "# New install command will appear above after upgrade" },
+      { title: "VERIFY", desc: "Your bridge will automatically detect the new tools and update your capabilities in the vault.", code: "subfinder -h # should work" }
+    ]
+  },
+  linux: {
+    title: "LINUX BRIDGE — SETUP GUIDE",
+    steps: [
+      { title: "REQUIREMENTS", desc: "A Linux machine, VPS, or Kali Linux installation. Ubuntu/Debian recommended:", code: "sudo apt update && sudo apt upgrade -y" },
+      { title: "INSTALL PYTHON", desc: "Linux Bridge requires Python 3.8+:", code: "sudo apt install python3 python3-pip -y\npip3 install requests" },
+      { title: "INSTALL TOOLS", desc: "Install the full Linux Bridge toolkit:", code: "sudo apt install nmap -y\n# Install Go tools:\ngo install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest\ngo install github.com/projectdiscovery/httpx/cmd/httpx@latest\ngo install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest\nsudo apt install ffuf sqlmap -y" },
+      { title: "RUN THE BRIDGE", desc: "Copy your install command and run it on your Linux machine:", code: "# Paste your install command here\n# Run with: python3 bridge.py" },
+      { title: "RUN AS SERVICE", desc: "Keep the bridge running 24/7 with systemd:", code: "# The bridge script includes a systemd setup\n# Follow the prompts after first run" }
+    ]
+  }
+};
+
+function showGuide(type) {
+  const guide = guides[type];
+  if (!guide) return;
+  document.getElementById("guideTitle").textContent = guide.title;
+  document.getElementById("guideBody").innerHTML = guide.steps.map((s, i) => `
+    <div class="guide-step">
+      <div class="step-num">${i+1}</div>
+      <div class="step-content">
+        <div class="step-title">${s.title}</div>
+        <div class="step-desc">${s.desc}</div>
+        ${s.code ? `<div class="step-code">${s.code}</div>` : ""}
+      </div>
+    </div>
+  `).join("");
+  document.getElementById("guideModal").classList.add("active");
+}
+
+function closeGuide() {
+  document.getElementById("guideModal").classList.remove("active");
+}
+
+// ── UPGRADE CONFIRM ──
+function confirmUpgrade(name, cost, tier) {
+  if (userVC < cost) {
+    showToast("Insufficient VC — buy more VC first");
+    return;
+  }
+  pendingUpgrade = { name, cost, tier };
+  document.getElementById("confirmTitle").textContent = `UPGRADE TO ${name.toUpperCase()}`;
+  document.getElementById("confirmDesc").textContent  = `This will upgrade your bridge and deduct ${cost} VC from your balance.`;
+  document.getElementById("confirmCost").textContent  = `${cost} VC`;
+  document.getElementById("confirmModal").classList.add("active");
+}
+
+function closeConfirm() {
+  document.getElementById("confirmModal").classList.remove("active");
+  pendingUpgrade = null;
+}
+
+async function executeUpgrade() {
+  if (!pendingUpgrade) return;
+  const btn = document.getElementById("confirmBtn");
+  btn.textContent = "PROCESSING...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${AI_API}/bridge/upgrade`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ tier: pendingUpgrade.tier })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeConfirm();
+      showToast(`✓ ${pendingUpgrade.name} activated!`);
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast(data.error || "Upgrade failed");
+    }
+  } catch(e) {
+    // Demo mode — show success for now
+    closeConfirm();
+    showToast("Bridge upgrade coming soon — backend in progress");
+  }
+
+  btn.textContent = "CONFIRM";
+  btn.disabled = false;
+}
 
 // ── TOAST ──
 function showToast(msg) {
@@ -1159,7 +1273,13 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove("show"), 3000);
 }
 
-
+// Close modals on overlay click
+document.getElementById("guideModal").addEventListener("click", function(e) {
+  if (e.target === this) closeGuide();
+});
+document.getElementById("confirmModal").addEventListener("click", function(e) {
+  if (e.target === this) closeConfirm();
+});
 
 init();
 </script>
