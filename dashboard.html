@@ -42,45 +42,58 @@
   /* GLITCH LOGO */
   .nav-logo {
     font-family:'Share Tech Mono',monospace;
-    font-size:1rem; letter-spacing:3px;
+    font-size:1rem; letter-spacing:4px;
     position:relative; cursor:default; user-select:none;
+    animation:logoFlicker 6s infinite;
   }
-  .nav-logo .g { color:var(--accent); }
-  .nav-logo .v { color:white; }
+  .nav-logo .g {
+    color:var(--accent);
+    text-shadow: 0 0 8px rgba(0,245,196,0.8), 0 0 20px rgba(0,245,196,0.4);
+  }
+  .nav-logo .v {
+    color:white;
+    text-shadow: 0 0 6px rgba(255,255,255,0.4);
+    letter-spacing:4px;
+  }
   .nav-logo::before,
   .nav-logo::after {
     content: attr(data-text);
     position:absolute; top:0; left:0;
     width:100%; height:100%;
     font-family:'Share Tech Mono',monospace;
-    font-size:1rem; letter-spacing:3px;
+    font-size:1rem; letter-spacing:4px;
     pointer-events:none;
   }
   .nav-logo::before {
     color:var(--accent3);
-    clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%);
-    animation:glitch1 4s infinite;
-    left:2px;
+    clip-path:polygon(0 15%,100% 15%,100% 45%,0 45%);
+    animation:glitch1 3s infinite;
+    left:3px; text-shadow:none;
   }
   .nav-logo::after {
     color:var(--accent2);
-    clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%);
-    animation:glitch2 4s infinite;
-    left:-2px;
+    clip-path:polygon(0 55%,100% 55%,100% 85%,0 85%);
+    animation:glitch2 3s infinite;
+    left:-3px; text-shadow:none;
   }
   @keyframes glitch1 {
-    0%,90%,100%  { opacity:0; transform:translateX(0); }
-    91%          { opacity:1; transform:translateX(-3px); }
-    93%          { opacity:1; transform:translateX(3px); }
-    95%          { opacity:1; transform:translateX(-2px); }
-    97%          { opacity:0; }
+    0%,82%,100%  { opacity:0; transform:translateX(0) skewX(0deg); }
+    83%          { opacity:1; transform:translateX(-4px) skewX(-2deg); }
+    85%          { opacity:1; transform:translateX(4px) skewX(2deg); }
+    87%          { opacity:1; transform:translateX(-2px) skewX(0deg); }
+    89%          { opacity:0; }
   }
   @keyframes glitch2 {
-    0%,90%,100%  { opacity:0; transform:translateX(0); }
-    92%          { opacity:1; transform:translateX(3px); }
-    94%          { opacity:1; transform:translateX(-3px); }
-    96%          { opacity:1; transform:translateX(2px); }
-    98%          { opacity:0; }
+    0%,84%,100%  { opacity:0; transform:translateX(0) skewX(0deg); }
+    85%          { opacity:1; transform:translateX(4px) skewX(2deg); }
+    87%          { opacity:1; transform:translateX(-4px) skewX(-2deg); }
+    89%          { opacity:1; transform:translateX(2px) skewX(0deg); }
+    91%          { opacity:0; }
+  }
+  @keyframes logoFlicker {
+    0%,78%,80%,82%,100% { opacity:1; }
+    79%  { opacity:0.6; }
+    81%  { opacity:0.85; }
   }
 
   .nav-right { display:flex; align-items:center; gap:14px; }
@@ -90,60 +103,46 @@
 
   /* HEX CORE LOGO */
   .hex-logo {
-    position: relative;
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    position: relative; width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
-  .hex-logo svg {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
+  .hex-logo svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
   .hex-logo .gv-text {
-    position: relative;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 1px;
-    z-index: 2;
+    position: relative; font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; font-weight: 700; color: var(--accent);
+    letter-spacing: 1px; z-index: 2;
   }
   .hex-ring {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 1.5;
-    filter: drop-shadow(0 0 4px var(--accent));
-    animation: hexPulse 2s ease-in-out infinite;
+    fill: none; stroke: var(--accent); stroke-width: 2;
+    filter: drop-shadow(0 0 6px var(--accent)) drop-shadow(0 0 12px rgba(0,245,196,0.4));
+    animation: hexPulse 1.8s ease-in-out infinite;
   }
   .hex-ring-inner {
-    fill: rgba(0,245,196,0.04);
-    stroke: rgba(0,245,196,0.25);
-    stroke-width: 1;
+    fill: rgba(0,245,196,0.06);
+    stroke: rgba(0,245,196,0.4);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 2;
     transform-origin: 21px 21px;
-    animation: hexSpin 8s linear infinite;
+    animation: hexSpin 5s linear infinite;
+  }
+  .hex-dot {
+    filter: drop-shadow(0 0 3px var(--accent));
+    animation: hexDotPulse 1.8s ease-in-out infinite;
   }
   @keyframes hexPulse {
-    0%,100% { opacity:1; filter:drop-shadow(0 0 4px var(--accent)); }
-    50%     { opacity:0.45; filter:drop-shadow(0 0 10px var(--accent)); }
+    0%,100% { opacity:1; filter:drop-shadow(0 0 6px var(--accent)) drop-shadow(0 0 12px rgba(0,245,196,0.4)); stroke-width:2; }
+    50%     { opacity:0.5; filter:drop-shadow(0 0 14px var(--accent)) drop-shadow(0 0 28px rgba(0,245,196,0.6)); stroke-width:1.5; }
   }
-  @keyframes hexSpin {
-    from { transform:rotate(0deg); }
-    to   { transform:rotate(360deg); }
-  }
-  .gv-text {
-    animation: gvGlitch 5s infinite;
-  }
+  @keyframes hexSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes hexDotPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .gv-text { animation: gvGlitch 4s infinite; }
   @keyframes gvGlitch {
-    0%,88%,100% { text-shadow:0 0 8px var(--accent); transform:none; color:var(--accent); }
-    89% { text-shadow:-2px 0 var(--accent3),2px 0 var(--accent2); transform:translateX(1px); color:#fff; }
-    90% { text-shadow:2px 0 var(--accent3),-2px 0 var(--accent2); transform:translateX(-1px); }
-    91% { text-shadow:0 0 8px var(--accent); transform:none; color:var(--accent); }
-    95% { opacity:0.3; }
-    96% { opacity:1; }
+    0%,85%,100% { text-shadow:0 0 8px var(--accent); transform:none; color:var(--accent); }
+    86% { text-shadow:-2px 0 var(--accent3),2px 0 var(--accent2); transform:translateX(1px); color:#fff; }
+    87% { text-shadow:2px 0 var(--accent3),-2px 0 var(--accent2); transform:translateX(-1px); }
+    88% { text-shadow:0 0 10px var(--accent); transform:none; color:var(--accent); }
+    93% { opacity:0.2; }
+    94% { opacity:1; }
   }
 
   .menu-btn {
@@ -827,7 +826,7 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </div>
   <div class="nav-right">
-    <div class="hex-logo"><svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg"><polygon class="hex-ring-inner" points="21,3 37,12 37,30 21,39 5,30 5,12"/><polygon class="hex-ring" points="21,5 35,13 35,29 21,37 7,29 7,13"/><circle cx="21" cy="5" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="35" cy="13" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="35" cy="29" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="21" cy="37" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="7" cy="29" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="7" cy="13" r="1.2" fill="var(--accent)" stroke="none"/></svg><span class="gv-text" id="nav-vault-age">GV</span></div>
+    <div class="hex-logo"><svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg"><polygon class="hex-ring-inner" points="21,3 37,12 37,30 21,39 5,30 5,12"/><polygon class="hex-ring" points="21,5 35,13 35,29 21,37 7,29 7,13"/><circle cx="21" cy="5" r="1.8" fill="var(--accent)" class="hex-dot"/><circle cx="35" cy="13" r="1.8" fill="var(--accent)" class="hex-dot"/><circle cx="35" cy="29" r="1.8" fill="var(--accent)" class="hex-dot"/><circle cx="21" cy="37" r="1.8" fill="var(--accent)" class="hex-dot"/><circle cx="7" cy="29" r="1.8" fill="var(--accent)" class="hex-dot"/><circle cx="7" cy="13" r="1.8" fill="var(--accent)" class="hex-dot"/></svg><span class="gv-text" id="nav-vault-age">GV</span></div>
     <span class="nav-user" id="nav-username">operative</span>
     <button class="menu-btn" onclick="toggleSlideMenu()">
       <span></span><span></span><span></span>
@@ -964,25 +963,80 @@
       </div>
     </div>
 
+    <style>
+      .tool-icon { display:inline-block; vertical-align:middle; margin-right:10px; flex-shrink:0; }
+      .tool-card h3 { display:flex; align-items:center; }
+      @keyframes bridgePulse { 0%,100%{stroke-dashoffset:0;opacity:1} 50%{stroke-dashoffset:12;opacity:0.5} }
+      @keyframes aiScan { from{transform:translateY(-18px)} to{transform:translateY(18px)} }
+      @keyframes bookFlip { 0%,100%{transform:scaleX(1)} 50%{transform:scaleX(0.7)} }
+      @keyframes labBubble { 0%,100%{cy:22;opacity:1} 50%{cy:16;opacity:0.4} }
+      @keyframes labBubble2 { 0%,100%{cy:19;opacity:0.6} 50%{cy:13;opacity:0.2} }
+    </style>
+
     <p class="section-title">// Quick Access</p>
     <div class="ai-tools-grid">
       <div class="tool-card" onclick="location.href='bridge.html'" style="border-left:3px solid var(--accent);">
-        <h3>⬡ BRIDGE NETWORK</h3>
+        <h3>
+          <!-- Bridge: two nodes connected by a pulsing signal line -->
+          <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="5" cy="14" r="3" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
+            <circle cx="23" cy="14" r="3" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
+            <circle cx="5" cy="14" r="1.2" fill="#00f5c4"/>
+            <circle cx="23" cy="14" r="1.2" fill="#00f5c4"/>
+            <line x1="8" y1="14" x2="20" y2="14" stroke="#00f5c4" stroke-width="1" stroke-dasharray="3 2" style="animation:bridgePulse 1.5s linear infinite"/>
+            <polyline points="12,10 16,14 12,18" fill="none" stroke="#00a8ff" stroke-width="1.2" filter="drop-shadow(0 0 2px #00a8ff)"/>
+          </svg>
+          BRIDGE NETWORK
+        </h3>
         <p>Connect your device to the Vault network. Generate your bridge token and run recon from Termux or Linux.</p>
         <span class="tool-tag">LIVE</span>
       </div>
       <div class="tool-card" onclick="location.href='vault-ai.html'">
-        <h3>⚡ AI TERMINAL</h3>
+        <h3>
+          <!-- AI Terminal: screen with scanning line -->
+          <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden">
+            <rect x="3" y="5" width="22" height="16" rx="2" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
+            <line x1="9" y1="24" x2="19" y2="24" stroke="#00f5c4" stroke-width="1.5"/>
+            <line x1="14" y1="21" x2="14" y2="24" stroke="#00f5c4" stroke-width="1"/>
+            <clipPath id="screenClip"><rect x="3" y="5" width="22" height="16" rx="2"/></clipPath>
+            <line x1="3" y1="14" x2="25" y2="14" stroke="rgba(0,245,196,0.5)" stroke-width="1.5" clip-path="url(#screenClip)" style="animation:aiScan 1.2s ease-in-out infinite alternate"/>
+            <text x="7" y="12" font-family="monospace" font-size="4" fill="#00f5c4" opacity="0.8">&gt;_</text>
+          </svg>
+          AI TERMINAL
+        </h3>
         <p>Launch the Genesis Vault secure terminal. Run recon, scan targets, query the AI.</p>
         <span class="tool-tag">LIVE</span>
       </div>
       <div class="tool-card" onclick="location.href='learn.html'">
-        <h3>📚 LEARN</h3>
+        <h3>
+          <!-- Learn: open book with glowing spine -->
+          <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+            <line x1="14" y1="7" x2="14" y2="22" stroke="#00a8ff" stroke-width="1.5" filter="drop-shadow(0 0 3px #00a8ff)"/>
+            <path d="M14 7 C10 6 5 7 4 9 L4 22 C5 20 10 19 14 20" fill="none" stroke="#00a8ff" stroke-width="1.3" style="animation:bookFlip 3s ease-in-out infinite"/>
+            <path d="M14 7 C18 6 23 7 24 9 L24 22 C23 20 18 19 14 20" fill="none" stroke="#00a8ff" stroke-width="1.3"/>
+            <line x1="7" y1="12" x2="12" y2="12" stroke="rgba(0,168,255,0.5)" stroke-width="1"/>
+            <line x1="7" y1="15" x2="12" y2="15" stroke="rgba(0,168,255,0.5)" stroke-width="1"/>
+            <line x1="16" y1="12" x2="21" y2="12" stroke="rgba(0,168,255,0.5)" stroke-width="1"/>
+            <line x1="16" y1="15" x2="21" y2="15" stroke="rgba(0,168,255,0.5)" stroke-width="1"/>
+          </svg>
+          LEARN
+        </h3>
         <p>Cybersecurity courses, bug bounty guides, and hands-on labs.</p>
         <span class="tool-tag blue">LIVE</span>
       </div>
       <div class="tool-card" onclick="location.href='vault-labs.html'">
-        <h3>🔬 VAULT LABS</h3>
+        <h3>
+          <!-- Vault Labs: flask with bubbling liquid -->
+          <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">
+            <path d="M11 5 L11 14 L5 22 Q4 24 6 24 L22 24 Q24 24 23 22 L17 14 L17 5 Z" fill="none" stroke="#00f5c4" stroke-width="1.4" filter="drop-shadow(0 0 3px #00f5c4)"/>
+            <line x1="9" y1="5" x2="19" y2="5" stroke="#00f5c4" stroke-width="1.4"/>
+            <path d="M8 19 Q14 16 20 19 L22 24 Q14 21 6 24 Z" fill="rgba(0,245,196,0.15)" stroke="none"/>
+            <circle cx="10" cy="22" r="1.2" fill="#00f5c4" opacity="0.7" style="animation:labBubble 1.8s ease-in-out infinite"/>
+            <circle cx="15" cy="20" r="0.9" fill="#00f5c4" opacity="0.5" style="animation:labBubble2 2.2s ease-in-out infinite"/>
+            <circle cx="19" cy="22" r="1" fill="#00f5c4" opacity="0.6" style="animation:labBubble 2.5s ease-in-out infinite 0.4s"/>
+          </svg>
+          VAULT LABS
+        </h3>
         <p>Sandboxed hacking environments. Practice real techniques on intentionally vulnerable targets.</p>
         <span class="tool-tag">LIVE</span>
       </div>
@@ -1788,7 +1842,39 @@ async function loadProfile() {
         <button onclick="location.href='buy-vc.html'" style="background:var(--accent);color:var(--bg);border:none;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:2px;cursor:pointer;">[ BUY VC ]</button>
       </div>`;
   } catch(e) {
-    document.getElementById('profile-card').innerHTML = '<div class="empty">// Failed to load profile.</div>';
+    // Fallback to cached localStorage data
+    const u   = localStorage.getItem('gv_username') || 'Operative';
+    const ca  = localStorage.getItem('gv_created_at') || '';
+    const age = calcVaultAge(ca);
+    const bal = localStorage.getItem('gv_vc') || '—';
+    document.getElementById('profile-card').innerHTML = `
+      <div class="profile-avatar">${u[0].toUpperCase()}</div>
+      <div class="profile-username">${esc(u)}</div>
+      <div class="profile-vault-age">// VAULT AGE: ${age.long.toUpperCase()}</div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="val">—</div><div class="lbl">Posts</div>
+        </div>
+        <div class="profile-stat">
+          <div class="val">—</div><div class="lbl">Tools</div>
+        </div>
+        <div class="profile-stat">
+          <div class="val">—</div><div class="lbl">Missions</div>
+        </div>
+        <div class="profile-stat">
+          <div class="val">${age.days}</div><div class="lbl">Days In</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;">VAULT CREDITS</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.4rem;color:var(--accent);letter-spacing:2px;margin-top:3px;">
+            ${Number(bal).toLocaleString()} <span style="font-size:0.65rem;color:var(--text-dim);">VC</span>
+          </div>
+        </div>
+        <button onclick="location.href='buy-vc.html'" style="background:var(--accent);color:var(--bg);border:none;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:2px;cursor:pointer;">[ BUY VC ]</button>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);letter-spacing:2px;margin-top:12px;">// CACHED DATA · SERVER RECONNECTING...</div>`;
   }
 
   loadVCHistory();
@@ -1827,7 +1913,7 @@ async function loadVCHistory() {
         </div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = '<div class="empty" style="padding:20px 0;">// Failed to load history.</div>';
+    container.innerHTML = '<div class="empty" style="padding:20px 0;">// Server reconnecting — check back shortly.</div>';
   }
 }
 
