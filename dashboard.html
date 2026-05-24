@@ -1788,7 +1788,39 @@ async function loadProfile() {
         <button onclick="location.href='buy-vc.html'" style="background:var(--accent);color:var(--bg);border:none;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:2px;cursor:pointer;">[ BUY VC ]</button>
       </div>`;
   } catch(e) {
-    document.getElementById('profile-card').innerHTML = '<div class="empty">// Failed to load profile.</div>';
+    // Fallback to cached localStorage data
+    const u   = localStorage.getItem('gv_username') || 'Operative';
+    const ca  = localStorage.getItem('gv_created_at') || '';
+    const age = calcVaultAge(ca);
+    const bal = localStorage.getItem('gv_vc') || '—';
+    document.getElementById('profile-card').innerHTML = `
+      <div class="profile-avatar">${u[0].toUpperCase()}</div>
+      <div class="profile-username">${esc(u)}</div>
+      <div class="profile-vault-age">// VAULT AGE: ${age.long.toUpperCase()}</div>
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="val">—</div><div class="lbl">Posts</div>
+        </div>
+        <div class="profile-stat">
+          <div class="val">—</div><div class="lbl">Tools</div>
+        </div>
+        <div class="profile-stat">
+          <div class="val">—</div><div class="lbl">Missions</div>
+        </div>
+        <div class="profile-stat">
+          <div class="val">${age.days}</div><div class="lbl">Days In</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;">VAULT CREDITS</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.4rem;color:var(--accent);letter-spacing:2px;margin-top:3px;">
+            ${Number(bal).toLocaleString()} <span style="font-size:0.65rem;color:var(--text-dim);">VC</span>
+          </div>
+        </div>
+        <button onclick="location.href='buy-vc.html'" style="background:var(--accent);color:var(--bg);border:none;padding:9px 18px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:2px;cursor:pointer;">[ BUY VC ]</button>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);letter-spacing:2px;margin-top:12px;">// CACHED DATA · SERVER RECONNECTING...</div>`;
   }
 
   loadVCHistory();
@@ -1827,7 +1859,7 @@ async function loadVCHistory() {
         </div>`;
     }).join('');
   } catch(e) {
-    container.innerHTML = '<div class="empty" style="padding:20px 0;">// Failed to load history.</div>';
+    container.innerHTML = '<div class="empty" style="padding:20px 0;">// Server reconnecting — check back shortly.</div>';
   }
 }
 
