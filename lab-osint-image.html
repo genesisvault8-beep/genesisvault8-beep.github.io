@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SnapGrid — Share Your World</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<style>
+/* ── FAKE SOCIAL SITE THEME ── */
+:root {
+  --pink: #e1306c;
+  --purple: #833ab4;
+  --orange-ig: #fd1d1d;
+  --bg: #fafafa;
+  --white: #ffffff;
+  --border: #dbdbdb;
+  --text: #262626;
+  --text-dim: #8e8e8e;
+  --blue: #0095f6;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* FAKE INSTAGRAM-LIKE NAV */
+.site-nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top:0; z-index:100;
+  padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 54px;
+}
+
+.site-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 22px; font-weight: 700;
+  background: linear-gradient(45deg, var(--purple), var(--pink), var(--orange-ig));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+}
+
+.nav-icons { display:flex; gap:18px; align-items:center; }
+.nav-icon { font-size:22px; cursor:pointer; color:var(--text); }
+
+/* FAKE USER PROFILE HEADER */
+.profile-section {
+  max-width: 600px; margin:0 auto;
+  padding: 24px 16px 0;
+}
+
+.profile-header {
+  display: flex; align-items: center; gap:20px; margin-bottom:20px;
+}
+
+.profile-avatar {
+  width: 72px; height:72px; border-radius:50%;
+  background: linear-gradient(45deg, var(--purple), var(--pink), var(--orange-ig));
+  padding: 3px; flex-shrink:0;
+}
+
+.profile-avatar-inner {
+  width:100%; height:100%; border-radius:50%;
+  background: #c7b8ff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; border:2px solid white;
+}
+
+.profile-info { flex:1; }
+.profile-username { font-size:18px; font-weight:600; margin-bottom:4px; }
+.profile-stats { display:flex; gap:16px; margin-bottom:6px; }
+.profile-stat { text-align:center; }
+.profile-stat strong { font-size:14px; font-weight:700; display:block; }
+.profile-stat span { font-size:12px; color:var(--text-dim); }
+.profile-bio { font-size:13px; color:var(--text-dim); line-height:1.5; }
+
+.follow-btn {
+  background: var(--blue); color:white; border:none;
+  padding:6px 20px; border-radius:6px; font-size:13px;
+  font-weight:600; cursor:pointer; margin-top:8px;
+}
+
+/* PHOTO GRID */
+.grid-tabs {
+  display:flex; border-top:1px solid var(--border);
+  margin-bottom:2px;
+}
+
+.grid-tab {
+  flex:1; text-align:center; padding:12px 0;
+  font-size:12px; color:var(--text-dim); cursor:pointer;
+  border-top:2px solid transparent; letter-spacing:1px; font-weight:600;
+}
+
+.grid-tab.active { color:var(--text); border-top-color:var(--text); }
+
+.photo-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+  max-width:600px; margin:0 auto;
+}
+
+.photo-cell {
+  aspect-ratio:1; overflow:hidden; cursor:pointer; position:relative;
+  background: #efefef;
+}
+
+.photo-cell:hover .photo-overlay { opacity:1; }
+
+.photo-overlay {
+  position:absolute; inset:0;
+  background:rgba(0,0,0,0.3);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 0.2s;
+  color:white; font-size:12px; font-weight:600; gap:10px;
+}
+
+.photo-img {
+  width:100%; height:100%; object-fit:cover;
+}
+
+/* SVG placeholder photos */
+.photo-placeholder {
+  width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px;
+}
+
+/* ── HACK OVERLAY (Genesis Vault UI) ── */
+.hack-panel {
+  position:fixed; bottom:0; left:0; right:0;
+  background: #020c0a;
+  border-top: 2px solid #00f5d4;
+  z-index:200;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.hack-panel.collapsed { transform: translateY(calc(100% - 52px)); }
+
+.hack-panel-handle {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; cursor:pointer;
+  border-bottom:1px solid #0d3d2e;
+  background: #020c0a;
+  position:sticky; top:0; z-index:10;
+}
+
+.hack-handle-left {
+  display:flex; align-items:center; gap:10px;
+}
+
+.hack-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:#39ff14; box-shadow:0 0 8px #39ff14;
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+.hack-title {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:#00f5d4; letter-spacing:2px;
+}
+
+.hack-toggle {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:#4a7a6a; transition:transform 0.3s;
+}
+
+.hack-toggle.open { transform:rotate(180deg); }
+
+.hack-body { padding:16px; }
+
+/* SECTION HEADERS inside hack panel */
+.h-section {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:#00f5d4; letter-spacing:3px; margin:14px 0 8px;
+  display:flex; align-items:center; gap:8px;
+}
+.h-section::before { content:'//'; color:#00bfa5; }
+.h-section::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,#0d3d2e,transparent); }
+
+/* LESSON CARDS in hack panel */
+.h-lesson {
+  background:#041a14; border:1px solid #0d3d2e;
+  border-left:3px solid #4a7a6a;
+  margin-bottom:10px; overflow:hidden;
+  transition:border-color 0.2s;
+}
+
+.h-lesson.done { border-left-color:#39ff14; }
+
+.h-lesson-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 13px; cursor:pointer;
+}
+
+.h-lesson-hdr:hover { background:rgba(0,245,212,0.03); }
+
+.h-lesson-title {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:#fff; letter-spacing:1px; display:flex; align-items:center; gap:8px;
+}
+
+.h-num {
+  font-family:'Orbitron',monospace; font-size:10px; color:#00f5d4;
+  border:1px solid #00f5d4; width:20px; height:20px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.h-num.done { border-color:#39ff14; color:#39ff14; background:rgba(57,255,20,0.08); }
+
+.h-lesson-body {
+  display:none; padding:12px 13px;
+  font-size:12px; color:#a0c4b8; line-height:1.7;
+  border-top:1px solid #0d3d2e;
+}
+.h-lesson-body.open { display:block; }
+
+.h-lesson-body p { margin-bottom:8px; }
+.h-lesson-body ul { padding-left:14px; margin-bottom:8px; }
+.h-lesson-body ul li { margin-bottom:3px; }
+.h-lesson-body ul li::marker { color:#00f5d4; }
+.h-lesson-body h5 {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:#00f5d4; letter-spacing:2px; margin:10px 0 5px;
+}
+
+.h-code {
+  background:rgba(0,0,0,0.5); border:1px solid #0d3d2e;
+  padding:8px 10px; margin:6px 0;
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:#39ff14; line-height:1.7; word-break:break-all;
+}
+
+.h-tip {
+  background:rgba(255,107,0,0.06); border:1px solid rgba(255,107,0,0.3);
+  border-left:3px solid #ff6b00; padding:8px 10px; margin:8px 0;
+  font-size:11px; color:#a0c4b8;
+}
+.h-tip strong { color:#ff6b00; font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:1px; }
+
+.h-done-btn {
+  width:100%; margin-top:10px;
+  background:transparent; border:1px solid #00f5d4;
+  color:#00f5d4; font-family:'Share Tech Mono',monospace;
+  font-size:10px; padding:8px; cursor:pointer; letter-spacing:2px;
+  transition:all 0.2s;
+}
+.h-done-btn:hover { background:rgba(0,245,212,0.1); }
+.h-done-btn.done { border-color:#39ff14; color:#39ff14; }
+
+/* PHOTO ANALYZER */
+.analyzer-box {
+  background:#041a14; border:1px solid #0d3d2e;
+  padding:14px; margin-bottom:14px;
+}
+
+.upload-zone {
+  border:2px dashed #0d3d2e; padding:20px;
+  text-align:center; cursor:pointer; transition:all 0.2s;
+  margin-bottom:12px;
+}
+.upload-zone:hover { border-color:#00f5d4; background:rgba(0,245,212,0.03); }
+.upload-zone input { display:none; }
+
+.upload-icon { font-size:28px; margin-bottom:6px; }
+.upload-label {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:#4a7a6a; letter-spacing:1px;
+}
+.upload-label span { color:#00f5d4; }
+
+/* EXIF RESULTS */
+.exif-results {
+  display:none; background:rgba(0,0,0,0.4);
+  border:1px solid #0d3d2e; padding:12px;
+}
+.exif-results.show { display:block; }
+
+.exif-row {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:7px 0; border-bottom:1px solid #0d3d2e;
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+}
+.exif-row:last-child { border-bottom:none; }
+.exif-key { color:#4a7a6a; letter-spacing:1px; flex-shrink:0; margin-right:8px; }
+.exif-val { color:#00f5d4; text-align:right; word-break:break-all; }
+.exif-val.highlight { color:#39ff14; font-weight:bold; }
+.exif-val.warn { color:#ff6b00; }
+
+.exif-loading {
+  text-align:center; padding:16px;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:#4a7a6a; letter-spacing:2px;
+}
+
+/* GPS MAP PLACEHOLDER */
+.gps-box {
+  display:none; background:#041a14; border:1px solid #39ff14;
+  border-left:3px solid #39ff14; padding:12px; margin-top:10px;
+}
+.gps-box.show { display:block; }
+.gps-title {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:#39ff14; letter-spacing:2px; margin-bottom:8px;
+}
+.gps-coords {
+  font-family:'Share Tech Mono',monospace; font-size:13px;
+  color:#fff; margin-bottom:8px;
+}
+.gps-map-placeholder {
+  background:rgba(57,255,20,0.04); border:1px solid rgba(57,255,20,0.2);
+  height:80px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; margin-bottom:8px;
+}
+.gps-note { font-size:11px; color:#4a7a6a; font-family:'Share Tech Mono',monospace; }
+
+/* PROGRESS */
+.h-progress-wrap {
+  background:#041a14; border:1px solid #0d3d2e;
+  padding:10px 12px; margin-bottom:14px;
+}
+.h-progress-label {
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  color:#4a7a6a; letter-spacing:2px; margin-bottom:6px;
+  display:flex; justify-content:space-between;
+}
+.h-progress-track {
+  background:rgba(0,245,212,0.06); border:1px solid #0d3d2e;
+  height:5px; overflow:hidden;
+}
+.h-progress-fill {
+  height:100%; background:#00f5d4;
+  box-shadow:0 0 8px #00f5d4; transition:width 0.5s ease; width:0%;
+}
+
+/* CHALLENGE */
+.h-challenge {
+  background:linear-gradient(135deg,rgba(57,255,20,0.05),rgba(57,255,20,0.02));
+  border:1px solid #39ff14; border-left:3px solid #39ff14;
+  padding:14px; margin-bottom:14px;
+}
+.h-challenge-title {
+  font-family:'Orbitron',monospace; font-size:13px; font-weight:700;
+  color:#39ff14; letter-spacing:2px; margin-bottom:8px;
+}
+.h-obj-list { list-style:none; padding:0; margin-bottom:12px; }
+.h-obj-list li {
+  display:flex; align-items:flex-start; gap:8px;
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:#4a7a6a; padding:7px 0; border-bottom:1px solid #0d3d2e;
+}
+.h-obj-list li:last-child { border-bottom:none; }
+.h-obj-check {
+  width:14px; height:14px; border:1px solid #4a7a6a;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px; cursor:pointer; transition:all 0.2s;
+  font-size:9px;
+}
+.h-obj-check.checked { border-color:#39ff14; color:#39ff14; background:rgba(57,255,20,0.1); }
+
+.flag-row { display:flex; gap:8px; }
+.h-flag-input {
+  flex:1; background:#041a14; border:1px solid #0d3d2e;
+  color:#00f5d4; font-family:'Share Tech Mono',monospace; font-size:11px;
+  padding:9px 10px; outline:none; letter-spacing:1px;
+}
+.h-flag-input:focus { border-color:#00f5d4; }
+.h-flag-input::placeholder { color:#4a7a6a; }
+.h-flag-btn {
+  background:transparent; border:1px solid #00f5d4;
+  color:#00f5d4; font-family:'Share Tech Mono',monospace;
+  font-size:10px; padding:9px 12px; cursor:pointer; letter-spacing:1px;
+  transition:all 0.2s; white-space:nowrap;
+}
+.h-flag-btn:hover { background:rgba(0,245,212,0.1); }
+
+/* HINTS */
+.h-hint { background:#041a14; border:1px solid #0d3d2e; margin-bottom:6px; }
+.h-hint-btn {
+  width:100%; background:transparent; border:none;
+  color:#4a7a6a; font-family:'Share Tech Mono',monospace; font-size:10px;
+  padding:10px 12px; cursor:pointer; letter-spacing:1px;
+  display:flex; justify-content:space-between; transition:color 0.2s;
+}
+.h-hint-btn:hover { color:#ff6b00; }
+.h-hint-text {
+  display:none; padding:8px 12px; font-size:11px; color:#a0c4b8;
+  border-top:1px solid #0d3d2e; line-height:1.6;
+}
+.h-hint-text.open { display:block; }
+
+/* COMPLETE MODAL */
+.complete-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.92); z-index:9999;
+  backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.complete-overlay.active { display:flex; }
+.complete-box {
+  background:#041a14; border:1px solid #39ff14;
+  width:100%; max-width:340px; padding:28px 20px; text-align:center;
+}
+.complete-icon { font-size:44px; margin-bottom:10px; animation:bounce 1s ease infinite alternate; }
+@keyframes bounce { from{transform:scale(1)} to{transform:scale(1.1)} }
+.complete-title { font-family:'Orbitron',monospace; font-size:16px; font-weight:900; color:#39ff14; letter-spacing:3px; margin-bottom:4px; }
+.complete-sub { font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a; letter-spacing:1px; margin-bottom:16px; }
+.complete-close {
+  width:100%; background:rgba(57,255,20,0.1); border:1px solid #39ff14;
+  color:#39ff14; font-family:'Share Tech Mono',monospace; font-size:11px;
+  padding:11px; cursor:pointer; letter-spacing:2px;
+}
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:60px; left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#041a14; border:1px solid #00f5d4;
+  color:#00f5d4; font-family:'Share Tech Mono',monospace; font-size:10px;
+  padding:7px 14px; letter-spacing:1px; opacity:0; transition:all 0.3s;
+  pointer-events:none; white-space:nowrap; z-index:9000;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.error { border-color:#ff2d55; color:#ff2d55; }
+
+.bottom-spacer { height:60px; }
+
+/* FAKE PHOTO COLORS */
+.p1 { background:linear-gradient(135deg,#667eea,#764ba2); }
+.p2 { background:linear-gradient(135deg,#f093fb,#f5576c); }
+.p3 { background:linear-gradient(135deg,#4facfe,#00f2fe); }
+.p4 { background:linear-gradient(135deg,#43e97b,#38f9d7); }
+.p5 { background:linear-gradient(135deg,#fa709a,#fee140); }
+.p6 { background:linear-gradient(135deg,#a18cd1,#fbc2eb); }
+.p7 { background:linear-gradient(135deg,#fccb90,#d57eeb); }
+.p8 { background:linear-gradient(135deg,#a1c4fd,#c2e9fb); }
+.p9 { background:linear-gradient(135deg,#fd7043,#ff8a65); }
+</style>
+</head>
+<body>
+
+<!-- FAKE SOCIAL SITE NAV -->
+<nav class="site-nav">
+  <div class="site-logo">SnapGrid</div>
+  <div class="nav-icons">
+    <span class="nav-icon">🔍</span>
+    <span class="nav-icon">🏠</span>
+    <span class="nav-icon">❤️</span>
+    <span class="nav-icon">👤</span>
+  </div>
+</nav>
+
+<!-- FAKE PROFILE -->
+<div class="profile-section">
+  <div class="profile-header">
+    <div class="profile-avatar">
+      <div class="profile-avatar-inner">🌍</div>
+    </div>
+    <div class="profile-info">
+      <div class="profile-username">travel.with.alex</div>
+      <div class="profile-stats">
+        <div class="profile-stat"><strong>9</strong><span>posts</span></div>
+        <div class="profile-stat"><strong>1.2K</strong><span>followers</span></div>
+        <div class="profile-stat"><strong>384</strong><span>following</span></div>
+      </div>
+      <div class="profile-bio">📍 Exploring the world one photo at a time<br>🗺️ Last seen: somewhere beautiful</div>
+      <button class="follow-btn">Follow</button>
+    </div>
+  </div>
+
+  <div class="grid-tabs">
+    <div class="grid-tab active">⊞ POSTS</div>
+    <div class="grid-tab">🔖 SAVED</div>
+    <div class="grid-tab">👤 TAGGED</div>
+  </div>
+</div>
+
+<!-- PHOTO GRID -->
+<div class="photo-grid">
+  <div class="photo-cell p1" onclick="selectPhoto(0)">
+    <div class="photo-placeholder">🏔️</div>
+    <div class="photo-overlay"><span>❤️ 248</span><span>💬 12</span></div>
+  </div>
+  <div class="photo-cell p2" onclick="selectPhoto(1)">
+    <div class="photo-placeholder">🌅</div>
+    <div class="photo-overlay"><span>❤️ 891</span><span>💬 34</span></div>
+  </div>
+  <div class="photo-cell p3" onclick="selectPhoto(2)">
+    <div class="photo-placeholder">🏖️</div>
+    <div class="photo-overlay"><span>❤️ 1.2K</span><span>💬 67</span></div>
+  </div>
+  <div class="photo-cell p4" onclick="selectPhoto(3)">
+    <div class="photo-placeholder">🌲</div>
+    <div class="photo-overlay"><span>❤️ 445</span><span>💬 21</span></div>
+  </div>
+  <div class="photo-cell p5" onclick="selectPhoto(4)">
+    <div class="photo-placeholder">🌃</div>
+    <div class="photo-overlay"><span>❤️ 673</span><span>💬 45</span></div>
+  </div>
+  <div class="photo-cell p6" onclick="selectPhoto(5)">
+    <div class="photo-placeholder">☕</div>
+    <div class="photo-overlay"><span>❤️ 312</span><span>💬 18</span></div>
+  </div>
+  <div class="photo-cell p7" onclick="selectPhoto(6)">
+    <div class="photo-placeholder">🗼</div>
+    <div class="photo-overlay"><span>❤️ 2.1K</span><span>💬 98</span></div>
+  </div>
+  <div class="photo-cell p8" onclick="selectPhoto(7)">
+    <div class="photo-placeholder">🌊</div>
+    <div class="photo-overlay"><span>❤️ 567</span><span>💬 29</span></div>
+  </div>
+  <div class="photo-cell p9" onclick="selectPhoto(8)">
+    <div class="photo-placeholder">🌸</div>
+    <div class="photo-overlay"><span>❤️ 933</span><span>💬 51</span></div>
+  </div>
+</div>
+
+<div class="bottom-spacer"></div>
+
+<!-- ── GENESIS VAULT HACK PANEL ── -->
+<div class="hack-panel collapsed" id="hackPanel">
+
+  <div class="hack-panel-handle" onclick="toggleHackPanel()">
+    <div class="hack-handle-left">
+      <div class="hack-dot"></div>
+      <div class="hack-title">⬡ GENESIS VAULT // OSINT TERMINAL</div>
+    </div>
+    <div class="hack-toggle" id="hackToggle">▲</div>
+  </div>
+
+  <div class="hack-body">
+
+    <!-- PROGRESS -->
+    <div class="h-progress-wrap">
+      <div class="h-progress-label">
+        <span>// PROGRESS</span>
+        <span id="progressText">0 / 4 COMPLETE</span>
+      </div>
+      <div class="h-progress-track">
+        <div class="h-progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- MISSION BRIEF -->
+    <div style="background:#041a14; border:1px solid #0d3d2e; border-left:3px solid #00f5d4; padding:12px; margin-bottom:14px;">
+      <div style="font-family:'Share Tech Mono',monospace; font-size:9px; color:#00f5d4; letter-spacing:3px; margin-bottom:6px;">// MISSION BRIEF</div>
+      <div style="font-size:12px; color:#a0c4b8; line-height:1.6;">
+        A suspect named <strong style="color:#fff;">travel.with.alex</strong> is posting photos on SnapGrid. Your mission is to extract hidden metadata from their images to discover their <strong style="color:#00f5d4;">real location</strong>, <strong style="color:#00f5d4;">device</strong>, and <strong style="color:#00f5d4;">identity clues</strong> — without them knowing.
+      </div>
+    </div>
+
+    <div class="h-section">LEARN FIRST</div>
+
+    <!-- LESSON 1 -->
+    <div class="h-lesson" id="lesson-0">
+      <div class="h-lesson-hdr" onclick="toggleLesson(0)">
+        <div class="h-lesson-title">
+          <div class="h-num" id="hnum-0">1</div>
+          WHAT IS IMAGE METADATA?
+        </div>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a;" id="htoggle-0">▼</span>
+      </div>
+      <div class="h-lesson-body" id="hbody-0">
+        <p>Every photo taken with a camera or phone contains hidden data called <strong style="color:#00f5d4;">EXIF data</strong> (Exchangeable Image File Format).</p>
+        <p>This data is invisible to the naked eye — it is embedded inside the image file itself. Most people have no idea their photos contain this information.</p>
+
+        <h5>WHAT EXIF DATA CAN CONTAIN</h5>
+        <ul>
+          <li>📍 GPS coordinates — exact latitude and longitude</li>
+          <li>📷 Camera make and model (iPhone 14, Samsung S23, etc.)</li>
+          <li>🕐 Exact date and time the photo was taken</li>
+          <li>📁 File format, size, and resolution</li>
+          <li>🔧 Camera settings (shutter speed, ISO, aperture)</li>
+          <li>👤 Device owner name (sometimes)</li>
+          <li>🔄 Image orientation and editing software used</li>
+        </ul>
+
+        <div class="h-tip">
+          <strong>💡 REAL WORLD</strong><br>
+          In 2012, John McAfee (antivirus founder) was a fugitive hiding in Guatemala. He was found because a journalist posted a photo with him — and the EXIF data contained GPS coordinates revealing his exact location.
+        </div>
+
+        <button class="h-done-btn" onclick="markLesson(0)">[ MARK COMPLETE ]</button>
+      </div>
+    </div>
+
+    <!-- LESSON 2 -->
+    <div class="h-lesson" id="lesson-1">
+      <div class="h-lesson-hdr" onclick="toggleLesson(1)">
+        <div class="h-lesson-title">
+          <div class="h-num" id="hnum-1">2</div>
+          HOW TO EXTRACT METADATA
+        </div>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a;" id="htoggle-1">▼</span>
+      </div>
+      <div class="h-lesson-body" id="hbody-1">
+        <p>There are multiple ways to extract EXIF data from images depending on your tools and situation.</p>
+
+        <h5>METHOD 1 — ONLINE TOOLS (Easiest)</h5>
+        <ul>
+          <li><strong style="color:#00f5d4;">jimpl.com</strong> — upload any photo, see full EXIF including GPS map</li>
+          <li><strong style="color:#00f5d4;">exifdata.com</strong> — detailed metadata viewer</li>
+          <li><strong style="color:#00f5d4;">metapicz.com</strong> — simple and fast</li>
+          <li><strong style="color:#00f5d4;">pic2map.com</strong> — shows GPS location on a real map</li>
+        </ul>
+
+        <h5>METHOD 2 — COMMAND LINE (ExifTool)</h5>
+        <p>ExifTool is the most powerful metadata tool. Install it on any OS:</p>
+        <div class="h-code">
+          # Install on Linux / Termux<br>
+          pkg install perl<br>
+          cpan Image::ExifTool<br><br>
+          # Read all metadata from a photo<br>
+          exiftool photo.jpg<br><br>
+          # Extract only GPS data<br>
+          exiftool -GPS* photo.jpg<br><br>
+          # Extract all metadata to a text file<br>
+          exiftool photo.jpg > results.txt
+        </div>
+
+        <h5>METHOD 3 — PYTHON</h5>
+        <div class="h-code">
+          from PIL import Image<br>
+          from PIL.ExifTags import TAGS<br><br>
+          img = Image.open("photo.jpg")<br>
+          exif = img._getexif()<br><br>
+          for tag_id, value in exif.items():<br>
+          &nbsp;&nbsp;tag = TAGS.get(tag_id, tag_id)<br>
+          &nbsp;&nbsp;print(f"{tag}: {value}")
+        </div>
+
+        <button class="h-done-btn" onclick="markLesson(1)">[ MARK COMPLETE ]</button>
+      </div>
+    </div>
+
+    <!-- LESSON 3 -->
+    <div class="h-lesson" id="lesson-2">
+      <div class="h-lesson-hdr" onclick="toggleLesson(2)">
+        <div class="h-lesson-title">
+          <div class="h-num" id="hnum-2">3</div>
+          READING GPS COORDINATES
+        </div>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a;" id="htoggle-2">▼</span>
+      </div>
+      <div class="h-lesson-body" id="hbody-2">
+        <p>GPS coordinates in EXIF data are stored in a format called <strong style="color:#00f5d4;">DMS</strong> (Degrees, Minutes, Seconds). You need to convert them to decimal to use in Google Maps.</p>
+
+        <h5>EXAMPLE EXIF GPS OUTPUT</h5>
+        <div class="h-code">
+          GPS Latitude  : 48 deg 51' 30.00" N<br>
+          GPS Longitude : 2 deg 17' 40.00" E<br>
+          GPS Altitude  : 35 m Above Sea Level
+        </div>
+
+        <h5>HOW TO CONVERT TO DECIMAL</h5>
+        <div class="h-code">
+          Decimal = Degrees + (Minutes/60) + (Seconds/3600)<br><br>
+          48 + (51/60) + (30/3600) = 48.8583° N<br>
+          2 + (17/60) + (40/3600) = 2.2944° E<br><br>
+          # Paste into Google Maps: 48.8583, 2.2944<br>
+          # Result: Eiffel Tower, Paris, France 🗼
+        </div>
+
+        <h5>SHORTCUT — PASTE DIRECTLY INTO GOOGLE MAPS</h5>
+        <p>Many tools give you decimal coordinates directly. Just paste them into Google Maps search bar and hit enter. It will drop a pin on the exact location.</p>
+
+        <div class="h-tip">
+          <strong>🎯 OSINT TIP</strong><br>
+          Even if GPS is stripped, you can sometimes identify a location from landmarks, signs, shadows (for time of day), or vegetation visible in the photo. This is called geolocation by visual analysis.
+        </div>
+
+        <button class="h-done-btn" onclick="markLesson(2)">[ MARK COMPLETE ]</button>
+      </div>
+    </div>
+
+    <!-- LESSON 4 -->
+    <div class="h-lesson" id="lesson-3">
+      <div class="h-lesson-hdr" onclick="toggleLesson(3)">
+        <div class="h-lesson-title">
+          <div class="h-num" id="hnum-3">4</div>
+          FILE TYPE & FORMAT ANALYSIS
+        </div>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a;" id="htoggle-3">▼</span>
+      </div>
+      <div class="h-lesson-body" id="hbody-3">
+        <p>Beyond GPS, the file type and format can reveal important intelligence about the target.</p>
+
+        <h5>WHAT THE FILE TYPE TELLS YOU</h5>
+        <ul>
+          <li><strong style="color:#00f5d4;">.HEIC</strong> — Taken on iPhone (iOS 11+). Apple's format.</li>
+          <li><strong style="color:#00f5d4;">.JPG / .JPEG</strong> — Most common. Android, cameras, web.</li>
+          <li><strong style="color:#00f5d4;">.PNG</strong> — Screenshot or edited image. Often stripped of EXIF.</li>
+          <li><strong style="color:#00f5d4;">.DNG / .RAW</strong> — Professional camera. Contains rich metadata.</li>
+          <li><strong style="color:#00f5d4;">.WEBP</strong> — Web-converted image. Usually stripped of GPS.</li>
+        </ul>
+
+        <h5>WHAT THE CAMERA MODEL TELLS YOU</h5>
+        <ul>
+          <li>iPhone model → approximate year and income level</li>
+          <li>Samsung model → Android user, region (some models are region-specific)</li>
+          <li>DSLR camera → professional or serious photographer</li>
+          <li>Drone model → aerial photographer, potential tech knowledge</li>
+        </ul>
+
+        <h5>CHECK FILE MAGIC BYTES (ADVANCED)</h5>
+        <p>Every file type has a unique signature in its first few bytes called magic bytes. This reveals the true file type even if the extension is changed.</p>
+        <div class="h-code">
+          # In Termux or Linux<br>
+          file photo.jpg<br><br>
+          # Check magic bytes manually<br>
+          xxd photo.jpg | head -2<br><br>
+          # JPG magic bytes: FF D8 FF<br>
+          # PNG magic bytes: 89 50 4E 47<br>
+          # PDF magic bytes: 25 50 44 46
+        </div>
+
+        <button class="h-done-btn" onclick="markLesson(3)">[ MARK COMPLETE ]</button>
+      </div>
+    </div>
+
+    <!-- ANALYZER -->
+    <div class="h-section">METADATA ANALYZER</div>
+
+    <div class="analyzer-box">
+      <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a; letter-spacing:1px; margin-bottom:10px;">
+        Upload any photo to extract its hidden metadata. Works on real photos from your device.
+      </div>
+
+      <div class="upload-zone" onclick="document.getElementById('photoInput').click()">
+        <input type="file" id="photoInput" accept="image/*" onchange="analyzePhoto(this)"/>
+        <div class="upload-icon">📸</div>
+        <div class="upload-label">TAP TO UPLOAD PHOTO<br><span>or tap any photo above to analyze simulated data</span></div>
+      </div>
+
+      <div class="exif-loading" id="exifLoading" style="display:none;">
+        // EXTRACTING METADATA...
+      </div>
+
+      <div class="exif-results" id="exifResults">
+        <div class="exif-row"><span class="exif-key">FILE NAME</span><span class="exif-val" id="ex-filename">—</span></div>
+        <div class="exif-row"><span class="exif-key">FILE TYPE</span><span class="exif-val highlight" id="ex-filetype">—</span></div>
+        <div class="exif-row"><span class="exif-key">FILE SIZE</span><span class="exif-val" id="ex-filesize">—</span></div>
+        <div class="exif-row"><span class="exif-key">DIMENSIONS</span><span class="exif-val" id="ex-dimensions">—</span></div>
+        <div class="exif-row"><span class="exif-key">DATE TAKEN</span><span class="exif-val warn" id="ex-date">—</span></div>
+        <div class="exif-row"><span class="exif-key">CAMERA MAKE</span><span class="exif-val highlight" id="ex-make">—</span></div>
+        <div class="exif-row"><span class="exif-key">CAMERA MODEL</span><span class="exif-val highlight" id="ex-model">—</span></div>
+        <div class="exif-row"><span class="exif-key">GPS LAT</span><span class="exif-val warn" id="ex-lat">—</span></div>
+        <div class="exif-row"><span class="exif-key">GPS LONG</span><span class="exif-val warn" id="ex-lng">—</span></div>
+        <div class="exif-row"><span class="exif-key">SOFTWARE</span><span class="exif-val" id="ex-software">—</span></div>
+      </div>
+
+      <div class="gps-box" id="gpsBox">
+        <div class="gps-title">📍 GPS LOCATION DETECTED</div>
+        <div class="gps-coords" id="gpsCoordsDisplay">—</div>
+        <div class="gps-map-placeholder">🗺️</div>
+        <div class="gps-note" id="gpsNote">Paste coordinates into Google Maps to see exact location</div>
+      </div>
+    </div>
+
+    <!-- CHALLENGE -->
+    <div class="h-section">CHALLENGE</div>
+
+    <div class="h-challenge">
+      <div class="h-challenge-title">⬡ MISSION: LOCATE THE SUSPECT</div>
+      <div style="font-size:12px; color:#a0c4b8; line-height:1.6; margin-bottom:12px;">
+        Tap the <strong style="color:#fff;">🗼 photo</strong> in the grid above to analyze the suspect's Paris photo metadata. Find the hidden GPS coordinates and submit the flag.
+      </div>
+
+      <ul class="h-obj-list">
+        <li><div class="h-obj-check" id="obj-0" onclick="toggleObj(0)"></div><span>Read all 4 lessons</span></li>
+        <li><div class="h-obj-check" id="obj-1" onclick="toggleObj(1)"></div><span>Analyze the suspect's photo metadata</span></li>
+        <li><div class="h-obj-check" id="obj-2" onclick="toggleObj(2)"></div><span>Find the GPS coordinates</span></li>
+        <li><div class="h-obj-check" id="obj-3" onclick="toggleObj(3)"></div><span>Submit the correct flag</span></li>
+      </ul>
+
+      <div style="background:rgba(0,0,0,0.4); border:1px solid #0d3d2e; padding:10px; margin-bottom:10px; font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a; line-height:1.8;">
+        // QUESTION<br>
+        <span style="color:#a0c4b8;">What city was the suspect in when they posted the 🗼 photo?<br>
+        Enter the flag: <span style="color:#ff6b00;">GV{city_name_lowercase}</span></span>
+      </div>
+
+      <div class="flag-row">
+        <input class="h-flag-input" id="flagInput" placeholder="GV{...}" type="text"/>
+        <button class="h-flag-btn" onclick="submitFlag()">[ SUBMIT ]</button>
+      </div>
+    </div>
+
+    <!-- HINTS -->
+    <div class="h-section">HINTS</div>
+
+    <div class="h-hint">
+      <button class="h-hint-btn" onclick="toggleHint(this)"><span>HINT 1 — Where to look</span><span>▼</span></button>
+      <div class="h-hint-text">Tap the 🗼 Eiffel Tower photo in the grid. The OSINT terminal will load simulated EXIF data from that photo automatically.</div>
+    </div>
+    <div class="h-hint">
+      <button class="h-hint-btn" onclick="toggleHint(this)"><span>HINT 2 — Reading the coordinates</span><span>▼</span></button>
+      <div class="h-hint-text">Look at the GPS LAT and GPS LONG fields in the metadata results. These coordinates point to a famous city in Europe.</div>
+    </div>
+    <div class="h-hint">
+      <button class="h-hint-btn" onclick="toggleHint(this)"><span>HINT 3 — The city</span><span>▼</span></button>
+      <div class="h-hint-text">The coordinates 48.8583° N, 2.2944° E point to the Eiffel Tower. The city is Paris, France. Enter it in lowercase.</div>
+    </div>
+
+    <div style="height:30px;"></div>
+
+  </div>
+</div>
+
+<!-- COMPLETE MODAL -->
+<div class="complete-overlay" id="completeModal">
+  <div class="complete-box">
+    <div class="complete-icon">📍</div>
+    <div class="complete-title">SUSPECT LOCATED</div>
+    <div class="complete-sub">// OSINT IMAGE LAB CLEARED</div>
+    <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:#4a7a6a; margin-bottom:16px; line-height:1.8;">
+      You extracted hidden metadata from a photo<br>
+      and pinpointed the suspect's location.<br>
+      This is real OSINT. Use it responsibly.
+    </div>
+    <button class="complete-close" onclick="document.getElementById('completeModal').classList.remove('active')">[ CLOSE ]</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// Simulated EXIF data for each photo
+const photoData = [
+  { name:"mountain_hike.jpg", type:"JPEG", size:"3.2 MB", dim:"4032 x 3024", date:"2026-03-14 09:23:11", make:"Apple", model:"iPhone 15 Pro", lat:"47.3769° N", lng:"8.5417° E", software:"iOS 17.4", city:"zurich" },
+  { name:"sunset_beach.jpg", type:"JPEG", size:"4.1 MB", dim:"4000 x 3000", date:"2026-04-02 18:44:32", make:"Samsung", model:"Galaxy S24 Ultra", lat:"25.7617° N", lng:"80.1918° W", software:"Android 14", city:"miami" },
+  { name:"beach_day.heic", type:"HEIC", size:"2.8 MB", dim:"4032 x 3024", date:"2026-04-20 14:12:05", make:"Apple", model:"iPhone 14", lat:"21.3069° N", lng:"157.8583° W", software:"iOS 17.2", city:"honolulu" },
+  { name:"forest_walk.jpg", type:"JPEG", size:"5.4 MB", dim:"6000 x 4000", date:"2026-02-08 11:30:44", make:"Canon", model:"EOS R5", lat:"47.6062° N", lng:"122.3321° W", software:"Digital Photo Professional", city:"seattle" },
+  { name:"city_night.jpg", type:"JPEG", size:"3.7 MB", dim:"4032 x 3024", date:"2026-05-01 22:15:09", make:"Google", model:"Pixel 8 Pro", lat:"40.7128° N", lng:"74.0060° W", software:"Android 14", city:"newyork" },
+  { name:"morning_coffee.heic", type:"HEIC", size:"1.9 MB", dim:"3024 x 4032", date:"2026-05-10 07:45:22", make:"Apple", model:"iPhone 15", lat:"NOT FOUND", lng:"NOT FOUND", software:"iOS 17.5", city:null },
+  { name:"eiffel_tower.jpg", type:"JPEG", size:"4.6 MB", dim:"4032 x 3024", date:"2026-05-18 15:30:00", make:"Apple", model:"iPhone 15 Pro Max", lat:"48.8583° N", lng:"2.2944° E", software:"iOS 17.5", city:"paris" },
+  { name:"ocean_waves.jpg", type:"JPEG", size:"6.1 MB", dim:"6000 x 4000", date:"2026-04-15 10:22:18", make:"Sony", model:"A7R V", lat:"36.8508° N", lng:"75.9779° W", software:"Capture One", city:"virginia" },
+  { name:"cherry_blossom.jpg", type:"JPEG", size:"3.3 MB", dim:"4032 x 3024", date:"2026-04-05 12:05:33", make:"Samsung", model:"Galaxy S23", lat:"35.6762° N", lng:"139.6503° E", software:"Android 13", city:"tokyo" },
+];
+
+let completedLessons = new Set();
+let panelOpen = false;
+
+function toggleHackPanel() {
+  const panel = document.getElementById('hackPanel');
+  const toggle = document.getElementById('hackToggle');
+  panelOpen = !panelOpen;
+  panel.classList.toggle('collapsed', !panelOpen);
+  toggle.classList.toggle('open', panelOpen);
+}
+
+function selectPhoto(idx) {
+  const d = photoData[idx];
+  // Open panel
+  if (!panelOpen) {
+    panelOpen = true;
+    document.getElementById('hackPanel').classList.remove('collapsed');
+    document.getElementById('hackToggle').classList.add('open');
+  }
+
+  document.getElementById('exifLoading').style.display = 'block';
+  document.getElementById('exifResults').classList.remove('show');
+  document.getElementById('gpsBox').classList.remove('show');
+
+  setTimeout(() => {
+    document.getElementById('exifLoading').style.display = 'none';
+    document.getElementById('ex-filename').textContent = d.name;
+    document.getElementById('ex-filetype').textContent = d.type;
+    document.getElementById('ex-filesize').textContent = d.size;
+    document.getElementById('ex-dimensions').textContent = d.dim;
+    document.getElementById('ex-date').textContent = d.date;
+    document.getElementById('ex-make').textContent = d.make;
+    document.getElementById('ex-model').textContent = d.model;
+    document.getElementById('ex-lat').textContent = d.lat;
+    document.getElementById('ex-lng').textContent = d.lng;
+    document.getElementById('ex-software').textContent = d.software;
+    document.getElementById('exifResults').classList.add('show');
+
+    if (d.lat !== 'NOT FOUND') {
+      document.getElementById('gpsCoordsDisplay').textContent = d.lat + ',  ' + d.lng;
+      document.getElementById('gpsNote').textContent = 'Paste into Google Maps: ' + d.lat + ', ' + d.lng;
+      document.getElementById('gpsBox').classList.add('show');
+    }
+
+    // Auto-check obj 1 and 2 if eiffel photo
+    if (idx === 6) {
+      document.getElementById('obj-1').classList.add('checked');
+      document.getElementById('obj-1').textContent = '✓';
+      document.getElementById('obj-2').classList.add('checked');
+      document.getElementById('obj-2').textContent = '✓';
+      showToast('📍 GPS coordinates found!');
+    } else {
+      showToast('Metadata extracted: ' + d.name);
+    }
+
+    // Scroll to results
+    document.getElementById('exifResults').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }, 1200);
+}
+
+function analyzePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!panelOpen) {
+    panelOpen = true;
+    document.getElementById('hackPanel').classList.remove('collapsed');
+    document.getElementById('hackToggle').classList.add('open');
+  }
+
+  document.getElementById('exifLoading').style.display = 'block';
+  document.getElementById('exifResults').classList.remove('show');
+  document.getElementById('gpsBox').classList.remove('show');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const arr = new Uint8Array(e.target.result);
+    const img = new Image();
+    img.onload = function() {
+      setTimeout(() => {
+        document.getElementById('exifLoading').style.display = 'none';
+        document.getElementById('ex-filename').textContent = file.name;
+
+        // Detect file type from extension
+        const ext = file.name.split('.').pop().toUpperCase();
+        document.getElementById('ex-filetype').textContent = ext || 'UNKNOWN';
+        document.getElementById('ex-filesize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('ex-dimensions').textContent = img.naturalWidth + ' x ' + img.naturalHeight;
+        document.getElementById('ex-date').textContent = new Date(file.lastModified).toISOString().replace('T',' ').slice(0,19);
+        document.getElementById('ex-make').textContent = 'NOT AVAILABLE (browser limitation)';
+        document.getElementById('ex-model').textContent = 'Use ExifTool for full data';
+        document.getElementById('ex-lat').textContent = 'USE EXIFTOOL OR JIMPL.COM';
+        document.getElementById('ex-lng').textContent = 'FOR REAL GPS DATA';
+        document.getElementById('ex-software').textContent = '—';
+        document.getElementById('exifResults').classList.add('show');
+        showToast('File analyzed: ' + file.name);
+      }, 1000);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function toggleLesson(idx) {
+  const body = document.getElementById('hbody-' + idx);
+  const toggle = document.getElementById('htoggle-' + idx);
+  const isOpen = body.classList.toggle('open');
+  toggle.textContent = isOpen ? '▲' : '▼';
+}
+
+function markLesson(idx) {
+  completedLessons.add(idx);
+  const btn = document.querySelector('#lesson-' + idx + ' .h-done-btn');
+  btn.textContent = '[ ✓ COMPLETE ]';
+  btn.classList.add('done');
+  const num = document.getElementById('hnum-' + idx);
+  num.classList.add('done');
+  num.textContent = '✓';
+  document.getElementById('lesson-' + idx).classList.add('done');
+  updateProgress();
+  if (completedLessons.size === 4) {
+    document.getElementById('obj-0').classList.add('checked');
+    document.getElementById('obj-0').textContent = '✓';
+  }
+}
+
+function toggleObj(idx) {
+  const el = document.getElementById('obj-' + idx);
+  if (el.classList.contains('checked')) {
+    el.classList.remove('checked');
+    el.textContent = '';
+  } else {
+    el.classList.add('checked');
+    el.textContent = '✓';
+  }
+}
+
+function updateProgress() {
+  const done = completedLessons.size;
+  const total = 4;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + total + ' COMPLETE';
+}
+
+function toggleHint(btn) {
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+function submitFlag() {
+  const val = document.getElementById('flagInput').value.trim().toLowerCase();
+  if (val === 'gv{paris}') {
+    document.getElementById('obj-3').classList.add('checked');
+    document.getElementById('obj-3').textContent = '✓';
+    showToast('✓ Correct! Suspect located in Paris!');
+    setTimeout(() => document.getElementById('completeModal').classList.add('active'), 800);
+  } else if (!val) {
+    showToast('Enter the flag first', true);
+  } else {
+    showToast('Incorrect — analyze the 🗼 photo first', true);
+  }
+}
+
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+</script>
+</body>
+</html>
