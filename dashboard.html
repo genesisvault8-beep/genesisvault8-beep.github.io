@@ -1372,15 +1372,30 @@ let postImageFile = null;  // holds the selected File object
 function handleImageSelect(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { toast('// Image must be under 5MB.'); input.value=''; return; }
-  postImageFile = file;
+  if (file.size > 10 * 1024 * 1024) { toast('// Image must be under 10MB.'); input.value=''; return; }
+
+  // Compress image before uploading
   const reader = new FileReader();
   reader.onload = e => {
-    const preview = document.getElementById('post-image-preview');
-    const wrap    = document.getElementById('post-image-preview-wrap');
-    preview.src   = e.target.result;
-    wrap.style.display = 'block';
-    document.getElementById('img-attach-btn').classList.add('active');
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        postImageFile = new File([blob], file.name, { type: 'image/jpeg' });
+        const preview = document.getElementById('post-image-preview');
+        const wrap    = document.getElementById('post-image-preview-wrap');
+        preview.src   = canvas.toDataURL('image/jpeg', 0.85);
+        wrap.style.display = 'block';
+        document.getElementById('img-attach-btn').classList.add('active');
+      }, 'image/jpeg', 0.85);
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
