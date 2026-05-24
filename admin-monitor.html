@@ -649,7 +649,7 @@ async function authenticate() {
     }
     // Any non-401 response = valid admin token
     adminToken = token;
-    sessionStorage.setItem('gv_admin_token', token);
+    sessionStorage.setItem('gv_admin_token', token); localStorage.setItem('gv_admin_token', token);
     document.getElementById('auth-gate').style.display = 'none';
     document.getElementById('main').style.display = 'block';
     initAll();
@@ -658,7 +658,7 @@ async function authenticate() {
     // Network error — still let them in if token looks valid
     if (token.length > 10) {
       adminToken = token;
-      sessionStorage.setItem('gv_admin_token', token);
+      sessionStorage.setItem('gv_admin_token', token); localStorage.setItem('gv_admin_token', token);
       document.getElementById('auth-gate').style.display = 'none';
       document.getElementById('main').style.display = 'block';
       initAll();
@@ -678,7 +678,7 @@ function showAuthErr() {
 
 function logout() {
   stopAutoRefresh(true);
-  sessionStorage.removeItem('gv_admin_token');
+  sessionStorage.removeItem('gv_admin_token'); localStorage.removeItem('gv_admin_token');
   adminToken = '';
   document.getElementById('main').style.display = 'none';
   document.getElementById('auth-gate').style.display = 'flex';
@@ -1076,7 +1076,7 @@ document.getElementById('ping-url').addEventListener('keydown',   e => { if(e.ke
 
 // ── SESSION RESTORE ───────────────────────────────────────────────────
 (function() {
-  const saved = sessionStorage.getItem('gv_admin_token');
+  const saved = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token');
   if (saved) { document.getElementById('token-input').value=saved; authenticate(); }
 })();
 </script>
