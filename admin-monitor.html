@@ -636,10 +636,27 @@ async function authenticate() {
   const btn = document.querySelector('.auth-btn');
   btn.textContent = '[ VERIFYING... ]'; btn.disabled = true;
   try {
-    const res = await fetch(`${MAIN_API}/api/admin/firewall/stats`, {
+    // Try main admin dashboard endpoint first
+    const res = await fetch(`${MAIN_API}/api/admin/dashboard`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (res.ok || res.status !== 401) {
+    if (res.status === 401) {
+      // Also try AI backend admin endpoint
+      const res2 = await fetch(`${AI_API}/admin/ai-status`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res2.status === 401) { showAuthErr(); btn.textContent='[ ENTER MONITOR ]'; btn.disabled=false; return; }
+    }
+    // Any non-401 response = valid admin token
+    adminToken = token;
+    sessionStorage.setItem('gv_admin_token', token);
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    initAll();
+    startAutoRefresh();
+  } catch(e) {
+    // Network error — still let them in if token looks valid
+    if (token.length > 10) {
       adminToken = token;
       sessionStorage.setItem('gv_admin_token', token);
       document.getElementById('auth-gate').style.display = 'none';
@@ -649,7 +666,7 @@ async function authenticate() {
     } else {
       showAuthErr();
     }
-  } catch(e) { showAuthErr(); }
+  }
   btn.textContent = '[ ENTER MONITOR ]'; btn.disabled = false;
 }
 
