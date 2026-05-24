@@ -318,12 +318,12 @@
           <div class="post-type-card" onclick="selectPostType('script')" id="ptype-script">
             <div style="font-size:1.4rem;margin-bottom:6px;">⌨</div>
             <div class="post-type-name">SCRIPT</div>
-            <div class="post-type-desc">Downloadable file — Python, Bash, JS</div>
+            <div class="post-type-desc">Raw code — runs on Termux (Python, Bash, JS)</div>
           </div>
           <div class="post-type-card" onclick="selectPostType('webapp')" id="ptype-webapp">
             <div style="font-size:1.4rem;margin-bottom:6px;">◈</div>
             <div class="post-type-name">WEB APP</div>
-            <div class="post-type-desc">Runs inside Genesis Vault iframe</div>
+            <div class="post-type-desc">Paste HTML — runs inside Vault iframe</div>
           </div>
           <div class="post-type-card" onclick="selectPostType('kit')" id="ptype-kit">
             <div style="font-size:1.4rem;margin-bottom:6px;">📦</div>
@@ -341,11 +341,21 @@
       <!-- STEP 2: FORM (changes based on type) -->
       <div id="post-step-2" style="display:none;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-          <button onclick="resetPostForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:1px;cursor:pointer;">← BACK</button>
+          <button onclick="resetPostForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';this.style.color='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)';">← BACK</button>
           <div id="post-type-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent3);border:1px solid var(--accent3);padding:3px 10px;letter-spacing:2px;"></div>
         </div>
 
         <div class="status-msg" id="post-status"></div>
+
+        <!-- THUMBNAIL UPLOAD -->
+        <label>THUMBNAIL <span style="color:var(--text-dim);font-size:0.7rem;">— upload image directly</span></label>
+        <img id="p-thumb-preview" src="" alt="Thumbnail Preview" style="display:none;width:100%;max-height:160px;object-fit:cover;border:1px solid var(--border);margin-bottom:10px;">
+        <div id="p-thumb-upload-area" onclick="document.getElementById('p-thumb-file').click()" style="border:1px dashed var(--border);background:var(--bg2);padding:18px;text-align:center;cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';">
+          <input type="file" id="p-thumb-file" accept="image/*" style="display:none;" onchange="handlePostThumb(event)">
+          <div id="p-thumb-icon" style="font-size:1.4rem;margin-bottom:4px;">🖼</div>
+          <div id="p-thumb-hint" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;">TAP TO UPLOAD THUMBNAIL</div>
+          <div id="p-thumb-change" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);margin-top:4px;display:none;">[ CHANGE IMAGE ]</div>
+        </div>
 
         <!-- COMMON FIELDS -->
         <label>TITLE</label>
@@ -355,44 +365,64 @@
         <textarea id="p-desc" rows="3" placeholder="What does it do? Who is it for?"></textarea>
 
         <label>PRICE (VC) <span style="color:var(--text-dim);font-size:0.7rem;">— set 0 for FREE</span></label>
-        <input type="number" id="p-vc-price" placeholder="0" min="0" step="1">
-
-        <label>THUMBNAIL URL <span style="color:var(--text-dim);font-size:0.7rem;">— optional preview image</span></label>
-        <input type="text" id="p-thumbnail" placeholder="https://i.imgur.com/yourimage.png">
+        <input type="number" id="p-vc-price" placeholder="0" min="0" step="1" value="0">
 
         <!-- SCRIPT FIELDS -->
         <div id="post-fields-script" style="display:none;">
           <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// SCRIPT DELIVERY</div>
-          <label>FILE TYPE</label>
-          <select id="p-script-filetype">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// SCRIPT — PASTE RAW CODE</div>
+          <label>LANGUAGE</label>
+          <select id="p-script-filetype" onchange="updatePostCodeLang()">
             <option value=".py">Python (.py)</option>
             <option value=".sh">Bash (.sh)</option>
             <option value=".js">JavaScript (.js)</option>
-            <option value=".zip">ZIP Archive (.zip)</option>
-            <option value=".txt">Text (.txt)</option>
+            <option value=".txt">Plain Text (.txt)</option>
           </select>
-          <label>CLOUDFLARE R2 FILE KEY <span style="color:var(--text-dim);font-size:0.7rem;">— internal path only, never shown to users</span></label>
-          <input type="text" id="p-script-r2key" placeholder="scripts/my-tool-v1.py">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// Upload your file to Cloudflare R2 first → paste the file key here. Genesis Bridge will serve it securely.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span id="p-code-lang-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent2);color:var(--accent2);">Python</span>
+            <span id="p-code-line-count" style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--text-dim);">0 lines</span>
+            <button onclick="clearPostCode()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:1px;cursor:pointer;margin-left:auto;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';this.style.color='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)';">[ CLEAR ]</button>
+          </div>
+          <textarea id="p-script-code" rows="10" oninput="updatePostLineCount()" placeholder="# Paste your Python / Bash / JS code here...
+# Members will copy this and run it directly on Termux" style="background:#020c0f;color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// Members get a [ COPY CODE ] button — they paste it straight into Termux.</div>
         </div>
 
         <!-- WEB APP FIELDS -->
         <div id="post-fields-webapp" style="display:none;">
           <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// WEB APP DELIVERY</div>
-          <label>APP URL <span style="color:var(--text-dim);font-size:0.7rem;">— Vercel / Netlify / GitHub Pages</span></label>
-          <input type="text" id="p-webapp-url" placeholder="https://your-app.vercel.app">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// URL is stored privately. Users access it through a secure Genesis Vault iframe — they never see the real URL.</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// WEB APP — PASTE HTML</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
+            <button onclick="previewPostWebApp()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-left:auto;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
+          </div>
+          <textarea id="p-webapp-html" rows="10" oninput="resetPostPreview('webapp')" placeholder="<!DOCTYPE html>
+<html>
+<head>...</head>
+<body>
+  <!-- Your tool UI here -->
+</body>
+</html>" style="background:#020c0f;color:#ffaa00;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
+          <div id="post-preview-empty-webapp" style="display:none;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);text-align:center;padding:16px;border:1px dashed var(--border);">// Paste HTML above then tap PREVIEW to test inside vault.</div>
+          <iframe id="post-iframe-webapp" style="display:none;width:100%;height:220px;border:1px solid var(--accent2);background:#fff;" sandbox="allow-scripts allow-forms"></iframe>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;margin-top:8px;">// App runs in a sandboxed iframe. Members can't see source code.</div>
         </div>
 
         <!-- KIT FIELDS -->
         <div id="post-fields-kit" style="display:none;">
           <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// TOOL KIT DELIVERY</div>
-          <label>KIT APP URL <span style="color:var(--text-dim);font-size:0.7rem;">— bundled tools web app URL</span></label>
-          <input type="text" id="p-kit-url" placeholder="https://your-kit.vercel.app">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px;">// Build your kit tools as a web app (e.g. Clickjacking Tester + Header Analyzer etc), host it, paste the URL.</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// TOOL KIT — PASTE HTML</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
+            <button onclick="previewPostKit()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-left:auto;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
+          </div>
+          <textarea id="p-kit-html" rows="10" oninput="resetPostPreview('kit')" placeholder="<!DOCTYPE html>
+<html>
+<!-- Bundled kit tools HTML here -->
+</html>" style="background:#020c0f;color:#ffaa00;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
+          <div id="post-preview-empty-kit" style="display:none;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);text-align:center;padding:16px;border:1px dashed var(--border);">// Paste kit HTML above then tap PREVIEW.</div>
+          <iframe id="post-iframe-kit" style="display:none;width:100%;height:220px;border:1px solid var(--accent2);background:#fff;" sandbox="allow-scripts allow-forms"></iframe>
+          <div style="height:10px;"></div>
           <label>WHAT'S INCLUDED <span style="color:var(--text-dim);font-size:0.7rem;">— list the tools inside</span></label>
           <div id="kit-post-items-list"></div>
           <button class="btn-kit-add" onclick="addKitPostItem()">[ + ADD ITEM ]</button>
@@ -411,9 +441,10 @@
             <option value="trending">Trending Bot</option>
             <option value="custom">Custom Bot</option>
           </select>
-          <label>INPUT LABEL <span style="color:var(--text-dim);font-size:0.7rem;">— what the user fills in</span></label>
-          <input type="text" id="p-auto-input-label" placeholder="e.g. Enter your niche or topic...">
-          <label>AI SYSTEM PROMPT <span style="color:var(--text-dim);font-size:0.7rem;">— instructions for the AI</span></label>
+          <label>USER INPUT FIELDS <span style="color:var(--text-dim);font-size:0.7rem;">— what the member fills in</span></label>
+          <div id="p-auto-inputs-list"></div>
+          <button class="btn-kit-add" onclick="addAutoPostInput()">[ + ADD INPUT FIELD ]</button>
+          <label>AI SYSTEM PROMPT <span style="color:var(--text-dim);font-size:0.7rem;">— instructions for the AI bot</span></label>
           <textarea id="p-auto-prompt" rows="6" placeholder="You are a TikTok hashtag expert. The user will give you a niche or topic. Generate 20 trending, relevant hashtags optimized for maximum reach..."></textarea>
         </div>
 
@@ -1134,42 +1165,56 @@ async function deleteCourse(id,btn){if(!confirm('Permanently delete this course?
 let currentPostType = null;
 let postToggles = { featured: false, new: false };
 let kitPostItems = [];
+let autoPostInputs = [];
+let postThumbBase64 = null;
 
 function selectPostType(type) {
   currentPostType = type;
-  // Highlight selected card
   document.querySelectorAll('.post-type-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('ptype-' + type).classList.add('selected');
-
-  // Update badge
   const labels = { script:'SCRIPT', webapp:'WEB APP', kit:'TOOL KIT', automation:'AUTOMATION' };
   document.getElementById('post-type-badge').textContent = '// ' + labels[type];
-
-  // Show/hide type-specific fields
   ['script','webapp','kit','automation'].forEach(t => {
     document.getElementById('post-fields-' + t).style.display = t === type ? 'block' : 'none';
   });
-
-  // Show step 2
   document.getElementById('post-step-1').style.display = 'none';
   document.getElementById('post-step-2').style.display = 'block';
   document.getElementById('post-status').style.display = 'none';
+  // Init automation with one input by default
+  if (type === 'automation' && autoPostInputs.length === 0) addAutoPostInput();
 }
 
 function resetPostForm() {
   currentPostType = null;
-  kitPostItems = [];
+  kitPostItems = []; autoPostInputs = []; postThumbBase64 = null;
   postToggles = { featured: false, new: false };
-  ['p-title','p-desc','p-vc-price','p-thumbnail','p-script-r2key','p-webapp-url','p-kit-url','p-auto-input-label','p-auto-prompt'].forEach(id => {
+  ['p-title','p-desc','p-script-code','p-webapp-html','p-kit-html','p-auto-prompt'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('p-vc-price').value = 0;
   document.getElementById('toggle-post-featured').classList.remove('on');
   document.getElementById('toggle-post-new').classList.remove('on');
   document.getElementById('kit-post-items-list').innerHTML = '';
+  document.getElementById('p-auto-inputs-list').innerHTML = '';
+  // Reset thumbnail
+  document.getElementById('p-thumb-preview').style.display = 'none';
+  document.getElementById('p-thumb-preview').src = '';
+  document.getElementById('p-thumb-upload-area').style.padding = '18px';
+  document.getElementById('p-thumb-icon').style.display = '';
+  document.getElementById('p-thumb-hint').style.display = '';
+  document.getElementById('p-thumb-change').style.display = 'none';
+  document.getElementById('p-thumb-file').value = '';
+  // Reset previews
+  ['webapp','kit'].forEach(t => {
+    const iframe = document.getElementById('post-iframe-' + t);
+    const empty = document.getElementById('post-preview-empty-' + t);
+    if (iframe) iframe.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+  });
   document.querySelectorAll('.post-type-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('post-step-1').style.display = 'block';
   document.getElementById('post-step-2').style.display = 'none';
+  updatePostLineCount();
 }
 
 function togglePostField(name) {
@@ -1177,14 +1222,82 @@ function togglePostField(name) {
   document.getElementById('toggle-post-' + name).classList.toggle('on', postToggles[name]);
 }
 
-function addKitPostItem() {
-  kitPostItems.push('');
-  renderKitPostItems();
+// Thumbnail upload
+function handlePostThumb(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    postThumbBase64 = ev.target.result;
+    const preview = document.getElementById('p-thumb-preview');
+    preview.src = postThumbBase64; preview.style.display = 'block';
+    document.getElementById('p-thumb-upload-area').style.padding = '8px';
+    document.getElementById('p-thumb-icon').style.display = 'none';
+    document.getElementById('p-thumb-hint').style.display = 'none';
+    document.getElementById('p-thumb-change').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
 }
 
+// Script code helpers
+function updatePostCodeLang() {
+  const lang = document.getElementById('p-script-filetype').value;
+  const labels = { '.py':'Python', '.sh':'Bash', '.js':'JavaScript', '.txt':'Text' };
+  document.getElementById('p-code-lang-badge').textContent = labels[lang] || 'Code';
+}
+function updatePostLineCount() {
+  const code = document.getElementById('p-script-code') ? document.getElementById('p-script-code').value : '';
+  const lines = code ? code.split('\n').length : 0;
+  const el = document.getElementById('p-code-line-count');
+  if (el) el.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+function clearPostCode() { document.getElementById('p-script-code').value = ''; updatePostLineCount(); }
+
+// Web App / Kit preview
+function previewPostWebApp() {
+  const html = document.getElementById('p-webapp-html').value.trim();
+  showPostPreview('webapp', html);
+}
+function previewPostKit() {
+  const html = document.getElementById('p-kit-html').value.trim();
+  showPostPreview('kit', html);
+}
+function showPostPreview(type, html) {
+  const iframe = document.getElementById('post-iframe-' + type);
+  const empty = document.getElementById('post-preview-empty-' + type);
+  if (!html) { empty.style.display = 'block'; iframe.style.display = 'none'; return; }
+  empty.style.display = 'none'; iframe.style.display = 'block';
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.open(); doc.write(html); doc.close();
+}
+function resetPostPreview(type) {
+  document.getElementById('post-iframe-' + type).style.display = 'none';
+  document.getElementById('post-preview-empty-' + type).style.display = 'none';
+}
+
+// Kit items
+function addKitPostItem() { kitPostItems.push(''); renderKitPostItems(); }
 function renderKitPostItems() {
   document.getElementById('kit-post-items-list').innerHTML = kitPostItems.map((v, i) =>
-    `<div class="kit-item-row"><input type="text" value="${esc(v)}" placeholder="Tool ${i+1} name..." oninput="kitPostItems[${i}]=this.value"></div>`
+    `<div class="kit-item-row">
+      <input type="text" value="${esc(v)}" placeholder="Tool ${i+1} name..." oninput="kitPostItems[${i}]=this.value">
+      <button class="btn-reject" style="padding:6px 10px;font-size:0.65rem;white-space:nowrap;" onclick="kitPostItems.splice(${i},1);renderKitPostItems()">✕</button>
+    </div>`
+  ).join('');
+}
+
+// Automation inputs
+function addAutoPostInput() {
+  autoPostInputs.push({ label: '', placeholder: '' });
+  renderAutoPostInputs();
+}
+function renderAutoPostInputs() {
+  document.getElementById('p-auto-inputs-list').innerHTML = autoPostInputs.map((inp, i) =>
+    `<div style="border:1px solid var(--border);padding:10px;margin-bottom:8px;background:var(--bg2);">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">INPUT FIELD ${i+1}</div>
+      <input type="text" value="${esc(inp.label)}" placeholder="Field label (e.g. Enter your niche...)" oninput="autoPostInputs[${i}].label=this.value" style="margin-bottom:6px;">
+      <input type="text" value="${esc(inp.placeholder)}" placeholder="Placeholder text (optional)" oninput="autoPostInputs[${i}].placeholder=this.value" style="margin-bottom:${autoPostInputs.length>1?'6px':'0'};">
+      ${autoPostInputs.length > 1 ? `<button class="btn-reject" style="padding:4px 10px;font-size:0.62rem;" onclick="autoPostInputs.splice(${i},1);renderAutoPostInputs()">[ REMOVE ]</button>` : ''}
+    </div>`
   ).join('');
 }
 
@@ -1194,42 +1307,41 @@ async function submitPost() {
   const title = document.getElementById('p-title').value.trim();
   const desc  = document.getElementById('p-desc').value.trim();
   const price = parseInt(document.getElementById('p-vc-price').value) || 0;
-  const thumb = document.getElementById('p-thumbnail').value.trim();
 
-  if (!title) { showStatus(msg, '// Title is required.', true); return; }
-  if (!desc)  { showStatus(msg, '// Description is required.', true); return; }
+  if (!title) { showStatus(msg, '// TITLE IS REQUIRED.', true); return; }
+  if (!desc)  { showStatus(msg, '// DESCRIPTION IS REQUIRED.', true); return; }
 
-  // Build payload based on type
   let payload = {
     title, description: desc, vc_price: price, price: 0,
-    thumbnail_url: thumb || null,
+    thumbnail_url: postThumbBase64 || null,
     is_featured: postToggles.featured,
     is_new: postToggles.new,
   };
 
   if (currentPostType === 'script') {
-    const r2key = document.getElementById('p-script-r2key').value.trim();
+    const code = document.getElementById('p-script-code').value.trim();
     const ftype = document.getElementById('p-script-filetype').value;
-    if (!r2key) { showStatus(msg, '// R2 file key is required for scripts.', true); return; }
-    payload = { ...payload, type: 'scripts', tool_run_type: 'download', delivery: 'download', file_type: ftype, download_url: r2key, is_kit: false };
+    if (!code) { showStatus(msg, '// SCRIPT CODE IS REQUIRED.', true); return; }
+    payload = { ...payload, type: 'scripts', tool_run_type: 'copy', delivery: 'copy', file_type: ftype, script_code: code, is_kit: false };
 
   } else if (currentPostType === 'webapp') {
-    const url = document.getElementById('p-webapp-url').value.trim();
-    if (!url) { showStatus(msg, '// App URL is required.', true); return; }
-    payload = { ...payload, type: 'apps', tool_run_type: 'download', delivery: 'vault labs', content_url: url, is_kit: false };
+    const html = document.getElementById('p-webapp-html').value.trim();
+    if (!html) { showStatus(msg, '// WEB APP HTML IS REQUIRED.', true); return; }
+    payload = { ...payload, type: 'apps', tool_run_type: 'iframe', delivery: 'vault labs', html_content: html, is_kit: false };
 
   } else if (currentPostType === 'kit') {
-    const url = document.getElementById('p-kit-url').value.trim();
-    if (!url) { showStatus(msg, '// Kit app URL is required.', true); return; }
+    const html = document.getElementById('p-kit-html').value.trim();
     const items = kitPostItems.filter(Boolean);
-    if (!items.length) { showStatus(msg, '// Add at least one item to the kit.', true); return; }
-    payload = { ...payload, type: 'kits', tool_run_type: 'download', delivery: 'vault labs', content_url: url, is_kit: true, kit_items: items };
+    if (!html) { showStatus(msg, '// KIT HTML IS REQUIRED.', true); return; }
+    if (!items.length) { showStatus(msg, '// ADD AT LEAST ONE KIT ITEM.', true); return; }
+    payload = { ...payload, type: 'kits', tool_run_type: 'iframe', delivery: 'vault labs', html_content: html, is_kit: true, kit_items: items };
 
   } else if (currentPostType === 'automation') {
     const prompt = document.getElementById('p-auto-prompt').value.trim();
-    const inputLabel = document.getElementById('p-auto-input-label').value.trim();
-    if (!prompt) { showStatus(msg, '// AI system prompt is required.', true); return; }
-    payload = { ...payload, type: 'automation', tool_run_type: 'ai', system_prompt: prompt, input_label: inputLabel || 'Enter your input...', is_kit: false };
+    const subtype = document.getElementById('p-auto-subtype').value;
+    const inputs = autoPostInputs.filter(i => i.label);
+    if (!prompt) { showStatus(msg, '// AI SYSTEM PROMPT IS REQUIRED.', true); return; }
+    payload = { ...payload, type: 'automation', tool_run_type: 'ai', delivery: 'ai', system_prompt: prompt, input_label: inputs[0]?.label || 'Enter your input...', input_fields: inputs, subtype, is_kit: false };
   }
 
   btn.disabled = true; btn.textContent = '[ POSTING... ]';
