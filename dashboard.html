@@ -86,10 +86,64 @@
   .nav-right { display:flex; align-items:center; gap:14px; }
   .nav-user  { font-size:0.85rem; color:var(--text-dim); letter-spacing:1px; }
 
-  .vault-age-badge {
-    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
-    color:var(--accent2); border:1px solid var(--accent2);
-    padding:3px 10px; letter-spacing:1px;
+  .vault-age-badge { display:none; }
+
+  /* HEX CORE LOGO */
+  .hex-logo {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .hex-logo svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  .hex-logo .gv-text {
+    position: relative;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+  .hex-ring {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 4px var(--accent));
+    animation: hexPulse 2s ease-in-out infinite;
+  }
+  .hex-ring-inner {
+    fill: rgba(0,245,196,0.04);
+    stroke: rgba(0,245,196,0.25);
+    stroke-width: 1;
+    transform-origin: 21px 21px;
+    animation: hexSpin 8s linear infinite;
+  }
+  @keyframes hexPulse {
+    0%,100% { opacity:1; filter:drop-shadow(0 0 4px var(--accent)); }
+    50%     { opacity:0.45; filter:drop-shadow(0 0 10px var(--accent)); }
+  }
+  @keyframes hexSpin {
+    from { transform:rotate(0deg); }
+    to   { transform:rotate(360deg); }
+  }
+  .gv-text {
+    animation: gvGlitch 5s infinite;
+  }
+  @keyframes gvGlitch {
+    0%,88%,100% { text-shadow:0 0 8px var(--accent); transform:none; color:var(--accent); }
+    89% { text-shadow:-2px 0 var(--accent3),2px 0 var(--accent2); transform:translateX(1px); color:#fff; }
+    90% { text-shadow:2px 0 var(--accent3),-2px 0 var(--accent2); transform:translateX(-1px); }
+    91% { text-shadow:0 0 8px var(--accent); transform:none; color:var(--accent); }
+    95% { opacity:0.3; }
+    96% { opacity:1; }
   }
 
   .menu-btn {
@@ -683,7 +737,7 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </div>
   <div class="nav-right">
-    <span class="vault-age-badge" id="nav-vault-age">DAY 0</span>
+    <div class="hex-logo"><svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg"><polygon class="hex-ring-inner" points="21,3 37,12 37,30 21,39 5,30 5,12"/><polygon class="hex-ring" points="21,5 35,13 35,29 21,37 7,29 7,13"/><circle cx="21" cy="5" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="35" cy="13" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="35" cy="29" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="21" cy="37" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="7" cy="29" r="1.2" fill="var(--accent)" stroke="none"/><circle cx="7" cy="13" r="1.2" fill="var(--accent)" stroke="none"/></svg><span class="gv-text" id="nav-vault-age">GV</span></div>
     <span class="nav-user" id="nav-username">operative</span>
     <button class="menu-btn" onclick="toggleSlideMenu()">
       <span></span><span></span><span></span>
