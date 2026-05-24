@@ -281,6 +281,7 @@
 <div class="statusbar">
   <span>GENESIS VAULT AI</span>
   <span class="mid" id="clock"></span>
+  <span id="mem-indicator" style="color:#1a3322;cursor:pointer;" onclick="send('memory')" title="CIPHER memory">MEM: 0</span>
   <span>SESSION: ACTIVE</span>
 </div>
 
@@ -288,6 +289,7 @@
 const BACKEND_URL = 'https://genesis-ai-backend.onrender.com';
 let USER_RANK = 'Ghost'; let USER_ID = null; let USERNAME = 'anonymous';
 let busy = false;
+let currentMemoryDepth = 0;
 let history = [];
 let histIdx = -1;
 
@@ -349,16 +351,29 @@ async function boot() {
   await sleep(150);
   print('GENESIS VAULT AI // INFINITY ENGINE', 'sys');
   divider();
-  print('[SYS]: INITIALIZING VAULT RECOVERY...', 'sys');
+  print('[SYS]: INITIALIZING CIPHER CORE...', 'sys');
   await sleep(400);
-
-  // Session recovery not yet implemented — fresh start each time
-  print('[SYS]: FRESH SESSION INITIALIZED.', 'sys');
-
+  print(`[SYS]: OPERATOR IDENTIFIED → ${USERNAME.toUpperCase()}`, 'sys');
+  await sleep(200);
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/vault-ai/session-info`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
+    });
+    const data = await res.json();
+    if (data.message_count > 0) {
+      currentMemoryDepth = data.message_count;
+      updateMemoryIndicator(currentMemoryDepth);
+      print(`[SYS]: SESSION MEMORY RESTORED → ${data.message_count} MESSAGE(S) IN CONTEXT.`, 'sys');
+    } else {
+      print('[SYS]: FRESH SESSION INITIALIZED.', 'sys');
+    }
+  } catch(e) {
+    print('[SYS]: FRESH SESSION INITIALIZED.', 'sys');
+  }
   await sleep(300);
   print('[SYS]: ALL SYSTEMS NOMINAL. VAULT ONLINE.', 'sys');
   divider();
-  print('[LOG]: Type "help" for commands.', 'logc');
+  print('[LOG]: Type "help" for commands. Type "memory" to check CIPHER context.', 'logc');
   print('[LOG]: Type "bridge connect" to link Termux.', 'logc');
   divider();
 } 
@@ -416,6 +431,8 @@ function local(cmd) {
     print('[LOG]: Type "+ TOKENS" button or "buy tokens" to expand.', 'logc'); return true;
   }
   if (c.startsWith('run ')) { sendBridgeCommand(cmd.slice(4)); return true; }
+  if (c === 'clear memory' || c === 'reset memory' || c === 'forget') { clearSessionMemory(); return true; }
+  if (c === 'memory' || c === 'mem') { print(`[SYS]: CIPHER MEMORY → ${currentMemoryDepth} MESSAGE(S) IN CONTEXT`, 'sys'); print('[LOG]: Type "clear memory" to reset session.', 'logc'); return true; }
   return false;
 }
 
@@ -520,9 +537,10 @@ async function send(msg) {
       out.appendChild(el);
       scrollBottom();
       await typewrite(el, data.response, 7);
-      // Estimate tokens used (~4 chars per token)
-      const est = Math.ceil((msg.length + data.response.length) / 4);
-      deductTokens(est);
+      // Use real token count from backend, fall back to estimate
+      const realTokens = data.tokens_used || Math.ceil((msg.length + data.response.length) / 4);
+      deductTokens(realTokens);
+      if (data.memory_depth !== undefined) updateMemoryIndicator(data.memory_depth);
     } else {
       print('[ERR]: UNEXPECTED RESPONSE.', 'err');
     }
@@ -761,6 +779,35 @@ function sendBridgeCommand(cmd) {
   print(`[BRIDGE]: EXECUTING → ${cmd}`, 'sys');
 }
 
+
+// ── MEMORY HELPERS ────────────────────────────────────────
+function updateMemoryIndicator(depth) {
+  currentMemoryDepth = depth;
+  const el = document.getElementById("mem-indicator");
+  if (!el) return;
+  el.textContent = "MEM: " + depth;
+  el.style.color = depth >= 15 ? "var(--green)" : depth >= 8 ? "#ffaa00" : "#1a4a2a";
+}
+
+async function clearSessionMemory() {
+  print("[SYS]: CLEARING CIPHER SESSION MEMORY...", "sys");
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/vault-ai/clear-session`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${localStorage.getItem("gv_token")}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentMemoryDepth = 0;
+      updateMemoryIndicator(0);
+      print("[SYS]: MEMORY WIPED. CIPHER STARTING FRESH.", "sys");
+    } else {
+      print("[ERR]: FAILED TO CLEAR MEMORY.", "err");
+    }
+  } catch(e) {
+    print("[ERR]: NETWORK ERROR CLEARING MEMORY.", "err");
+  }
+}
 init();
 loadTokenQuota();
 </script>
