@@ -1394,30 +1394,24 @@ function removePostImage() {
 }
 
 async function uploadImageToSupabase(file) {
-  // If Supabase storage isn't configured yet, skip image upload and post without it
-  if (SUPABASE_URL.includes('YOUR_PROJECT') || SUPABASE_ANON.includes('YOUR_ANON_KEY')) {
-    toast('// IMG upload skipped — Supabase storage not configured yet.');
-    return null;
-  }
-  const ext      = file.name.split('.').pop();
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const path     = `posts/${filename}`;
-
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${path}`, {
+  // Upload via backend — avoids browser CORS/RLS issues with Supabase Storage
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch(`${API}/upload-image`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SUPABASE_ANON}`,
-      'Content-Type': file.type,
-      'x-upsert': 'true'
-    },
-    body: file
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData
   });
-
   if (!res.ok) {
     toast('// Image upload failed — posting without image.');
     return null;
   }
-  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${path}`;
+  const data = await res.json();
+  if (data.status !== 'success') {
+    toast('// Image upload failed — posting without image.');
+    return null;
+  }
+  return data.image_url;
 }
 
 /* ── CHAR COUNTER ────────────────────────────────────────────────────── */
