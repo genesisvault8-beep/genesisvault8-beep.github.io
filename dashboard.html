@@ -813,6 +813,69 @@
   .slide-menu-btn.danger { border-color:rgba(255,0,60,0.4); color:var(--accent3); }
   .slide-menu-btn.danger:hover { background:rgba(255,0,60,0.08); }
   .hidden { display: none; }
+
+  /* ── IMAGE UPLOAD ── */
+  .img-attach-btn {
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    padding:6px 12px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s;
+  }
+  .img-attach-btn:hover, .img-attach-btn.active { border-color:var(--accent2); color:var(--accent2); }
+  #post-image-preview-wrap {
+    display:none; margin-bottom:10px; position:relative;
+  }
+  #post-image-preview {
+    max-width:100%; max-height:200px; object-fit:cover;
+    border:1px solid var(--accent2); display:block;
+  }
+  .img-remove-btn {
+    position:absolute; top:6px; right:6px;
+    background:rgba(2,6,8,0.85); border:1px solid var(--accent3);
+    color:var(--accent3); width:24px; height:24px; cursor:pointer;
+    font-size:0.75rem; display:flex; align-items:center; justify-content:center;
+  }
+  .post-image-display {
+    max-width:100%; max-height:300px; object-fit:cover;
+    border:1px solid var(--border); display:block; margin-bottom:10px;
+    cursor:pointer; transition:border-color 0.2s;
+  }
+  .post-image-display:hover { border-color:var(--accent); }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92);
+    z-index:500; align-items:center; justify-content:center; padding:20px;
+  }
+  .lightbox.open { display:flex; }
+  .lightbox img { max-width:100%; max-height:90vh; object-fit:contain; border:1px solid var(--border); }
+  .lightbox-close {
+    position:absolute; top:16px; right:16px;
+    background:none; border:1px solid var(--accent3); color:var(--accent3);
+    width:36px; height:36px; cursor:pointer; font-size:1.1rem;
+  }
+
+  /* ── CODE COPY BTN ── */
+  .post-code-wrap { position:relative; }
+  .code-copy-btn {
+    position:absolute; top:8px; right:8px;
+    background:rgba(6,13,16,0.9); border:1px solid var(--accent2); color:var(--accent2);
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    padding:3px 8px; cursor:pointer; letter-spacing:1px; transition:all 0.2s;
+  }
+  .code-copy-btn:hover { background:var(--accent2); color:var(--bg); }
+
+  /* ── CHAR COUNTER ── */
+  .char-counter {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    color:var(--text-dim); letter-spacing:1px; align-self:center;
+  }
+  .char-counter.warn { color:var(--accent3); }
+  .reply-input-wrap { display:flex; flex-direction:column; flex:1; gap:4px; }
+  .reply-char-counter {
+    font-family:'Share Tech Mono',monospace; font-size:0.58rem;
+    color:var(--text-dim); letter-spacing:1px; text-align:right;
+  }
+  .reply-char-counter.warn { color:var(--accent3); }
 </style>
 </head>
 <body>
@@ -1078,12 +1141,19 @@
         <button class="cat-btn" onclick="selectCat('Showcase',this)">Showcase</button>
         <button class="cat-btn" onclick="selectCat('News',this)">News</button>
       </div>
-      <textarea id="post-content" placeholder="// Share your findings, tips, or wins..."></textarea>
+      <textarea id="post-content" placeholder="// Share your findings, tips, or wins..." maxlength="2000" oninput="updatePostCharCount(this)"></textarea>
       <div id="post-code-wrap" style="display:none;">
         <textarea id="post-code" placeholder="// Paste code here..." style="font-family:'Share Tech Mono',monospace;font-size:0.8rem;min-height:100px;border-color:var(--accent2);margin-bottom:10px;"></textarea>
       </div>
+      <div id="post-image-preview-wrap">
+        <img id="post-image-preview" src="" alt="preview">
+        <button class="img-remove-btn" onclick="removePostImage()">✕</button>
+      </div>
+      <input type="file" id="post-image-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
       <div class="post-box-footer">
         <button class="code-toggle" id="code-toggle-btn" onclick="toggleCodeInput()">{ } CODE</button>
+        <button class="img-attach-btn" id="img-attach-btn" onclick="document.getElementById('post-image-input').click()">📎 IMG</button>
+        <span class="char-counter" id="post-char-counter">0 / 2000</span>
         <button class="post-btn" onclick="createPost()">[ POST ]</button>
       </div>
     </div>
@@ -1204,6 +1274,12 @@
   </div>
 </div>
 
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="full image">
+</div>
+
 <!-- REPORT WRITER MODAL -->
 <div class="modal" id="modal-report">
   <div class="modal-header">
@@ -1272,6 +1348,75 @@
 <script>
 const API    = 'https://genesis-vault-backend.onrender.com/api';
 const AI_API = 'https://genesis-ai-backend.onrender.com/api';
+
+/* ── SUPABASE CONFIG ─────────────────────────────────────────────────── */
+// Replace these with your actual Supabase project URL and anon key
+const SUPABASE_URL    = 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON   = 'YOUR_ANON_KEY';
+const SUPABASE_BUCKET = 'post-images'; // Create this bucket in Supabase Storage
+
+let postImageFile = null;  // holds the selected File object
+
+/* ── IMAGE UPLOAD HELPERS ────────────────────────────────────────────── */
+function handleImageSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('// Image must be under 5MB.'); input.value=''; return; }
+  postImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('post-image-preview');
+    const wrap    = document.getElementById('post-image-preview-wrap');
+    preview.src   = e.target.result;
+    wrap.style.display = 'block';
+    document.getElementById('img-attach-btn').classList.add('active');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePostImage() {
+  postImageFile = null;
+  document.getElementById('post-image-input').value = '';
+  document.getElementById('post-image-preview').src = '';
+  document.getElementById('post-image-preview-wrap').style.display = 'none';
+  document.getElementById('img-attach-btn').classList.remove('active');
+}
+
+async function uploadImageToSupabase(file) {
+  const ext      = file.name.split('.').pop();
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const path     = `posts/${filename}`;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+
+  if (!res.ok) throw new Error('Image upload failed');
+  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${path}`;
+}
+
+/* ── CHAR COUNTER ────────────────────────────────────────────────────── */
+function updatePostCharCount(ta) {
+  const el  = document.getElementById('post-char-counter');
+  const len = ta.value.length;
+  el.textContent = `${len} / 2000`;
+  el.classList.toggle('warn', len > 1800);
+}
+
+/* ── LIGHTBOX ────────────────────────────────────────────────────────── */
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
 
 // Keep-alive ping
 setInterval(() => fetch(`${API}/ping`).catch(()=>{}), 14 * 60 * 1000);
@@ -1501,7 +1646,18 @@ function renderPost(p) {
     const cnt = rx[e] || 0;
     return `<button class="react-btn" onclick="reactPost(${p.id},'${e}',this)">${e}${cnt>0?' '+cnt:''}</button>`;
   }).join('');
-  const codeBlock = p.code_content ? `<div class="post-code">${esc(p.code_content)}</div>` : '';
+
+  const codeBlock = p.code_content ? `
+    <div class="post-code-wrap" style="position:relative;">
+      <div class="post-code" id="code-${p.id}">${esc(p.code_content)}</div>
+      <button class="code-copy-btn" onclick="copyCode(${p.id})">[ COPY ]</button>
+    </div>` : '';
+
+  const imageBlock = p.image_url ? `
+    <img class="post-image-display" src="${esc(p.image_url)}" alt="post image"
+      onclick="openLightbox('${esc(p.image_url)}')"
+      onerror="this.style.display='none'">` : '';
+
   return `
   <div class="post-card" id="post-${p.id}">
     <div class="post-meta">
@@ -1513,6 +1669,7 @@ function renderPost(p) {
       <span class="post-time">${ago(p.created_at)}</span>
     </div>
     <div class="post-content">${esc(p.content)}</div>
+    ${imageBlock}
     ${codeBlock}
     <div class="post-actions">
       ${rxHTML}
@@ -1522,7 +1679,12 @@ function renderPost(p) {
     <div class="replies-section" id="replies-${p.id}">
       <div id="rlist-${p.id}"><div class="loading"><span class="spinner"></span>Loading...</div></div>
       <div class="reply-input-row">
-        <input type="text" id="rinput-${p.id}" placeholder="// write a reply..." onkeydown="if(event.key==='Enter')sendReply(${p.id})">
+        <div class="reply-input-wrap">
+          <input type="text" id="rinput-${p.id}" placeholder="// write a reply..." maxlength="500"
+            oninput="updateReplyCounter(${p.id},this)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply(${p.id})}">
+          <span class="reply-char-counter" id="rcounter-${p.id}">0 / 500</span>
+        </div>
         <button class="reply-send" onclick="sendReply(${p.id})">SEND</button>
       </div>
     </div>
@@ -1532,20 +1694,29 @@ function renderPost(p) {
 async function createPost() {
   const content = document.getElementById('post-content').value.trim();
   const code    = codeInputOpen ? document.getElementById('post-code').value.trim() : '';
-  if (!content) return;
+  if (!content) { toast('// Write something first.'); return; }
   const btn = document.querySelector('#page-community .post-btn');
   try {
     if (btn) { btn.disabled = true; btn.textContent = '[ POSTING... ]'; }
+
+    // Upload image first if one is selected
+    let image_url = null;
+    if (postImageFile) {
+      if (btn) btn.textContent = '[ UPLOADING IMG... ]';
+      image_url = await uploadImageToSupabase(postImageFile);
+    }
+
     const res  = await fetchWithAuth(`${API}/posts`, {
       method:'POST',
-      body: JSON.stringify({ content, category: postCategory, code_content: code || null })
+      body: JSON.stringify({ content, category: postCategory, code_content: code || null, image_url })
     });
     const data = await res.json();
     if (data.status === 'success') {
       document.getElementById('post-content').value = '';
       document.getElementById('post-code').value    = '';
+      document.getElementById('post-char-counter').textContent = '0 / 2000';
+      removePostImage();
       if (codeInputOpen) toggleCodeInput();
-      // Force reload feed by resetting cache timer
       feedLastLoaded = 0;
       loadFeed();
     } else {
@@ -1576,6 +1747,21 @@ async function reactPost(postId, emoji, btn) {
       btn.textContent = emoji + (newCnt>0?' '+newCnt:'');
     }
   } catch(e) {}
+}
+
+function copyCode(postId) {
+  const el = document.getElementById(`code-${postId}`);
+  navigator.clipboard.writeText(el.textContent)
+    .then(() => toast('// Code copied!'))
+    .catch(() => toast('// Copy failed.'));
+}
+
+function updateReplyCounter(postId, input) {
+  const el  = document.getElementById(`rcounter-${postId}`);
+  if (!el) return;
+  const len = input.value.length;
+  el.textContent = `${len} / 500`;
+  el.classList.toggle('warn', len > 450);
 }
 
 async function toggleReplies(postId, btn) {
