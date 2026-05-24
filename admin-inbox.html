@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis Vault | Admin Inbox</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #020608;
+    --bg2:      #060d10;
+    --bg3:      #0a1520;
+    --accent:   #00f5c4;
+    --accent2:  #00a8ff;
+    --accent3:  #ff003c;
+    --text:     #c8e6f0;
+    --text-dim: #4a7a8a;
+    --border:   #0f2a35;
+    --glow:     0 0 20px rgba(0,245,196,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:'Rajdhani',sans-serif; min-height:100vh;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.02) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,245,196,0.02) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none; z-index:0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0;
+    background:rgba(2,6,8,0.95); border-bottom:1px solid var(--border);
+    padding:0 20px; height:56px; display:flex; align-items:center;
+    justify-content:space-between; z-index:100; backdrop-filter:blur(10px);
+  }
+  .nav-logo {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.9rem; letter-spacing:3px; color:white;
+  }
+  .nav-logo span { color:var(--accent3); }
+  .nav-title {
+    font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+    color:var(--accent); letter-spacing:2px;
+  }
+  .nav-back {
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    padding:6px 14px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s;
+  }
+  .nav-back:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* ── LAYOUT ── */
+  main {
+    padding-top:76px; padding-bottom:30px;
+    min-height:100vh; position:relative; z-index:1;
+    max-width:700px; margin:0 auto; padding-left:20px; padding-right:20px;
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    color:var(--accent); letter-spacing:3px; text-transform:uppercase;
+    margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:10px; margin-bottom:20px;
+  }
+  .stat-box {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:12px 16px; text-align:center; position:relative; overflow:hidden;
+  }
+  .stat-box::before {
+    content:''; position:absolute; top:0; left:0;
+    width:100%; height:2px;
+  }
+  .stat-box.green::before  { background:var(--accent); }
+  .stat-box.blue::before   { background:var(--accent2); }
+  .stat-box.red::before    { background:var(--accent3); }
+  .stat-box .val {
+    font-family:'Share Tech Mono',monospace; font-size:1.6rem;
+    font-weight:700; color:var(--accent);
+  }
+  .stat-box.blue .val  { color:var(--accent2); }
+  .stat-box.red  .val  { color:var(--accent3); }
+  .stat-box .lbl {
+    font-size:0.6rem; letter-spacing:2px; color:var(--text-dim);
+    text-transform:uppercase; margin-top:2px;
+    font-family:'Share Tech Mono',monospace;
+  }
+
+  /* ── BROADCAST BOX ── */
+  .broadcast-box {
+    background:var(--bg2); border:1px solid var(--border);
+    border-left:3px solid var(--accent3); padding:16px 20px;
+    margin-bottom:20px;
+  }
+  .broadcast-box label {
+    display:block; font-size:0.65rem; letter-spacing:2px;
+    color:var(--text-dim); margin-bottom:6px;
+    font-family:'Share Tech Mono',monospace; text-transform:uppercase;
+  }
+  textarea, input[type=text] {
+    width:100%; background:var(--bg); border:1px solid var(--border);
+    color:var(--text); padding:12px 16px;
+    font-family:'Share Tech Mono',monospace; font-size:0.85rem;
+    outline:none; transition:border-color 0.2s; margin-bottom:10px;
+    resize:vertical;
+  }
+  textarea:focus, input[type=text]:focus { border-color:var(--accent); }
+  textarea::placeholder, input::placeholder { color:var(--text-dim); }
+  .btn {
+    background:var(--accent); color:var(--bg);
+    border:none; padding:11px 24px;
+    font-family:'Rajdhani',sans-serif; font-weight:700;
+    font-size:0.9rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+    clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+  }
+  .btn:hover { background:white; }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-danger {
+    background:var(--accent3); color:white;
+  }
+  .btn-danger:hover { background:#ff4060; }
+
+  /* ── FILTERS ── */
+  .filter-row {
+    display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;
+  }
+  .filter-btn {
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    padding:5px 14px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    border-color:var(--accent); color:var(--accent);
+    background:rgba(0,245,196,0.06);
+  }
+  .filter-btn.unread-filter.active {
+    border-color:var(--accent3); color:var(--accent3);
+    background:rgba(255,0,60,0.06);
+  }
+
+  /* ── THREAD LIST ── */
+  .thread-item {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:14px 16px; margin-bottom:8px; cursor:pointer;
+    transition:all 0.2s; position:relative; overflow:hidden;
+  }
+  .thread-item:hover { border-color:var(--accent); box-shadow:var(--glow); }
+  .thread-item.unread { border-left:3px solid var(--accent3); }
+  .thread-item.unread .thread-subject { color:white; }
+  .thread-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:5px; flex-wrap:wrap; gap:6px;
+  }
+  .thread-from {
+    font-family:'Share Tech Mono',monospace; font-size:0.8rem;
+    color:var(--accent2); display:flex; align-items:center; gap:6px;
+  }
+  .unread-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:var(--accent3); display:inline-block; flex-shrink:0;
+  }
+  .thread-time {
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    color:var(--text-dim);
+  }
+  .thread-subject {
+    font-size:0.9rem; font-weight:700; letter-spacing:1px;
+    color:var(--text); margin-bottom:4px;
+  }
+  .thread-preview {
+    font-family:'Share Tech Mono',monospace; font-size:0.72rem;
+    color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  /* ── CONVERSATION VIEW ── */
+  .conv-view {
+    display:none; flex-direction:column;
+    background:var(--bg2); border:1px solid var(--border);
+  }
+  .conv-view.open { display:flex; }
+  .conv-header {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 16px; border-bottom:1px solid var(--border);
+    background:var(--bg3);
+  }
+  .conv-back {
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    padding:5px 12px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; transition:all 0.2s;
+  }
+  .conv-back:hover { border-color:var(--accent); color:var(--accent); }
+  .conv-title {
+    font-family:'Share Tech Mono',monospace; font-size:0.8rem;
+    color:var(--accent); letter-spacing:2px; flex:1;
+  }
+  .conv-user {
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    color:var(--accent2); letter-spacing:1px;
+  }
+  .conv-bubbles {
+    padding:16px; display:flex; flex-direction:column;
+    gap:10px; min-height:300px; max-height:400px; overflow-y:auto;
+  }
+  .bubble {
+    padding:10px 14px; max-width:85%; font-size:0.88rem; line-height:1.5;
+    position:relative;
+  }
+  .bubble-meta {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    color:var(--text-dim); margin-bottom:4px; letter-spacing:1px;
+  }
+  .bubble.from-user {
+    background:var(--bg3); border:1px solid var(--border);
+    border-left:2px solid var(--accent2); align-self:flex-start;
+  }
+  .bubble.from-admin {
+    background:rgba(0,245,196,0.06); border:1px solid rgba(0,245,196,0.2);
+    border-right:2px solid var(--accent); align-self:flex-end;
+  }
+  .conv-input-row {
+    display:flex; gap:0; border-top:1px solid var(--border); padding:12px 16px;
+    gap:8px;
+  }
+  .conv-input-row input {
+    flex:1; margin-bottom:0; padding:10px 14px; font-size:0.82rem;
+  }
+  .send-btn {
+    background:var(--accent); color:var(--bg); border:none;
+    padding:10px 20px; font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+    white-space:nowrap;
+  }
+  .send-btn:hover { background:white; }
+
+  /* ── EMPTY / LOADING ── */
+  .empty {
+    font-family:'Share Tech Mono',monospace; font-size:0.8rem;
+    color:var(--text-dim); text-align:center; padding:40px 20px;
+    letter-spacing:1px;
+  }
+  .loading {
+    display:flex; align-items:center; gap:10px; justify-content:center;
+    font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    color:var(--text-dim); padding:30px 20px;
+  }
+  .spinner {
+    width:14px; height:14px; border:2px solid var(--border);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin 0.8s linear infinite; display:inline-block;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none} }
+
+  /* ── STATUS MSG ── */
+  .status-msg {
+    display:none; font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    padding:8px 14px; margin-bottom:10px; letter-spacing:1px;
+  }
+  .status-msg.ok  { border:1px solid var(--accent);  color:var(--accent);  background:rgba(0,245,196,0.05); }
+  .status-msg.err { border:1px solid var(--accent3); color:var(--accent3); background:rgba(255,0,60,0.05); }
+
+  /* ── TOAST ── */
+  #toast {
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--bg2); border:1px solid var(--accent); color:var(--accent);
+    padding:8px 20px; font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    letter-spacing:1px; z-index:999; pointer-events:none;
+    opacity:0; transition:opacity 0.3s; white-space:nowrap;
+  }
+  #toast.show { opacity:1; }
+
+  /* ── RED ADMIN BANNER ── */
+  .admin-banner {
+    background:rgba(255,0,60,0.07); border:1px solid var(--accent3);
+    border-left:4px solid var(--accent3); padding:10px 16px; margin-bottom:20px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .admin-banner span {
+    font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+    color:var(--accent3); letter-spacing:2px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="nav-logo"><span>GENESIS</span>VAULT</div>
+    <div class="nav-title">// ADMIN TERMINAL · INBOX</div>
+  </div>
+  <button class="nav-back" onclick="location.href='dashboard.html'">← DASHBOARD</button>
+</nav>
+
+<main>
+
+  <!-- Admin Identity Check -->
+  <div class="admin-banner">
+    <span>⚠ ADMIN TERMINAL · ALL USER MESSAGES ARE VISIBLE · HANDLE WITH CARE</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-box green">
+      <div class="val" id="stat-total">—</div>
+      <div class="lbl">Total</div>
+    </div>
+    <div class="stat-box red">
+      <div class="val" id="stat-unread">—</div>
+      <div class="lbl">Unread</div>
+    </div>
+    <div class="stat-box blue">
+      <div class="val" id="stat-users">—</div>
+      <div class="lbl">Users</div>
+    </div>
+  </div>
+
+  <!-- Broadcast Box -->
+  <p class="section-title">// Send Broadcast</p>
+  <div class="broadcast-box">
+    <label>Broadcast Message (sent to ALL members)</label>
+    <textarea id="broadcast-msg" rows="3" placeholder="// Type your announcement here..."></textarea>
+    <div class="status-msg" id="broadcast-status"></div>
+    <button class="btn" id="btn-broadcast" onclick="sendBroadcast()">[ BROADCAST TO ALL ]</button>
+  </div>
+
+  <!-- Thread List -->
+  <div id="inbox-view">
+    <p class="section-title">// User Messages</p>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
+      <button class="filter-btn unread-filter" onclick="setFilter('unread',this)">UNREAD</button>
+    </div>
+    <div id="threads-list">
+      <div class="loading"><span class="spinner"></span>Loading inbox...</div>
+    </div>
+  </div>
+
+  <!-- Conversation View -->
+  <div class="conv-view" id="conv-view">
+    <div class="conv-header">
+      <button class="conv-back" onclick="closeConv()">← BACK</button>
+      <div class="conv-title" id="conv-title">// THREAD</div>
+      <div class="conv-user" id="conv-user"></div>
+    </div>
+    <div class="conv-bubbles" id="conv-bubbles">
+      <div class="loading"><span class="spinner"></span>Loading...</div>
+    </div>
+    <div class="conv-input-row">
+      <input type="text" id="reply-input" placeholder="// Type your reply to the user..."
+             onkeydown="if(event.key==='Enter')sendReply()">
+      <button class="send-btn" onclick="sendReply()">[ REPLY ]</button>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://genesis-vault-backend.onrender.com/api';
+let token = localStorage.getItem('gv_token');
+if (!token) location.href = 'login.html';
+
+let allThreads    = [];
+let activeFilter  = 'all';
+let activeThread  = null;
+
+/* ── HELPERS ── */
+function h() {
+  return { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` };
+}
+async function fetchWithAuth(url, opts={}) {
+  opts.headers = { ...h(), ...(opts.headers||{}) };
+  const res = await fetch(url, opts);
+  if (res.status === 401) { localStorage.removeItem('gv_token'); location.href='login.html'; throw new Error('Auth'); }
+  return res;
+}
+function ago(d) {
+  if (!d) return '—';
+  const m = Math.floor((Date.now()-new Date(d))/60000);
+  if (m<1)  return 'just now';
+  if (m<60) return m+'m ago';
+  const hr = Math.floor(m/60);
+  if (hr<24) return hr+'h ago';
+  return Math.floor(hr/24)+'d ago';
+}
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+function showStatus(id, msg, isErr) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status-msg ' + (isErr?'err':'ok');
+  el.style.display = 'block';
+}
+
+/* ── LOAD INBOX ── */
+async function loadInbox() {
+  const list = document.getElementById('threads-list');
+  list.innerHTML = '<div class="loading"><span class="spinner"></span>Loading inbox...</div>';
+  try {
+    const res  = await fetchWithAuth(`${API}/admin/messages`);
+    const data = await res.json();
+    allThreads = data.threads || data.messages || [];
+
+    // Stats
+    const unread = allThreads.filter(t=>t.unread).length;
+    const users  = [...new Set(allThreads.map(t=>t.username||t.user_id))].length;
+    document.getElementById('stat-total').textContent  = allThreads.length;
+    document.getElementById('stat-unread').textContent = unread;
+    document.getElementById('stat-users').textContent  = users;
+
+    renderThreads();
+  } catch(e) {
+    list.innerHTML = `<div class="empty">// Failed to load inbox.<br><br>
+      <span style="color:var(--accent3);font-size:0.7rem;">${e.message||'Network error'}</span><br><br>
+      <span style="font-size:0.65rem;">Make sure your backend has an<br>/api/admin/messages endpoint.</span>
+    </div>`;
+  }
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderThreads();
+}
+
+function renderThreads() {
+  const list = document.getElementById('threads-list');
+  let threads = allThreads;
+  if (activeFilter === 'unread') threads = threads.filter(t=>t.unread);
+  if (!threads.length) {
+    list.innerHTML = `<div class="empty">// No ${activeFilter==='unread'?'unread ':''}messages.</div>`;
+    return;
+  }
+  list.innerHTML = threads.map(t => `
+    <div class="thread-item ${t.unread?'unread':''}" onclick="openConv(${t.id},'${esc(t.subject||'General')}','${esc(t.username||'user')}')">
+      <div class="thread-header">
+        <span class="thread-from">
+          ${t.unread?'<span class="unread-dot"></span>':''}
+          ${esc(t.username || t.user_id || 'Unknown')}
+        </span>
+        <span class="thread-time">${ago(t.last_message_at||t.created_at)}</span>
+      </div>
+      <div class="thread-subject">${esc(t.subject||'// No Subject')}</div>
+      <div class="thread-preview">${esc((t.last_message||t.preview||'').substring(0,90))}</div>
+    </div>`).join('');
+}
+
+/* ── OPEN CONVERSATION ── */
+async function openConv(threadId, subject, username) {
+  activeThread = threadId;
+  document.getElementById('inbox-view').style.display = 'none';
+  const conv = document.getElementById('conv-view');
+  conv.classList.add('open');
+  document.getElementById('conv-title').textContent = `// ${subject.toUpperCase()}`;
+  document.getElementById('conv-user').textContent  = `USER: ${username}`;
+
+  const bubbles = document.getElementById('conv-bubbles');
+  bubbles.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
+
+  try {
+    const res  = await fetchWithAuth(`${API}/admin/messages/${threadId}`);
+    const data = await res.json();
+    const msgs = data.messages || data.thread || [];
+
+    if (!msgs.length) {
+      bubbles.innerHTML = '<div class="empty">// No messages in this thread.</div>';
+      return;
+    }
+    bubbles.innerHTML = msgs.map(m => `
+      <div class="bubble ${m.from_admin ? 'from-admin' : 'from-user'}">
+        <div class="bubble-meta">${m.from_admin ? '// ADMIN (YOU)' : `// ${esc(m.username||'USER')}`} · ${ago(m.created_at)}</div>
+        ${esc(m.message||m.content||'')}
+      </div>`).join('');
+    bubbles.scrollTop = bubbles.scrollHeight;
+
+    // Mark as read
+    markRead(threadId);
+  } catch(e) {
+    bubbles.innerHTML = `<div class="empty">// Failed to load thread.<br><span style="color:var(--accent3);font-size:0.65rem;">${e.message}</span></div>`;
+  }
+}
+
+async function markRead(threadId) {
+  try {
+    await fetchWithAuth(`${API}/admin/messages/${threadId}/read`, { method:'POST' });
+    const t = allThreads.find(x=>x.id===threadId);
+    if (t) { t.unread = false; }
+    const unread = allThreads.filter(t=>t.unread).length;
+    document.getElementById('stat-unread').textContent = unread;
+  } catch(e) {}
+}
+
+/* ── REPLY ── */
+async function sendReply() {
+  if (!activeThread) return;
+  const input   = document.getElementById('reply-input');
+  const message = input.value.trim();
+  if (!message) return;
+  try {
+    const res  = await fetchWithAuth(`${API}/admin/messages/${activeThread}/reply`, {
+      method:'POST', body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+    if (data.status === 'success' || res.ok) {
+      input.value = '';
+      const bubbles = document.getElementById('conv-bubbles');
+      const el = document.createElement('div');
+      el.className = 'bubble from-admin';
+      el.innerHTML = `<div class="bubble-meta">// ADMIN (YOU) · just now</div>${esc(message)}`;
+      bubbles.appendChild(el);
+      bubbles.scrollTop = bubbles.scrollHeight;
+      toast('✓ Reply sent.');
+    } else {
+      toast('// Failed to send reply.');
+    }
+  } catch(e) {
+    toast('// Network error. Could not send reply.');
+  }
+}
+
+/* ── CLOSE CONVERSATION ── */
+function closeConv() {
+  activeThread = null;
+  document.getElementById('conv-view').classList.remove('open');
+  document.getElementById('inbox-view').style.display = 'block';
+  loadInbox();
+}
+
+/* ── BROADCAST ── */
+async function sendBroadcast() {
+  const msg = document.getElementById('broadcast-msg').value.trim();
+  const btn = document.getElementById('btn-broadcast');
+  if (!msg) { showStatus('broadcast-status','// Message cannot be empty.',true); return; }
+  btn.disabled = true; btn.textContent = '[ SENDING... ]';
+  try {
+    const res  = await fetchWithAuth(`${API}/admin/broadcast`, {
+      method:'POST', body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    if (data.status === 'success' || res.ok) {
+      showStatus('broadcast-status','✓ Broadcast sent to all members.',false);
+      document.getElementById('broadcast-msg').value = '';
+    } else {
+      showStatus('broadcast-status', data.message||'// Failed to broadcast.',true);
+    }
+  } catch(e) {
+    showStatus('broadcast-status','// Network error.',true);
+  }
+  btn.disabled = false; btn.textContent = '[ BROADCAST TO ALL ]';
+}
+
+/* ── INIT ── */
+loadInbox();
+</script>
+</body>
+</html>
