@@ -817,10 +817,53 @@
               <span style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:2px;">VC</span>
             </div>
           </div>
-          <div style="text-align:right;">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
             <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent2);letter-spacing:1px;border:1px solid var(--accent2);padding:4px 10px;">[ + BUY VC ]</div>
-            <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:4px;">30 VC / $5 USDT · auto verified</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;">30 VC / $5 USDT · auto verified</div>
           </div>
+          <!-- VAULT DOOR GRAPHIC -->
+          <div style="flex-shrink:0;width:80px;height:80px;position:relative;margin-left:8px;">
+            <svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+              <defs>
+                <filter id="vglow">
+                  <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <!-- Outer ring -->
+              <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(0,245,196,0.15)" stroke-width="1"/>
+              <!-- Main vault door circle -->
+              <circle cx="40" cy="40" r="30" fill="rgba(0,20,26,0.9)" stroke="#00f5c4" stroke-width="1.5" filter="url(#vglow)"/>
+              <!-- Inner ring -->
+              <circle cx="40" cy="40" r="24" fill="none" stroke="rgba(0,245,196,0.35)" stroke-width="1" stroke-dasharray="4 3"/>
+              <!-- Spinning gear bolts group -->
+              <g style="transform-origin:40px 40px;animation:vaultSpin 10s linear infinite">
+                <circle cx="40" cy="10" r="2.5" fill="#00f5c4" opacity="0.9"/>
+                <circle cx="40" cy="70" r="2.5" fill="#00f5c4" opacity="0.9"/>
+                <circle cx="10" cy="40" r="2.5" fill="#00f5c4" opacity="0.9"/>
+                <circle cx="70" cy="40" r="2.5" fill="#00f5c4" opacity="0.9"/>
+                <circle cx="18.8" cy="18.8" r="2" fill="rgba(0,245,196,0.6)"/>
+                <circle cx="61.2" cy="18.8" r="2" fill="rgba(0,245,196,0.6)"/>
+                <circle cx="18.8" cy="61.2" r="2" fill="rgba(0,245,196,0.6)"/>
+                <circle cx="61.2" cy="61.2" r="2" fill="rgba(0,245,196,0.6)"/>
+              </g>
+              <!-- Handle bar (horizontal) -->
+              <rect x="26" y="38.5" width="28" height="3" rx="1.5" fill="none" stroke="#00f5c4" stroke-width="1.2" style="transform-origin:40px 40px;animation:vaultHandle 4s ease-in-out infinite"/>
+              <!-- Handle bar (vertical cross) -->
+              <rect x="38.5" y="26" width="3" height="28" rx="1.5" fill="none" stroke="rgba(0,245,196,0.5)" stroke-width="1" style="transform-origin:40px 40px;animation:vaultHandle 4s ease-in-out infinite"/>
+              <!-- Center lock dot -->
+              <circle cx="40" cy="40" r="4" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="url(#vglow)"/>
+              <circle cx="40" cy="40" r="1.5" fill="#00f5c4" style="animation:vaultPulse 2s ease-in-out infinite"/>
+              <!-- Scan line sweep -->
+              <line x1="40" y1="40" x2="40" y2="11" stroke="rgba(0,245,196,0.4)" stroke-width="1" style="transform-origin:40px 40px;animation:vaultScan 3s linear infinite"/>
+            </svg>
+          </div>
+          <style>
+            @keyframes vaultSpin   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+            @keyframes vaultHandle { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(45deg)} }
+            @keyframes vaultPulse  { 0%,100%{opacity:1;r:1.5} 50%{opacity:0.3} }
+            @keyframes vaultScan   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+          </style>
         </div>
       </div>
     </div>
