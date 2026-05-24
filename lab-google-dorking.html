@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GhostSearch — Google Dorking Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cyan: #00f5d4;
+  --cyan-dim: #00bfa5;
+  --green: #39ff14;
+  --orange: #ff6b00;
+  --red: #ff2d55;
+  --bg: #020c0a;
+  --bg2: #041a14;
+  --bg3: #061f18;
+  --border: #0d3d2e;
+  --text: #a0c4b8;
+  --text-dim: #4a7a6a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content:'';
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,245,212,0.012) 2px, rgba(0,245,212,0.012) 4px);
+  pointer-events:none; z-index:9999;
+}
+
+body::after {
+  content:'';
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background-image: linear-gradient(rgba(0,245,212,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,212,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none; z-index:0;
+}
+
+.header {
+  position:sticky; top:0; z-index:100;
+  background: rgba(2,12,10,0.96);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  backdrop-filter: blur(10px);
+}
+
+.logo { font-family:'Orbitron',monospace; font-size:13px; font-weight:900; letter-spacing:2px; }
+.logo span:first-child { color:var(--cyan); }
+.logo span:last-child { color:#fff; }
+
+.back-btn {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--text-dim); border:1px solid var(--border);
+  padding:5px 10px; text-decoration:none; letter-spacing:1px; transition:all 0.2s;
+}
+.back-btn:hover { color:var(--cyan); border-color:var(--cyan); }
+
+main { position:relative; z-index:1; padding:16px; max-width:480px; margin:0 auto; }
+
+/* HERO */
+.lab-hero {
+  background: linear-gradient(135deg, rgba(0,245,212,0.06), rgba(0,245,212,0.02));
+  border: 1px solid var(--cyan);
+  border-left: 3px solid var(--cyan);
+  padding: 18px 16px;
+  margin-bottom: 20px;
+  animation: fadeInUp 0.5s ease both;
+}
+
+.lab-meta {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 10px;
+}
+
+.lab-category {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:var(--cyan); letter-spacing:2px;
+}
+
+.lab-diff {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:var(--green); border:1px solid var(--green);
+  padding:2px 8px; letter-spacing:1px;
+  background: rgba(57,255,20,0.05);
+}
+
+.lab-title {
+  font-family:'Orbitron',monospace; font-size:20px; font-weight:900;
+  color:#fff; letter-spacing:2px; margin-bottom:6px;
+  animation: glitch 7s infinite;
+}
+
+@keyframes glitch {
+  0%,93%,100% { text-shadow:none; transform:none; }
+  94% { text-shadow:-2px 0 var(--cyan),2px 0 var(--orange); transform:translateX(1px); }
+  95% { text-shadow:2px 0 var(--cyan),-2px 0 var(--orange); transform:translateX(-1px); }
+  96% { text-shadow:none; transform:none; }
+}
+
+.lab-desc { font-size:13px; color:var(--text); line-height:1.6; }
+
+/* PROGRESS */
+.progress-bar-wrap {
+  background: var(--bg2); border:1px solid var(--border);
+  padding:12px 14px; margin-bottom:20px;
+}
+
+.progress-label {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:var(--text-dim); letter-spacing:2px; margin-bottom:8px;
+  display:flex; justify-content:space-between;
+}
+
+.progress-track {
+  background: rgba(0,245,212,0.08);
+  border:1px solid var(--border);
+  height: 6px; position:relative; overflow:hidden;
+}
+
+.progress-fill {
+  height:100%; background:var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
+  transition: width 0.6s ease;
+  width: 0%;
+}
+
+/* SECTION HEADERS */
+.section-hdr {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--cyan); letter-spacing:3px; margin-bottom:12px;
+  display:flex; align-items:center; gap:8px;
+}
+.section-hdr::before { content:'//'; color:var(--cyan-dim); }
+.section-hdr::after { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
+
+/* LESSON CARDS */
+.lesson { margin-bottom:14px; animation: fadeInUp 0.4s ease both; }
+
+.lesson-header {
+  background: var(--bg2); border:1px solid var(--border);
+  border-left:3px solid var(--text-dim);
+  padding:12px 14px; cursor:pointer;
+  display:flex; align-items:center; justify-content:space-between;
+  transition: all 0.2s;
+}
+
+.lesson-header:hover { border-color:var(--cyan); }
+.lesson-header.done { border-left-color:var(--green); }
+
+.lesson-title-row { display:flex; align-items:center; gap:10px; }
+
+.lesson-num {
+  font-family:'Orbitron',monospace; font-size:11px; color:var(--cyan);
+  border:1px solid var(--cyan); width:22px; height:22px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+
+.lesson-num.done { border-color:var(--green); color:var(--green); background:rgba(57,255,20,0.08); }
+
+.lesson-name {
+  font-family:'Share Tech Mono',monospace; font-size:12px;
+  color:#fff; letter-spacing:1px;
+}
+
+.lesson-toggle {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--text-dim); transition:transform 0.3s;
+}
+
+.lesson-body {
+  background: rgba(4,26,20,0.8);
+  border:1px solid var(--border); border-top:none;
+  padding:14px; display:none;
+  font-size:13px; line-height:1.7; color:var(--text);
+}
+
+.lesson-body.open { display:block; }
+.lesson-toggle.open { transform:rotate(180deg); }
+
+.lesson-body h4 {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--cyan); letter-spacing:2px; margin:12px 0 6px;
+}
+
+.lesson-body p { margin-bottom:10px; }
+
+.lesson-body ul { padding-left:16px; margin-bottom:10px; }
+.lesson-body ul li { margin-bottom:4px; }
+.lesson-body ul li::marker { color:var(--cyan); }
+
+.code-block {
+  background: rgba(0,0,0,0.5); border:1px solid var(--border);
+  padding:10px 12px; margin:8px 0;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--green); line-height:1.8; word-break:break-all;
+  position:relative;
+}
+
+.code-block .copy-tiny {
+  position:absolute; top:6px; right:6px;
+  font-size:9px; color:var(--text-dim); border:1px solid var(--border);
+  padding:2px 6px; cursor:pointer; background:var(--bg2);
+  font-family:'Share Tech Mono',monospace; letter-spacing:1px;
+  transition:all 0.2s;
+}
+.code-block .copy-tiny:hover { color:var(--cyan); border-color:var(--cyan); }
+
+.tip-box {
+  background: rgba(255,107,0,0.06); border:1px solid rgba(255,107,0,0.3);
+  border-left:3px solid var(--orange);
+  padding:10px 12px; margin:10px 0;
+  font-size:12px; color:var(--text);
+}
+
+.tip-box strong { color:var(--orange); font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:1px; }
+
+.mark-done-btn {
+  width:100%; margin-top:12px;
+  background:transparent; border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Share Tech Mono',monospace;
+  font-size:11px; padding:9px; cursor:pointer; letter-spacing:2px;
+  transition:all 0.2s;
+}
+.mark-done-btn:hover { background:rgba(0,245,212,0.1); box-shadow:0 0 15px rgba(0,245,212,0.2); }
+.mark-done-btn.done { border-color:var(--green); color:var(--green); }
+
+/* CHALLENGE */
+.challenge-box {
+  background: linear-gradient(135deg, rgba(57,255,20,0.05), rgba(57,255,20,0.02));
+  border:1px solid var(--green); border-left:3px solid var(--green);
+  padding:16px; margin-bottom:20px;
+}
+
+.challenge-title {
+  font-family:'Orbitron',monospace; font-size:14px; font-weight:700;
+  color:var(--green); letter-spacing:2px; margin-bottom:8px;
+}
+
+.challenge-obj {
+  font-size:13px; color:var(--text); line-height:1.6; margin-bottom:14px;
+}
+
+.objective-list { list-style:none; padding:0; margin-bottom:14px; }
+.objective-list li {
+  display:flex; align-items:flex-start; gap:10px;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--text-dim); padding:8px 0;
+  border-bottom:1px solid var(--border); letter-spacing:0.5px;
+}
+.objective-list li:last-child { border-bottom:none; }
+
+.obj-check {
+  width:16px; height:16px; border:1px solid var(--text-dim);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px; transition:all 0.3s; cursor:pointer;
+  font-size:10px;
+}
+.obj-check.checked { border-color:var(--green); color:var(--green); background:rgba(57,255,20,0.1); }
+
+.flag-input-row { display:flex; gap:8px; margin-top:10px; }
+
+.flag-input {
+  flex:1; background:var(--bg2); border:1px solid var(--border);
+  color:var(--cyan); font-family:'Share Tech Mono',monospace; font-size:12px;
+  padding:9px 12px; outline:none; letter-spacing:1px;
+}
+.flag-input:focus { border-color:var(--cyan); }
+.flag-input::placeholder { color:var(--text-dim); }
+
+.flag-btn {
+  background:transparent; border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Share Tech Mono',monospace;
+  font-size:11px; padding:9px 14px; cursor:pointer; letter-spacing:1px;
+  transition:all 0.2s; white-space:nowrap;
+}
+.flag-btn:hover { background:rgba(0,245,212,0.1); }
+
+/* HINTS */
+.hints-section { margin-bottom:20px; }
+
+.hint-card {
+  background:var(--bg2); border:1px solid var(--border);
+  padding:0; margin-bottom:8px; overflow:hidden; transition:all 0.2s;
+}
+
+.hint-reveal {
+  width:100%; background:transparent; border:none;
+  color:var(--text-dim); font-family:'Share Tech Mono',monospace;
+  font-size:11px; padding:11px 14px; cursor:pointer; letter-spacing:1px;
+  display:flex; align-items:center; justify-content:space-between;
+  transition:all 0.2s;
+}
+.hint-reveal:hover { color:var(--orange); }
+
+.hint-text {
+  display:none; padding:10px 14px;
+  font-size:12px; color:var(--text); line-height:1.6;
+  border-top:1px solid var(--border);
+}
+.hint-text.open { display:block; }
+
+/* COMPLETE MODAL */
+.complete-overlay {
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.9); z-index:2000; backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.complete-overlay.active { display:flex; }
+
+.complete-box {
+  background:var(--bg2); border:1px solid var(--green);
+  width:100%; max-width:360px; padding:28px 20px; text-align:center;
+}
+
+.complete-icon { font-size:48px; margin-bottom:12px; animation:bounce 1s ease infinite alternate; }
+@keyframes bounce { from { transform:scale(1); } to { transform:scale(1.1); } }
+
+.complete-title {
+  font-family:'Orbitron',monospace; font-size:18px; font-weight:900;
+  color:var(--green); letter-spacing:3px; margin-bottom:6px;
+}
+
+.complete-sub {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--text-dim); letter-spacing:1px; margin-bottom:20px;
+}
+
+.complete-close {
+  width:100%; background:rgba(57,255,20,0.1); border:1px solid var(--green);
+  color:var(--green); font-family:'Share Tech Mono',monospace;
+  font-size:12px; padding:12px; cursor:pointer; letter-spacing:2px;
+}
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:20px; left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--bg3); border:1px solid var(--cyan);
+  color:var(--cyan); font-family:'Share Tech Mono',monospace;
+  font-size:11px; padding:8px 16px; letter-spacing:1px;
+  opacity:0; transition:all 0.3s; pointer-events:none;
+  white-space:nowrap; z-index:3000;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.error { border-color:var(--red); color:var(--red); }
+
+.bottom-spacer { height:40px; }
+
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(16px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.lesson:nth-child(1) { animation-delay:0.05s; }
+.lesson:nth-child(2) { animation-delay:0.1s; }
+.lesson:nth-child(3) { animation-delay:0.15s; }
+.lesson:nth-child(4) { animation-delay:0.2s; }
+.lesson:nth-child(5) { animation-delay:0.25s; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><span>GENESIS</span><span>VAULT</span></div>
+  <a href="javascript:history.back()" class="back-btn">← BACK</a>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="lab-hero">
+    <div class="lab-meta">
+      <div class="lab-category">⬡ OSINT</div>
+      <div class="lab-diff">EASY</div>
+    </div>
+    <div class="lab-title">GHOSTSEARCH</div>
+    <div class="lab-desc">Use Google Dorking techniques to find hidden files, exposed login pages, and sensitive data — exactly how real OSINT hunters operate.</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>// PROGRESS</span>
+      <span id="progressText">0 / 5 COMPLETE</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- LESSONS -->
+  <div class="section-hdr">LEARN FIRST</div>
+
+  <!-- LESSON 1 -->
+  <div class="lesson">
+    <div class="lesson-header" onclick="toggleLesson(this, 0)">
+      <div class="lesson-title-row">
+        <div class="lesson-num" id="num-0">1</div>
+        <div class="lesson-name">WHAT IS GOOGLE DORKING?</div>
+      </div>
+      <div class="lesson-toggle">▼</div>
+    </div>
+    <div class="lesson-body">
+      <p>Google Dorking (also called Google Hacking) is the art of using advanced Google search operators to find information that is not meant to be public.</p>
+      <p>Google indexes billions of web pages — including files, directories, login pages, and config files that were accidentally exposed. Dorking lets you find them using specific search syntax.</p>
+
+      <h4>WHY IT MATTERS</h4>
+      <p>Security researchers and bug bounty hunters use Google Dorks every day to:</p>
+      <ul>
+        <li>Find exposed admin panels and login pages</li>
+        <li>Discover sensitive files like .env, .config, passwords.txt</li>
+        <li>Locate open directory listings</li>
+        <li>Find vulnerable software versions</li>
+        <li>Map the attack surface of a target</li>
+      </ul>
+
+      <div class="tip-box">
+        <strong>⚠ LEGAL NOTE</strong><br>
+        Google Dorking itself is legal — you are only using Google's search engine. However, accessing files you find without permission is illegal. In this lab everything is sandboxed and safe.
+      </div>
+
+      <button class="mark-done-btn" onclick="markDone(this, 0)">[ MARK COMPLETE ]</button>
+    </div>
+  </div>
+
+  <!-- LESSON 2 -->
+  <div class="lesson">
+    <div class="lesson-header" onclick="toggleLesson(this, 1)">
+      <div class="lesson-title-row">
+        <div class="lesson-num" id="num-1">2</div>
+        <div class="lesson-name">THE CORE OPERATORS</div>
+      </div>
+      <div class="lesson-toggle">▼</div>
+    </div>
+    <div class="lesson-body">
+      <p>These are the building blocks of every Google Dork. Learn these and you can build powerful searches.</p>
+
+      <h4>site:</h4>
+      <p>Limits results to one specific domain.</p>
+      <div class="code-block">
+        site:example.com
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>inurl:</h4>
+      <p>Searches for a keyword inside the URL of a page.</p>
+      <div class="code-block">
+        inurl:admin<br>
+        inurl:login<br>
+        inurl:dashboard
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>intitle:</h4>
+      <p>Searches for a keyword inside the page title.</p>
+      <div class="code-block">
+        intitle:"index of"<br>
+        intitle:"admin panel"
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>filetype:</h4>
+      <p>Finds specific file types indexed by Google.</p>
+      <div class="code-block">
+        filetype:pdf<br>
+        filetype:env<br>
+        filetype:sql<br>
+        filetype:log
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>intext:</h4>
+      <p>Searches for specific text found inside a page's content.</p>
+      <div class="code-block">
+        intext:"password"<br>
+        intext:"DB_PASSWORD"
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <button class="mark-done-btn" onclick="markDone(this, 1)">[ MARK COMPLETE ]</button>
+    </div>
+  </div>
+
+  <!-- LESSON 3 -->
+  <div class="lesson">
+    <div class="lesson-header" onclick="toggleLesson(this, 2)">
+      <div class="lesson-title-row">
+        <div class="lesson-num" id="num-2">3</div>
+        <div class="lesson-name">COMBINING OPERATORS</div>
+      </div>
+      <div class="lesson-toggle">▼</div>
+    </div>
+    <div class="lesson-body">
+      <p>The real power of dorking comes from combining multiple operators in one search. This is how hunters find real vulnerabilities.</p>
+
+      <h4>FIND ADMIN PAGES ON A SPECIFIC DOMAIN</h4>
+      <div class="code-block">
+        site:example.com inurl:admin
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND EXPOSED ENV FILES</h4>
+      <div class="code-block">
+        site:example.com filetype:env
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND OPEN DIRECTORIES</h4>
+      <div class="code-block">
+        site:example.com intitle:"index of"
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND EXPOSED PASSWORDS</h4>
+      <div class="code-block">
+        site:example.com intext:"DB_PASSWORD" filetype:env
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND LOGIN PAGES</h4>
+      <div class="code-block">
+        site:example.com inurl:login intitle:"login"
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <div class="tip-box">
+        <strong>💡 PRO TIP</strong><br>
+        Real hunters replace "example.com" with their bug bounty target domain. The more specific your dork, the more useful your results.
+      </div>
+
+      <button class="mark-done-btn" onclick="markDone(this, 2)">[ MARK COMPLETE ]</button>
+    </div>
+  </div>
+
+  <!-- LESSON 4 -->
+  <div class="lesson">
+    <div class="lesson-header" onclick="toggleLesson(this, 3)">
+      <div class="lesson-title-row">
+        <div class="lesson-num" id="num-3">4</div>
+        <div class="lesson-name">REAL WORLD EXAMPLES</div>
+      </div>
+      <div class="lesson-toggle">▼</div>
+    </div>
+    <div class="lesson-body">
+      <p>These dorks have been used in real bug bounty reports. Study them carefully.</p>
+
+      <h4>FIND EXPOSED BACKUP FILES</h4>
+      <div class="code-block">
+        site:target.com filetype:bak OR filetype:backup OR filetype:old
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND PHPINFO PAGES (exposes server info)</h4>
+      <div class="code-block">
+        site:target.com inurl:phpinfo.php
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND WORDPRESS LOGIN PAGES</h4>
+      <div class="code-block">
+        site:target.com inurl:wp-admin
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND EXPOSED GIT REPOSITORIES</h4>
+      <div class="code-block">
+        site:target.com inurl:.git
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <h4>FIND ERROR MESSAGES WITH STACK TRACES</h4>
+      <div class="code-block">
+        site:target.com intext:"Fatal error" OR intext:"stack trace"
+        <button class="copy-tiny" onclick="copyCode(this)">COPY</button>
+      </div>
+
+      <div class="tip-box">
+        <strong>📖 RESOURCE</strong><br>
+        The Google Hacking Database (GHDB) at exploit-db.com has thousands of real dorks used by researchers worldwide. Bookmark it.
+      </div>
+
+      <button class="mark-done-btn" onclick="markDone(this, 3)">[ MARK COMPLETE ]</button>
+    </div>
+  </div>
+
+  <!-- LESSON 5 -->
+  <div class="lesson">
+    <div class="lesson-header" onclick="toggleLesson(this, 4)">
+      <div class="lesson-title-row">
+        <div class="lesson-num" id="num-4">5</div>
+        <div class="lesson-name">HOW TO BUILD YOUR OWN DORKS</div>
+      </div>
+      <div class="lesson-toggle">▼</div>
+    </div>
+    <div class="lesson-body">
+      <p>Once you understand the operators, you can build custom dorks for any target. Here is the method:</p>
+
+      <h4>STEP 1 — IDENTIFY YOUR GOAL</h4>
+      <p>What are you looking for? Admin panel? Config files? Login pages? Define your target first.</p>
+
+      <h4>STEP 2 — CHOOSE YOUR OPERATORS</h4>
+      <p>Pick operators that match your goal. Combine site: with inurl: or filetype: for precision.</p>
+
+      <h4>STEP 3 — TEST AND REFINE</h4>
+      <p>Run the dork. If you get too many results, add more operators to narrow it down. If you get zero, broaden your search.</p>
+
+      <h4>STEP 4 — DOCUMENT EVERYTHING</h4>
+      <p>Screenshot every finding. Note the exact URL, what was exposed, and when you found it. This becomes your bug bounty report.</p>
+
+      <div class="tip-box">
+        <strong>🎯 PRACTICE DORK</strong><br>
+        Try this on any bug bounty target:<br><br>
+        <span style="font-family:'Share Tech Mono',monospace; color:var(--green); font-size:11px;">site:target.com ext:php inurl:id=</span><br><br>
+        This finds PHP pages with an ID parameter — a classic starting point for IDOR and SQLi testing.
+      </div>
+
+      <button class="mark-done-btn" onclick="markDone(this, 4)">[ MARK COMPLETE ]</button>
+    </div>
+  </div>
+
+  <!-- CHALLENGE -->
+  <div class="section-hdr" style="margin-top:8px;">CHALLENGE</div>
+
+  <div class="challenge-box">
+    <div class="challenge-title">⬡ MISSION: GHOSTSEARCH</div>
+    <div class="challenge-obj">
+      Study the dorks below and match each one to what it finds. Then enter the correct flag to complete the lab.
+    </div>
+
+    <ul class="objective-list">
+      <li>
+        <div class="obj-check" id="obj-0" onclick="toggleObj(0)"></div>
+        <span>Read all 5 lessons above</span>
+      </li>
+      <li>
+        <div class="obj-check" id="obj-1" onclick="toggleObj(1)"></div>
+        <span>Identify what <code style="color:var(--cyan);">intitle:"index of"</code> finds</span>
+      </li>
+      <li>
+        <div class="obj-check" id="obj-2" onclick="toggleObj(2)"></div>
+        <span>Know which operator limits search to one domain</span>
+      </li>
+      <li>
+        <div class="obj-check" id="obj-3" onclick="toggleObj(3)"></div>
+        <span>Submit the correct flag below</span>
+      </li>
+    </ul>
+
+    <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); padding:12px; margin-bottom:12px;">
+      <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px;">// FIND THE FLAG</div>
+      <div style="font-size:12px; color:var(--text); line-height:1.7;">
+        What Google Dork would you use to find exposed <strong style="color:var(--cyan);">.env</strong> files on <strong style="color:var(--cyan);">target.com</strong>?<br><br>
+        Build the dork, then enter the <strong style="color:var(--green);">flag</strong> below:<br>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--orange);">FLAG FORMAT: GV{the_correct_operator_combination}</span>
+      </div>
+    </div>
+
+    <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); padding:12px; margin-bottom:14px;">
+      <div style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px;">// ANSWER KEY — THINK BEFORE YOU LOOK</div>
+      <div style="font-size:12px; color:var(--text); line-height:1.8;">
+        The correct dork is:<br>
+        <span style="font-family:'Share Tech Mono',monospace; color:var(--green); font-size:11px;">site:target.com filetype:env</span><br><br>
+        So the flag is:
+      </div>
+      <button onclick="revealFlag()" style="margin-top:8px; background:transparent; border:1px solid var(--text-dim); color:var(--text-dim); font-family:'Share Tech Mono',monospace; font-size:10px; padding:6px 12px; cursor:pointer; letter-spacing:1px; transition:all 0.2s;" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--text-dim)';this.style.color='var(--text-dim)'">[ REVEAL FLAG ]</button>
+      <div id="flagReveal" style="display:none; margin-top:8px; font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--cyan); letter-spacing:1px;">GV{site_filetype_env}</div>
+    </div>
+
+    <div class="flag-input-row">
+      <input class="flag-input" id="flagInput" placeholder="GV{...}" type="text"/>
+      <button class="flag-btn" onclick="submitFlag()">[ SUBMIT ]</button>
+    </div>
+  </div>
+
+  <!-- HINTS -->
+  <div class="section-hdr">HINTS</div>
+  <div class="hints-section">
+    <div class="hint-card">
+      <button class="hint-reveal" onclick="toggleHint(this)">
+        <span>HINT 1 — Getting started</span><span>▼</span>
+      </button>
+      <div class="hint-text">Use the <strong style="color:var(--cyan);">site:</strong> operator to limit your search results to one specific domain. Example: <span style="font-family:'Share Tech Mono',monospace; color:var(--green);">site:target.com</span></div>
+    </div>
+    <div class="hint-card">
+      <button class="hint-reveal" onclick="toggleHint(this)">
+        <span>HINT 2 — Finding the file type</span><span>▼</span>
+      </button>
+      <div class="hint-text">To find a specific file extension, use the <strong style="color:var(--cyan);">filetype:</strong> operator. For .env files: <span style="font-family:'Share Tech Mono',monospace; color:var(--green);">filetype:env</span></div>
+    </div>
+    <div class="hint-card">
+      <button class="hint-reveal" onclick="toggleHint(this)">
+        <span>HINT 3 — Combining them</span><span>▼</span>
+      </button>
+      <div class="hint-text">Combine both operators with a space between them. The format is: <span style="font-family:'Share Tech Mono',monospace; color:var(--green);">site:target.com filetype:env</span></div>
+    </div>
+    <div class="hint-card">
+      <button class="hint-reveal" onclick="toggleHint(this)">
+        <span>HINT 4 — The flag format</span><span>▼</span>
+      </button>
+      <div class="hint-text">The flag uses underscores between words. Replace spaces and colons with underscores. Think about what the two operators are called.</div>
+    </div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+</main>
+
+<!-- COMPLETE MODAL -->
+<div class="complete-overlay" id="completeModal">
+  <div class="complete-box">
+    <div class="complete-icon">⬡</div>
+    <div class="complete-title">LAB COMPLETE</div>
+    <div class="complete-sub">// GHOSTSEARCH CLEARED</div>
+    <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-dim); margin-bottom:20px; line-height:1.8;">
+      You have mastered the basics of Google Dorking.<br>
+      Real hunters use these skills every day.<br>
+      Keep building. Keep learning.
+    </div>
+    <button class="complete-close" onclick="document.getElementById('completeModal').classList.remove('active')">[ CLOSE ]</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const CORRECT_FLAG = "GV{site_filetype_env}";
+let completedLessons = new Set();
+let completedObjs = new Set();
+
+function toggleLesson(header, idx) {
+  const body = header.nextElementSibling;
+  const toggle = header.querySelector('.lesson-toggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function markDone(btn, idx) {
+  completedLessons.add(idx);
+  btn.textContent = '[ ✓ COMPLETE ]';
+  btn.classList.add('done');
+  const num = document.getElementById('num-' + idx);
+  num.classList.add('done');
+  num.textContent = '✓';
+  const header = btn.closest('.lesson').querySelector('.lesson-header');
+  header.classList.add('done');
+  header.style.borderLeftColor = 'var(--green)';
+  updateProgress();
+  // auto complete obj 0 when all lessons done
+  if (completedLessons.size === 5) {
+    completedObjs.add(0);
+    document.getElementById('obj-0').classList.add('checked');
+    document.getElementById('obj-0').textContent = '✓';
+    updateProgress();
+  }
+}
+
+function toggleObj(idx) {
+  const el = document.getElementById('obj-' + idx);
+  if (completedObjs.has(idx)) {
+    completedObjs.delete(idx);
+    el.classList.remove('checked');
+    el.textContent = '';
+  } else {
+    completedObjs.add(idx);
+    el.classList.add('checked');
+    el.textContent = '✓';
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = 5;
+  const done = completedLessons.size;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + total + ' COMPLETE';
+}
+
+function toggleHint(btn) {
+  const text = btn.nextElementSibling;
+  text.classList.toggle('open');
+}
+
+function revealFlag() {
+  document.getElementById('flagReveal').style.display = 'block';
+}
+
+function submitFlag() {
+  const val = document.getElementById('flagInput').value.trim();
+  if (val.toLowerCase() === CORRECT_FLAG.toLowerCase()) {
+    completedObjs.add(3);
+    document.getElementById('obj-3').classList.add('checked');
+    document.getElementById('obj-3').textContent = '✓';
+    showToast('✓ Correct flag! Lab complete!');
+    setTimeout(() => {
+      document.getElementById('completeModal').classList.add('active');
+    }, 800);
+  } else if (val === '') {
+    showToast('Enter the flag first', true);
+  } else {
+    showToast('Incorrect flag — check your dork syntax', true);
+  }
+}
+
+function copyCode(btn) {
+  const block = btn.closest('.code-block');
+  const text = block.childNodes[0].textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED';
+    setTimeout(() => btn.textContent = 'COPY', 2000);
+  });
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+</script>
+</body>
+</html>
