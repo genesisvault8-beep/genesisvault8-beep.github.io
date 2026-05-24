@@ -691,7 +691,8 @@ async function authFetch(url, opts = {}) {
     ...opts,
     headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type':'application/json', ...(opts.headers || {}) }
   });
-  if (res.status === 401) { logout(); throw new Error('401'); }
+  // Only logout on 401 from MAIN backend admin routes — not AI backend
+  if (res.status === 401 && url.includes(MAIN_API)) { logout(); throw new Error('401'); }
   return res;
 }
 
@@ -710,10 +711,24 @@ function showTab(name) {
 // ── INIT ──────────────────────────────────────────────────────────────
 function initAll() {
   loadFirewall();
-  loadInbox();
-  loadBridgeNodes();
   updateClock();
   setInterval(updateClock, 1000);
+  // Load inbox badge count silently
+  loadInboxCount();
+}
+
+async function loadInboxCount() {
+  try {
+    const res  = await authFetch(`${MAIN_API}/api/admin/messages`);
+    const data = await res.json();
+    const threads = data.threads || data.messages || [];
+    const unread = threads.filter(t => t.unread).length;
+    if (unread > 0) {
+      const badge = document.getElementById('unread-badge');
+      badge.textContent = unread;
+      badge.style.display = 'inline';
+    }
+  } catch(e) {}
 }
 
 function refreshActive() {
@@ -753,7 +768,8 @@ async function loadFirewallStats() {
   try {
     const res  = await authFetch(`${MAIN_API}/api/admin/firewall/stats`);
     const data = await res.json();
-    if (data.status !== 'success') return;
+    // Accept any successful response regardless of status field
+    if (!res.ok) return;
     const s = data.stats;
     setText('s-total', s.total_blocked ?? 0);
     setText('s-24h',   s.last_24h ?? 0);
@@ -794,7 +810,7 @@ async function loadLogs() {
   try {
     const res  = await authFetch(`${MAIN_API}/api/admin/firewall/logs?limit=200`);
     const data = await res.json();
-    if (data.status !== 'success') return;
+    if (!res.ok) return;
     allLogs = data.logs || [];
     renderFeed(allLogs);
   } catch(e) {}
