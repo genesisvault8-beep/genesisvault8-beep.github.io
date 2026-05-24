@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms & Conditions // Genesis Vault</title>
+<meta name="description" content="Genesis Vault Terms and Conditions. Read before using the platform.">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #020608;
+    --bg2:     #060d10;
+    --bg3:     #081218;
+    --accent:  #00f5c4;
+    --accent2: #00a8ff;
+    --accent3: #ff003c;
+    --text:    #c8e6f0;
+    --text-dim:#4a7a8a;
+    --border:  #0f2a35;
+    --glow:    0 0 20px rgba(0,245,196,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none; z-index: 1;
+  }
+
+  .scanner {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 4s linear infinite;
+    z-index: 100;
+  }
+  @keyframes scan {
+    0%   { top: 0; opacity: 1; }
+    100% { top: 100vh; opacity: 0; }
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(2,6,8,0.92);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem; letter-spacing: 4px;
+    text-decoration: none;
+  }
+  .nav-logo .g { color: var(--accent); }
+  .nav-logo .v { color: white; }
+
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.78rem; letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  .nav-cta {
+    padding: 8px 20px;
+    background: var(--accent); color: var(--bg) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important; font-size: 0.8rem !important;
+    letter-spacing: 2px; text-transform: uppercase;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: white !important; }
+
+  /* PAGE HEADER */
+  .page-header {
+    position: relative; z-index: 2;
+    padding: 140px 20px 60px;
+    max-width: 860px; margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 4px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    letter-spacing: 6px; color: white;
+    margin-bottom: 16px;
+  }
+
+  .page-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 3px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .page-meta span { color: var(--accent); }
+
+  /* CONTENT */
+  .terms-content {
+    position: relative; z-index: 2;
+    max-width: 860px; margin: 0 auto;
+    padding: 60px 20px 100px;
+  }
+
+  .terms-section {
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .terms-section:last-child {
+    border-bottom: none;
+  }
+
+  .terms-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 4px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .terms-heading {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem; letter-spacing: 3px;
+    color: white; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .terms-body {
+    font-size: 0.95rem; line-height: 1.9;
+    color: var(--text-dim);
+  }
+
+  .terms-body p { margin-bottom: 16px; }
+  .terms-body p:last-child { margin-bottom: 0; }
+
+  .terms-body strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .terms-body .highlight {
+    color: var(--accent);
+  }
+
+  .terms-body .danger {
+    color: var(--accent3);
+  }
+
+  .terms-list {
+    list-style: none;
+    margin: 16px 0;
+  }
+  .terms-list li {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem; letter-spacing: 1px;
+    color: var(--text-dim);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(15,42,53,0.5);
+    display: flex; align-items: flex-start; gap: 12px;
+    line-height: 1.6;
+  }
+  .terms-list li:last-child { border-bottom: none; }
+  .terms-list li::before {
+    content: '//';
+    color: var(--accent);
+    flex-shrink: 0;
+    font-size: 0.7rem;
+  }
+
+  .warning-block {
+    background: rgba(255,0,60,0.05);
+    border: 1px solid rgba(255,0,60,0.2);
+    border-left: 3px solid var(--accent3);
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 1.5px;
+    line-height: 1.8; color: var(--text-dim);
+  }
+  .warning-block strong { color: var(--accent3); }
+
+  .info-block {
+    background: rgba(0,245,196,0.04);
+    border: 1px solid rgba(0,245,196,0.15);
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 1.5px;
+    line-height: 1.8; color: var(--text-dim);
+  }
+  .info-block strong { color: var(--accent); }
+
+  /* FOOTER */
+  footer {
+    position: relative; z-index: 2;
+    border-top: 1px solid var(--border);
+    padding: 40px 32px;
+    text-align: center;
+    background: var(--bg2);
+  }
+
+  .footer-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem; letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+  .footer-logo .g { color: var(--accent); }
+  .footer-logo .v { color: white; }
+
+  .footer-links {
+    display: flex; gap: 24px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .footer-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    nav { padding: 14px 16px; }
+    .nav-links { gap: 14px; }
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scanner"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="hire.html">Hire Me</a>
+    <a href="login.html" class="nav-cta">[ ACCESS ]</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div class="page-eyebrow">// Legal — Genesis Vault</div>
+  <div class="page-title">TERMS &amp; CONDITIONS</div>
+  <div class="page-meta">Last updated: <span>May 2026</span> &nbsp;·&nbsp; Read before using the platform</div>
+</div>
+
+<!-- CONTENT -->
+<div class="terms-content">
+
+  <div class="info-block">
+    <strong>// Notice:</strong> By accessing or using Genesis Vault — including the platform, AI Terminal, Vault Labs, Marketplace, and any related services — you agree to these terms. If you do not agree, do not use the platform.
+  </div>
+
+  <!-- 01 -->
+  <div class="terms-section">
+    <div class="terms-num">// 01</div>
+    <div class="terms-heading">Acceptance of Terms</div>
+    <div class="terms-body">
+      <p>Genesis Vault ("the Platform") is a cybersecurity learning and tooling platform. By registering an account, accessing labs, using the AI Terminal, purchasing Vault Credits, or engaging with any feature of the platform, you confirm that you have read, understood, and agree to be bound by these Terms and Conditions.</p>
+      <p>These terms apply to all users including free members, paying members, and visitors. Genesis Vault reserves the right to update these terms at any time. Continued use of the platform after changes constitutes acceptance of the new terms.</p>
+    </div>
+  </div>
+
+  <!-- 02 -->
+  <div class="terms-section">
+    <div class="terms-num">// 02</div>
+    <div class="terms-heading">Acceptable Use</div>
+    <div class="terms-body">
+      <p>Genesis Vault is designed for <strong>ethical security research, learning, and authorized testing only</strong>. All tools, labs, and AI capabilities on this platform must be used responsibly and legally.</p>
+      <ul class="terms-list">
+        <li>You may only use the AI Terminal and hacking tools on systems you own or have explicit written permission to test.</li>
+        <li>Vault Labs targets are intentionally vulnerable sandboxed environments — only these may be tested without special permission.</li>
+        <li>You must not use Genesis Vault tools to attack, probe, or scan systems without authorization.</li>
+        <li>You must not use the platform to distribute malware, spam, or malicious content.</li>
+        <li>You must not attempt to reverse engineer, exploit, or attack the Genesis Vault platform itself.</li>
+        <li>You must not create accounts with false identities or impersonate other users.</li>
+      </ul>
+
+      <div class="warning-block">
+        <strong>// Warning:</strong> Unauthorized use of hacking tools against systems you do not own is illegal in most countries and may result in criminal prosecution. Genesis Vault takes no responsibility for illegal use of its tools or services. Violations will result in immediate account termination and may be reported to relevant authorities.
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 -->
+  <div class="terms-section">
+    <div class="terms-num">// 03</div>
+    <div class="terms-heading">Vault Credits (VC)</div>
+    <div class="terms-body">
+      <p>Vault Credits (VC) are the internal currency of the Genesis Vault platform. By purchasing or earning VC you agree to the following:</p>
+      <ul class="terms-list">
+        <li>VC has no real-world monetary value and cannot be exchanged for cash or transferred outside the platform.</li>
+        <li>VC purchases are final. Refunds are not provided except at the sole discretion of Genesis Vault in exceptional circumstances.</li>
+        <li>Genesis Vault reserves the right to adjust VC pricing, earning rates, and spending costs at any time.</li>
+        <li>VC balances may be reset, adjusted, or revoked if a user is found to be abusing the platform or violating these terms.</li>
+        <li>VC earned through referrals is subject to verification and may be withheld if fraud is suspected.</li>
+        <li>Purchasing VC does not grant ownership of any platform feature — it grants temporary access to platform services.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 04 -->
+  <div class="terms-section">
+    <div class="terms-num">// 04</div>
+    <div class="terms-heading">AI Terminal & Bridge</div>
+    <div class="terms-body">
+      <p>The Genesis Vault AI Terminal connects to your personal device via the Ghost Bridge. By using this feature you acknowledge:</p>
+      <ul class="terms-list">
+        <li>The AI Terminal executes real commands on your own device through Termux or Linux. You are responsible for all commands run through the bridge.</li>
+        <li>Genesis Vault is not responsible for any damage, data loss, or unintended consequences resulting from commands executed via the bridge.</li>
+        <li>The bridge token is personal and must not be shared. You are responsible for all activity under your bridge token.</li>
+        <li>Genesis Vault may log AI Terminal queries to improve the service and detect abuse.</li>
+        <li>The AI Terminal must only be used for authorized security research and learning — never against unauthorized targets.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 05 -->
+  <div class="terms-section">
+    <div class="terms-num">// 05</div>
+    <div class="terms-heading">Marketplace</div>
+    <div class="terms-body">
+      <p>The Genesis Vault Marketplace allows users to buy and sell tools, scripts, and automation. Both buyers and sellers must comply with the following:</p>
+      <ul class="terms-list">
+        <li>All tools listed must be for legitimate security research and educational purposes only.</li>
+        <li>Sellers are responsible for the accuracy of their listings and the quality of their products.</li>
+        <li>Genesis Vault takes a 20% platform fee on all marketplace transactions.</li>
+        <li>Malicious tools, malware, or anything designed to harm unauthorized targets is strictly prohibited and will result in permanent ban.</li>
+        <li>Genesis Vault reserves the right to remove any listing at any time without explanation.</li>
+        <li>VC spent on marketplace purchases is non-refundable once the product has been delivered.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 06 -->
+  <div class="terms-section">
+    <div class="terms-num">// 06</div>
+    <div class="terms-heading">Penetration Testing Services</div>
+    <div class="terms-body">
+      <p>Genesis Vault offers personal penetration testing and security review services. By engaging these services you agree:</p>
+      <ul class="terms-list">
+        <li>You confirm you are the owner of or have explicit written authorization to test the target system.</li>
+        <li>Genesis Vault (johnthebandit) will only test systems within the agreed scope. Any findings outside scope will be disclosed but not deeply investigated.</li>
+        <li>Security reports are delivered to the client only and are confidential.</li>
+        <li>Genesis Vault is not liable for any vulnerabilities not discovered during the testing engagement.</li>
+        <li>Payments are agreed upfront and are non-refundable once testing has begun.</li>
+        <li>Genesis Vault reserves the right to refuse any engagement at its discretion.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 07 -->
+  <div class="terms-section">
+    <div class="terms-num">// 07</div>
+    <div class="terms-heading">Accounts & Security</div>
+    <div class="terms-body">
+      <p>You are responsible for maintaining the security of your Genesis Vault account.</p>
+      <ul class="terms-list">
+        <li>You must not share your account credentials with anyone.</li>
+        <li>You are responsible for all activity that occurs under your account.</li>
+        <li>Genesis Vault reserves the right to suspend or terminate accounts that violate these terms.</li>
+        <li>Accounts found to be sharing access, farming VC, or exploiting platform bugs will be banned.</li>
+        <li>If you believe your account has been compromised, contact Genesis Vault immediately.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 08 -->
+  <div class="terms-section">
+    <div class="terms-num">// 08</div>
+    <div class="terms-heading">Disclaimer of Liability</div>
+    <div class="terms-body">
+      <p>Genesis Vault provides tools and educational content <strong>"as is"</strong> without warranties of any kind.</p>
+      <ul class="terms-list">
+        <li>Genesis Vault is not responsible for how users apply the knowledge or tools obtained on the platform.</li>
+        <li>Genesis Vault is not liable for any damages, losses, or legal consequences arising from misuse of the platform.</li>
+        <li>Lab environments and tools may have bugs or downtime — Genesis Vault does not guarantee 100% uptime.</li>
+        <li>AI responses are generated and may contain errors — always verify information independently.</li>
+      </ul>
+
+      <div class="warning-block">
+        <strong>// Reminder:</strong> Cybersecurity knowledge is a tool. Use it ethically and legally. Genesis Vault exists to build defenders and ethical hackers — not to enable criminal activity.
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 -->
+  <div class="terms-section">
+    <div class="terms-num">// 09</div>
+    <div class="terms-heading">Privacy</div>
+    <div class="terms-body">
+      <p>Genesis Vault collects basic account information (username, email) and usage data to operate the platform. We do not sell your data to third parties.</p>
+      <ul class="terms-list">
+        <li>AI Terminal queries may be logged for safety monitoring and platform improvement.</li>
+        <li>VC transaction history is stored securely in our database.</li>
+        <li>We may use anonymized usage data to improve platform features.</li>
+        <li>You may request deletion of your account and associated data at any time by contacting Genesis Vault.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="terms-section">
+    <div class="terms-num">// 10</div>
+    <div class="terms-heading">Contact</div>
+    <div class="terms-body">
+      <p>For questions about these terms, disputes, or account issues, contact Genesis Vault via:</p>
+      <ul class="terms-list">
+        <li>Facebook — search johnthebandit</li>
+        <li>TikTok — search johnthebandit</li>
+        <li>Genesis Vault community messages (for registered members)</li>
+      </ul>
+      <p style="margin-top:16px;">These Terms and Conditions were last updated in May 2026 and govern all use of the Genesis Vault platform from that date forward.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="hire.html">Hire Me</a>
+    <a href="terms.html">Terms</a>
+  </div>
+  <div class="footer-copy">
+    // GENESIS VAULT — CYBERSECURITY PLATFORM — ALL RIGHTS RESERVED — USE RESPONSIBLY
+  </div>
+</footer>
+
+<script>
+  let lastY = 0;
+  const navEl = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > lastY && y > 80) {
+      navEl.style.transform = 'translateY(-100%)';
+      navEl.style.transition = 'transform 0.3s ease';
+    } else {
+      navEl.style.transform = 'translateY(0)';
+    }
+    lastY = y;
+  });
+</script>
+</body>
+</html>
