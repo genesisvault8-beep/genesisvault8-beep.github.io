@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hire // Genesis Vault | Penetration Testing & Bug Hunting</title>
+<meta name="description" content="Hire Genesis Vault for penetration testing, bug hunting, and security reviews. Solo expert with real-world bug bounty experience.">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #020608;
+    --bg2:     #060d10;
+    --bg3:     #081218;
+    --accent:  #00f5c4;
+    --accent2: #00a8ff;
+    --accent3: #ff003c;
+    --text:    #c8e6f0;
+    --text-dim:#4a7a8a;
+    --border:  #0f2a35;
+    --glow:    0 0 20px rgba(0,245,196,0.3);
+    --glow2:   0 0 20px rgba(0,168,255,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none; z-index: 1;
+  }
+
+  .scanner {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 4s linear infinite;
+    z-index: 100;
+  }
+  @keyframes scan {
+    0%   { top: 0; opacity: 1; }
+    100% { top: 100vh; opacity: 0; }
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(2,6,8,0.92);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem; letter-spacing: 4px;
+    text-decoration: none;
+  }
+  .nav-logo .g { color: var(--accent); }
+  .nav-logo .v { color: white; }
+
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.78rem; letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  .nav-cta {
+    padding: 8px 20px;
+    background: var(--accent); color: var(--bg) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important; font-size: 0.8rem !important;
+    letter-spacing: 2px; text-transform: uppercase;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    transition: background 0.2s, box-shadow 0.2s !important;
+  }
+  .nav-cta:hover { background: white !important; box-shadow: var(--glow) !important; }
+
+  /* HERO */
+  .hero {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 20px 80px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 4px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: fadeDown 0.6s ease;
+  }
+  .hero-eyebrow span { color: var(--text-dim); }
+
+  .hero-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(2rem, 8vw, 4.5rem);
+    line-height: 1.1; letter-spacing: 6px;
+    margin-bottom: 12px;
+    animation: fadeDown 0.7s ease;
+  }
+  .hero-title .g { color: var(--accent); }
+  .hero-title .r { color: var(--accent3); }
+
+  .hero-sub-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(0.6rem, 2vw, 0.85rem);
+    letter-spacing: 5px; color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    animation: fadeDown 0.8s ease;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    font-size: 1.05rem; line-height: 1.7;
+    color: var(--text); letter-spacing: 0.5px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s ease;
+  }
+  .hero-desc .hi { color: var(--accent); }
+  .hero-desc .hi2 { color: var(--accent3); }
+
+  .hero-btns {
+    display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp 0.9s ease;
+  }
+
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--accent); color: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 0.95rem;
+    letter-spacing: 3px; text-transform: uppercase;
+    text-decoration: none;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: background 0.2s, box-shadow 0.2s;
+    border: none; cursor: pointer; display: inline-block;
+  }
+  .btn-primary:hover { background: white; box-shadow: var(--glow); }
+
+  .btn-ghost {
+    padding: 13px 32px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600; font-size: 0.9rem;
+    letter-spacing: 3px; text-transform: uppercase;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .hero-cursor {
+    display: inline-block;
+    width: 10px; height: 1.1em;
+    background: var(--accent3);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    position: relative; z-index: 2;
+    background: rgba(255,0,60,0.08);
+    border-top: 1px solid rgba(255,0,60,0.3);
+    border-bottom: 1px solid rgba(255,0,60,0.3);
+    padding: 14px 32px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 3px;
+    color: var(--accent3);
+    text-transform: uppercase;
+  }
+  .alert-banner span { color: var(--text-dim); }
+
+  /* SECTIONS */
+  section {
+    position: relative; z-index: 2;
+    max-width: 1100px; margin: 0 auto;
+    padding: 80px 20px;
+  }
+
+  .section-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 4px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    letter-spacing: 4px; color: white;
+    margin-bottom: 16px;
+  }
+
+  .section-desc {
+    font-size: 1rem; line-height: 1.7;
+    color: var(--text-dim); max-width: 620px;
+    margin-bottom: 48px;
+  }
+
+  .section-divider {
+    position: relative; z-index: 2;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 32px;
+  }
+
+  /* SERVICES GRID */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .service-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 32px 28px;
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    cursor: default;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .service-card:hover {
+    border-color: rgba(0,245,196,0.3);
+    box-shadow: var(--glow);
+  }
+  .service-card:hover::before { opacity: 1; }
+
+  .service-card.expert::before { background: var(--accent3); }
+  .service-card.expert:hover { border-color: rgba(255,0,60,0.3); box-shadow: 0 0 20px rgba(255,0,60,0.2); }
+
+  .service-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 3px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .service-tag.red { color: var(--accent3); }
+
+  .service-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem; letter-spacing: 2px;
+    color: white; margin-bottom: 12px;
+  }
+
+  .service-desc {
+    font-size: 0.9rem; line-height: 1.6;
+    color: var(--text-dim); margin-bottom: 24px;
+  }
+
+  .service-price {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.6rem; color: var(--accent);
+    letter-spacing: 2px;
+  }
+  .service-price.red { color: var(--accent3); }
+  .service-price small {
+    font-size: 0.65rem; color: var(--text-dim);
+    letter-spacing: 2px; display: block;
+    margin-top: 4px;
+  }
+
+  .service-features {
+    list-style: none;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  .service-features li {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 1px;
+    color: var(--text-dim);
+    padding: 6px 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .service-features li::before {
+    content: '>';
+    color: var(--accent);
+    font-size: 0.75rem;
+  }
+  .service-card.expert .service-features li::before { color: var(--accent3); }
+
+  /* PROCESS */
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    margin-top: 40px;
+    border: 1px solid var(--border);
+  }
+
+  .process-step {
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    position: relative;
+    background: var(--bg2);
+    transition: background 0.3s;
+  }
+  .process-step:last-child { border-right: none; }
+  .process-step:hover { background: var(--bg3); }
+
+  .process-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2rem; color: var(--border);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .process-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem; letter-spacing: 2px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .process-desc {
+    font-size: 0.85rem; line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  /* WHO IS THIS FOR */
+  .targets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .target-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+    display: flex; align-items: flex-start; gap: 16px;
+    transition: border-color 0.3s;
+  }
+  .target-item:hover { border-color: rgba(0,245,196,0.2); }
+
+  .target-icon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.2rem; color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .target-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem; letter-spacing: 2px;
+    color: white; margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .target-desc {
+    font-size: 0.82rem; line-height: 1.5;
+    color: var(--text-dim);
+  }
+
+  /* CONTACT */
+  .contact-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 48px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .contact-block::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+  }
+
+  .contact-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    letter-spacing: 4px; color: white;
+    margin-bottom: 12px;
+  }
+  .contact-title span { color: var(--accent3); }
+
+  .contact-desc {
+    font-size: 1rem; line-height: 1.7;
+    color: var(--text-dim); max-width: 500px;
+    margin: 0 auto 36px;
+  }
+
+  .contact-options {
+    display: flex; gap: 16px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 32px;
+  }
+
+  .contact-btn {
+    padding: 14px 32px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem; letter-spacing: 3px;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+    transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    background: var(--bg3);
+  }
+
+  .contact-btn.facebook:hover {
+    border-color: #1877f2;
+    color: #1877f2;
+    box-shadow: 0 0 20px rgba(24,119,242,0.2);
+  }
+
+  .contact-btn.tiktok:hover {
+    border-color: #ff0050;
+    color: #ff0050;
+    box-shadow: 0 0 20px rgba(255,0,80,0.2);
+  }
+
+  .contact-icon { font-size: 1rem; }
+
+  .contact-note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 3px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+  .contact-note span { color: var(--accent); }
+
+  /* WARNING BOX */
+  .warning-box {
+    background: rgba(255,0,60,0.05);
+    border: 1px solid rgba(255,0,60,0.2);
+    padding: 20px 24px;
+    margin-top: 40px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+
+  .warning-icon {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent3); font-size: 1rem;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  .warning-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 1.5px;
+    line-height: 1.8; color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .warning-text strong { color: var(--accent3); }
+
+  /* FOOTER */
+  footer {
+    position: relative; z-index: 2;
+    border-top: 1px solid var(--border);
+    padding: 40px 32px;
+    text-align: center;
+    background: var(--bg2);
+  }
+
+  .footer-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem; letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+  .footer-logo .g { color: var(--accent); }
+  .footer-logo .v { color: white; }
+
+  .footer-links {
+    display: flex; gap: 24px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .footer-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--accent); }
+
+  .footer-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    nav { padding: 14px 16px; }
+    .nav-links { gap: 14px; }
+    .contact-block { padding: 32px 20px; }
+    .process-steps { grid-template-columns: 1fr; }
+    .process-step { border-right: none; border-bottom: 1px solid var(--border); }
+    .process-step:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scanner"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#vault-labs">Labs</a>
+    <a href="#services">Services</a>
+    <a href="#contact" class="nav-cta">[ HIRE ME ]</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">// Security Services <span>—</span> Genesis Vault</div>
+  <h1 class="hero-title">
+    <span class="g">PENTEST</span><span class="v">.</span><span class="r">HIRE</span><span class="hero-cursor"></span>
+  </h1>
+  <div class="hero-sub-title">Bug Hunting · Vulnerability Assessment · Security Review</div>
+  <p class="hero-desc">
+    Your <span class="hi2">vibe coded app</span> has bugs you don't know about yet.
+    SQL injections. Broken auth. Exposed keys.
+    Let <span class="hi">johnthebandit</span> find them before real hackers do.
+  </p>
+  <div class="hero-btns">
+    <a href="#contact" class="btn-primary">[ HIRE NOW ]</a>
+    <a href="#services" class="btn-ghost">View Services</a>
+  </div>
+</section>
+
+<!-- ALERT -->
+<div class="alert-banner">
+  ⚠ &nbsp; All testing is performed ethically on authorized targets only &nbsp; <span>— Unauthorized testing is illegal and will be refused —</span> &nbsp; ⚠
+</div>
+
+<div class="section-divider"></div>
+
+<!-- SERVICES -->
+<section id="services" class="fade-in">
+  <div class="section-tag">// 01 — Services</div>
+  <div class="section-title">What I Offer</div>
+  <div class="section-desc">Choose between a community bug hunt or a personal expert review. Both options are built for indie developers and solo builders who can't afford enterprise security.</div>
+
+  <div class="services-grid">
+
+    <!-- Community Hunt -->
+    <div class="service-card">
+      <div class="service-tag">// Community</div>
+      <div class="service-name">COMMUNITY HUNT</div>
+      <div class="service-desc">Your app gets listed on Genesis Vault. Real bug hunters from the platform test it and report valid vulnerabilities. You pay VC rewards per confirmed bug.</div>
+      <div class="service-price">VC Rewards<small>You set the bounty pool</small></div>
+      <ul class="service-features">
+        <li>Multiple hunters testing simultaneously</li>
+        <li>Pay only per valid bug found</li>
+        <li>Genesis Vault takes 20% platform cut</li>
+        <li>Community report with all findings</li>
+        <li>Best for: apps with basic exposure</li>
+      </ul>
+    </div>
+
+    <!-- Expert Review -->
+    <div class="service-card expert">
+      <div class="service-tag red">// Expert · johnthebandit</div>
+      <div class="service-name">EXPERT REVIEW</div>
+      <div class="service-desc">I personally test your app using real bug bounty techniques. You get a detailed report with every vulnerability found, severity rating, and fix guidance.</div>
+      <div class="service-price red">From $10<small>Depending on scope</small></div>
+      <ul class="service-features">
+        <li>Basic scan — $10–15</li>
+        <li>Full report + fix guide — $20–30</li>
+        <li>Re-test after fixes — $10</li>
+        <li>Critical vuln report — $50</li>
+        <li>Best for: apps going live soon</li>
+      </ul>
+    </div>
+
+    <!-- Fix Guidance -->
+    <div class="service-card">
+      <div class="service-tag">// Add-on</div>
+      <div class="service-name">FIX GUIDANCE</div>
+      <div class="service-desc">After finding bugs I can provide detailed fix documentation with code examples. You implement the fixes yourself — I verify they're properly patched.</div>
+      <div class="service-price">+$10–15<small>Added to any review</small></div>
+      <ul class="service-features">
+        <li>Code examples for every fix</li>
+        <li>Explain why the bug exists</li>
+        <li>Follow-up re-test to confirm fix</li>
+        <li>Written in plain language</li>
+        <li>Best for: beginners who need guidance</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="warning-box">
+    <div class="warning-icon">!</div>
+    <div class="warning-text">
+      <strong>Legal notice:</strong> All penetration testing requires written authorization from the target owner. I will not test any app or system without explicit permission. By hiring me you confirm you own or have authorization to test the target system.
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- PROCESS -->
+<section class="fade-in">
+  <div class="section-tag">// 02 — Process</div>
+  <div class="section-title">How It Works</div>
+  <div class="section-desc">Simple, fast, and transparent. No bloated contracts. No enterprise overhead. Just real security testing from a real bug bounty hunter.</div>
+
+  <div class="process-steps">
+    <div class="process-step">
+      <span class="process-num">01</span>
+      <div class="process-title">Contact Me</div>
+      <div class="process-desc">Reach out on Facebook or TikTok. Describe your app and what you need tested. I'll respond and confirm scope.</div>
+    </div>
+    <div class="process-step">
+      <span class="process-num">02</span>
+      <div class="process-title">Scope & Price</div>
+      <div class="process-desc">We agree on what gets tested and the final price. No surprises. Payment confirmed before testing begins.</div>
+    </div>
+    <div class="process-step">
+      <span class="process-num">03</span>
+      <div class="process-title">I Test It</div>
+      <div class="process-desc">I run recon, probe for vulnerabilities, and document every finding. Real techniques, real tools, real results.</div>
+    </div>
+    <div class="process-step">
+      <span class="process-num">04</span>
+      <div class="process-title">You Get Report</div>
+      <div class="process-desc">Full written report with all vulnerabilities, severity levels, and recommended fixes. Optionally I verify your patches too.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- WHO IS THIS FOR -->
+<section class="fade-in">
+  <div class="section-tag">// 03 — Who This Is For</div>
+  <div class="section-title">Built For Builders Like You</div>
+  <div class="section-desc">You don't need an enterprise budget to get real security. If you built it, you should protect it.</div>
+
+  <div class="targets-grid">
+    <div class="target-item">
+      <div class="target-icon">⚡</div>
+      <div>
+        <div class="target-title">Vibe Coders</div>
+        <div class="target-desc">Built with AI assistance and shipping fast? AI-generated code has predictable vulnerabilities. Let's find them first.</div>
+      </div>
+    </div>
+    <div class="target-item">
+      <div class="target-icon">◈</div>
+      <div>
+        <div class="target-title">Indie Developers</div>
+        <div class="target-desc">Solo builder with a live product? One breach can destroy months of work. A $15 test is cheap insurance.</div>
+      </div>
+    </div>
+    <div class="target-item">
+      <div class="target-icon">⬡</div>
+      <div>
+        <div class="target-title">Students & Learners</div>
+        <div class="target-desc">Built a project for your portfolio? Make sure it's actually secure before sharing it with the world.</div>
+      </div>
+    </div>
+    <div class="target-item">
+      <div class="target-icon">▣</div>
+      <div>
+        <div class="target-title">Small Startups</div>
+        <div class="target-desc">Pre-launch and need a basic security audit without paying $5,000 for an enterprise firm? This is for you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CONTACT -->
+<section id="contact" class="fade-in" style="padding-bottom: 90px;">
+  <div class="section-tag">// 04 — Contact</div>
+
+  <div class="contact-block">
+    <div class="contact-title">Ready to <span>Secure</span> Your App?</div>
+    <p class="contact-desc">
+      Send me a message on Facebook or TikTok. Tell me what you built, what you're worried about, and I'll get back to you with a quote.
+    </p>
+
+    <div class="contact-options">
+      <a href="https://facebook.com" target="_blank" class="contact-btn facebook">
+        <span class="contact-icon">f</span>
+        [ FACEBOOK ]
+      </a>
+      <a href="https://tiktok.com" target="_blank" class="contact-btn tiktok">
+        <span class="contact-icon">♪</span>
+        [ TIKTOK ]
+      </a>
+    </div>
+
+    <div class="contact-note">
+      Search: <span>johnthebandit</span> · Response time: usually within 24hrs
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="index.html#vault-labs">Labs</a>
+    <a href="#services">Services</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="footer-copy">
+    // GENESIS VAULT — CYBERSECURITY PLATFORM — ALL RIGHTS RESERVED — USE RESPONSIBLY
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  let lastY = 0;
+  const navEl = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > lastY && y > 80) {
+      navEl.style.transform = 'translateY(-100%)';
+      navEl.style.transition = 'transform 0.3s ease';
+    } else {
+      navEl.style.transform = 'translateY(0)';
+    }
+    lastY = y;
+  });
+</script>
+</body>
+</html>
