@@ -183,13 +183,44 @@
   }
   @keyframes spin    { to { transform:rotate(360deg); } }
   @keyframes fadeIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  /* ── BLINKING CURSOR ── */
+  .cursor-blink{display:inline-block;width:2px;height:1rem;background:var(--accent);margin-left:4px;vertical-align:middle;animation:cursorBlink 1s step-end infinite;}
+  @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ── SCANLINE OVERLAY ── */
+  .scanline-overlay{position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.08) 3px,rgba(0,0,0,0.08) 4px);}
+  .scanline-overlay::after{content:'';position:absolute;left:0;right:0;height:80px;background:linear-gradient(to bottom,transparent 0%,rgba(0,245,196,0.03) 40%,rgba(0,245,196,0.06) 50%,rgba(0,245,196,0.03) 60%,transparent 100%);animation:scanBeam 8s linear infinite;}
+  @keyframes scanBeam{from{top:-80px}to{top:100vh}}
+
+  /* ── RADAR PULSE AVATAR ── */
+  .avatar-wrap{position:relative;width:72px;height:72px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;}
+  .avatar-wrap .profile-avatar{margin:0;position:relative;z-index:2;animation:avatarGlitch 6s infinite;}
+  .radar-ring{position:absolute;top:50%;left:50%;width:72px;height:72px;border:2px solid var(--accent);border-radius:50%;transform:translate(-50%,-50%) scale(1);animation:radarPulse 2.5s ease-out infinite;pointer-events:none;}
+  .radar-ring:nth-child(2){animation-delay:0.8s;}
+  .radar-ring:nth-child(3){animation-delay:1.6s;}
+  @keyframes radarPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:0.7;}100%{transform:translate(-50%,-50%) scale(2.4);opacity:0;}}
+  @keyframes avatarGlitch{0%,85%,100%{text-shadow:0 0 8px var(--accent);color:var(--accent);}86%{text-shadow:-2px 0 var(--accent3),2px 0 var(--accent2);color:#fff;transform:translateX(2px);}87%{text-shadow:2px 0 var(--accent3),-2px 0 var(--accent2);transform:translateX(-2px);}88%{text-shadow:0 0 8px var(--accent);color:var(--accent);transform:none;}}
+
+  /* ── ACCENT BAR BUTTONS ── */
+  .profile-action-btn{position:relative;overflow:hidden;}
+  .profile-action-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);transform:scaleY(0);transform-origin:bottom;transition:transform 0.2s ease;}
+  .profile-action-btn:hover::before{transform:scaleY(1);}
+  .profile-action-btn.danger::before{background:var(--accent3);}
+  .profile-action-btn.accent-btn::before{background:var(--accent);}
+  .nav-back{position:relative;overflow:hidden;}
+  .nav-back::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent);transform:scaleY(0);transform-origin:bottom;transition:transform 0.2s ease;}
+  .nav-back:hover::before{transform:scaleY(1);}
+
 </style>
 </head>
 <body>
 
+<!-- SCANLINE OVERLAY -->
+<div class="scanline-overlay"></div>
+
 <!-- TOP NAV -->
 <nav>
-  <div class="nav-logo"><span class="g">GENESIS</span><span class="v">VAULT</span></div>
+  <div class="nav-logo"><span class="g">GENESIS</span><span class="v">VAULT</span><span class="cursor-blink"></span></div>
   <button class="nav-back" onclick="history.back()">← BACK</button>
 </nav>
 
@@ -310,6 +341,33 @@ function toast(msg) {
 function logout() { localStorage.clear(); location.href = 'login.html'; }
 
 /* ── LOAD PROFILE ─────────────────────────────────────────────────── */
+function renderProfileCard(u, age, posts, tools, sales, rank) {
+  document.getElementById('profile-card').innerHTML = `
+    <div class="avatar-wrap">
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="profile-avatar">${u[0].toUpperCase()}</div>
+    </div>
+    <div class="profile-username">${esc(u)}</div>
+    <div class="profile-rank">${esc(rank || 'Ghost')}</div>
+    <div class="profile-vault-age">// VAULT AGE: ${age.long.toUpperCase()}</div>
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <div class="val">${posts}</div><div class="lbl">Posts</div>
+      </div>
+      <div class="profile-stat">
+        <div class="val">${tools}</div><div class="lbl">Tools</div>
+      </div>
+      <div class="profile-stat">
+        <div class="val">${sales}</div><div class="lbl">Sales</div>
+      </div>
+      <div class="profile-stat">
+        <div class="val">${age.days}</div><div class="lbl">Days In</div>
+      </div>
+    </div>`;
+}
+
 async function loadProfile() {
   try {
     const res  = await fetchWithAuth(`${API}/profile`);
@@ -319,33 +377,26 @@ async function loadProfile() {
     const u   = data.username || data.email?.split('@')[0] || 'Operative';
     const age = calcVaultAge(data.created_at);
 
-    document.getElementById('profile-card').innerHTML = `
-      <div class="profile-avatar">${u[0].toUpperCase()}</div>
-      <div class="profile-username">${esc(u)}</div>
-      <div class="profile-rank">${esc(data.rank || 'Ghost')}</div>
-      <div class="profile-vault-age">// VAULT AGE: ${age.long.toUpperCase()}</div>
-      <div class="profile-stats">
-        <div class="profile-stat">
-          <div class="val">${data.post_count||0}</div><div class="lbl">Posts</div>
-        </div>
-        <div class="profile-stat">
-          <div class="val">${data.tool_count||0}</div><div class="lbl">Tools</div>
-        </div>
-        <div class="profile-stat">
-          <div class="val">${data.sales_count||0}</div><div class="lbl">Sales</div>
-        </div>
-        <div class="profile-stat">
-          <div class="val">${age.days}</div><div class="lbl">Days In</div>
-        </div>
-      </div>`;
+    // Cache for fallback
+    localStorage.setItem('gv_username',   u);
+    localStorage.setItem('gv_created_at', data.created_at || '');
 
-    // Show referral code if available
+    renderProfileCard(u, age, data.post_count||0, data.tool_count||0, data.sales_count||0, data.rank);
+
     if (data.referral_code) {
       document.getElementById('referral-code').textContent = data.referral_code;
     }
 
   } catch(e) {
-    document.getElementById('profile-card').innerHTML = '<div class="empty">// Failed to load profile.</div>';
+    // Fallback to cached localStorage data
+    const u  = localStorage.getItem('gv_username') || 'Operative';
+    const ca = localStorage.getItem('gv_created_at') || '';
+    const age = calcVaultAge(ca);
+    const vc = localStorage.getItem('gv_vc') || '—';
+    renderProfileCard(u, age, '—', '—', '—', 'Ghost');
+    // Show a subtle offline indicator
+    const card = document.getElementById('profile-card');
+    card.insertAdjacentHTML('beforeend', '<div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);letter-spacing:2px;margin-top:10px;">// CACHED DATA · RECONNECTING...</div>');
   }
 }
 
