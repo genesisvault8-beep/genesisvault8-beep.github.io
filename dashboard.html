@@ -718,14 +718,68 @@
     width:28px; height:28px; cursor:pointer; font-size:0.9rem; transition:all 0.2s;
   }
   .slide-menu-close:hover { border-color:var(--accent3); color:var(--accent3); }
+
+  /* Avatar with radar pulse */
+  .smu-avatar-wrap {
+    position:relative; width:64px; height:64px;
+    margin:0 auto 12px; display:flex; align-items:center; justify-content:center;
+  }
+  .smu-avatar {
+    width:64px; height:64px; background:var(--bg3); border:2px solid var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Share Tech Mono',monospace; font-size:1.5rem; color:var(--accent);
+    position:relative; z-index:2;
+    animation:avatarGlitch 6s infinite;
+  }
+  .radar-ring {
+    position:absolute; top:50%; left:50%; width:64px; height:64px;
+    border:2px solid var(--accent); border-radius:50%;
+    transform:translate(-50%,-50%) scale(1);
+    animation:radarPulse 2.5s ease-out infinite;
+    pointer-events:none;
+  }
+  .radar-ring:nth-child(2) { animation-delay:0.8s; }
+  .radar-ring:nth-child(3) { animation-delay:1.6s; }
+  @keyframes radarPulse {
+    0%   { transform:translate(-50%,-50%) scale(1); opacity:0.7; }
+    100% { transform:translate(-50%,-50%) scale(2.2); opacity:0; }
+  }
+  @keyframes avatarGlitch {
+    0%,85%,100% { text-shadow:0 0 8px var(--accent); color:var(--accent); }
+    86% { text-shadow:-2px 0 var(--accent3),2px 0 var(--accent2); color:#fff; transform:translateX(2px); }
+    87% { text-shadow:2px 0 var(--accent3),-2px 0 var(--accent2); transform:translateX(-2px); }
+    88% { text-shadow:0 0 8px var(--accent); color:var(--accent); transform:none; }
+  }
+
   .slide-menu-user {
-    padding:20px; border-bottom:1px solid var(--border);
+    padding:20px; border-bottom:1px solid var(--border); text-align:center;
   }
   .smu-name { font-size:1.1rem; font-weight:700; color:white; letter-spacing:2px; }
   .smu-age  {
     font-family:'Share Tech Mono',monospace; font-size:0.7rem;
     color:var(--accent2); margin-top:6px; letter-spacing:1px;
   }
+
+  /* Slide menu buttons with accent bar */
+  .slide-menu-btn {
+    width:100%; padding:10px 10px 10px 14px; background:none;
+    border:1px solid var(--border); color:var(--text-dim);
+    font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+    letter-spacing:2px; cursor:pointer; transition:all 0.2s; text-align:left;
+    position:relative; overflow:hidden;
+  }
+  .slide-menu-btn::before {
+    content:''; position:absolute; left:0; top:0; bottom:0;
+    width:3px; background:var(--accent2);
+    transform:scaleY(0); transform-origin:bottom;
+    transition:transform 0.2s ease;
+  }
+  .slide-menu-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,245,196,0.04); }
+  .slide-menu-btn:hover::before { transform:scaleY(1); }
+  .slide-menu-btn.danger { border-color:rgba(255,0,60,0.4); color:var(--accent3); }
+  .slide-menu-btn.danger::before { background:var(--accent3); }
+  .slide-menu-btn.danger:hover { background:rgba(255,0,60,0.08); border-color:var(--accent3); }
+  .slide-menu-btn.danger:hover::before { transform:scaleY(1); }
   .slide-menu-notifs { flex:1; overflow-y:auto; }
   .slide-menu-notifs-title {
     padding:12px 20px; font-family:'Share Tech Mono',monospace;
@@ -791,14 +845,20 @@
     <button class="slide-menu-close" onclick="closeSlideMenu()">✕</button>
   </div>
   <div class="slide-menu-user">
+    <div class="smu-avatar-wrap">
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="smu-avatar" id="menu-avatar-letter">?</div>
+    </div>
     <div class="smu-name" id="menu-username">—</div>
     <div class="smu-age"  id="menu-vault-age">// VAULT AGE: —</div>
-    <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);padding:8px 12px;">
+    <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:8px 12px;">
       <div>
         <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;">VAULT CREDITS</div>
         <div style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:var(--accent);letter-spacing:2px;margin-top:2px;"><span id="menu-vc-balance">—</span> <span style="font-size:0.65rem;color:var(--text-dim);">VC</span></div>
       </div>
-      <button onclick="closeSlideMenu();location.href='buy-vc.html'" style="background:none;border:1px solid var(--accent2);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:1px;padding:5px 10px;cursor:pointer;">+ BUY</button>
+      <button onclick="closeSlideMenu();location.href='buy-vc.html'" style="background:none;border:1px solid var(--accent2);color:var(--accent2);font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:1px;padding:5px 10px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,168,255,0.1)'" onmouseout="this.style.background='none'">+ BUY</button>
     </div>
   </div>
   <div class="slide-menu-notifs">
@@ -1242,6 +1302,8 @@ async function boot() {
     document.getElementById('menu-vault-age').textContent = `// VAULT AGE: ${age.long.toUpperCase()}`;
     document.getElementById('welcome-name').textContent = u.charAt(0).toUpperCase() + u.slice(1);
     document.getElementById('welcome-age').textContent  = age.long;
+    const avatarEl = document.getElementById('menu-avatar-letter');
+    if (avatarEl) avatarEl.textContent = u.charAt(0).toUpperCase();
 
     document.getElementById('stat-posts').textContent    = data.post_count    || 0;
     document.getElementById('stat-tools').textContent    = data.tool_count    || 0;
@@ -1273,6 +1335,8 @@ async function boot() {
     document.getElementById('welcome-name').textContent   = u;
     document.getElementById('welcome-age').textContent    = age.long;
     document.getElementById('stat-days').textContent      = age.days;
+    const avatarElC = document.getElementById('menu-avatar-letter');
+    if (avatarElC) avatarElC.textContent = u.charAt(0).toUpperCase();
     const statVc = document.getElementById('stat-vc');
     if (statVc && statVc.textContent === '—') statVc.textContent = '0';
   }
