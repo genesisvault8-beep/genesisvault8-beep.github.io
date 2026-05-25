@@ -436,13 +436,16 @@ function local(cmd) {
   return false;
 }
 
-async function send(msg) {
+async function send(msg, silent = false) {
   if (busy || !msg.trim()) return;
   busy = true;
   btn.disabled = true;
   inp.blur();
 
-  printHTML(`<span style="color:var(--green);opacity:.7">GHOST:~$</span> ${esc(msg)}`, 'user');
+  // Don't print user message when called silently (e.g. CIPHER tool analysis)
+  if (!silent) {
+    printHTML(`<span style="color:var(--green);opacity:.7">GHOST:~$</span> ${esc(msg)}`, 'user');
+  }
 
   if (local(msg)) {
     busy = false;
@@ -517,19 +520,30 @@ async function send(msg) {
   const analyzing = print('[LOG]: ANALYZING... ROUTING TO INFINITY ENGINE...', 'logc');
 
   try {
+    const tokensRemaining = Math.max(0, tokenQuota - tokenUsed);
+    const isBridgeOn = document.getElementById('bridge-dot').classList.contains('connected');
+
     const res = await fetch(`${BACKEND_URL}/api/vault-ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("gv_token")}` },
-      body: JSON.stringify({ message: msg, rank: USER_RANK, user_id: USER_ID, username: USERNAME, token_quota: tokenQuota })
+      body: JSON.stringify({
+        message:          msg,
+        rank:             USER_RANK,
+        user_id:          USER_ID,
+        username:         USERNAME,
+        token_quota:      tokenQuota,
+        tokens_remaining: tokensRemaining,
+        bridge_connected: isBridgeOn
+      })
     });
     const data = await res.json();
     analyzing.remove();
 
     if (res.status === 429) {
-      analyzing.remove();
       print('[ERR]: RATE LIMIT REACHED. PLEASE WAIT A MOMENT BEFORE RETRYING.', 'err');
       busy = false; btn.disabled = false; return;
     }
+
     if (data.response) {
       const el = document.createElement('div');
       el.className = 'line ai';
@@ -537,10 +551,17 @@ async function send(msg) {
       out.appendChild(el);
       scrollBottom();
       await typewrite(el, data.response, 7);
-      // Use real token count from backend, fall back to estimate
       const realTokens = data.tokens_used || Math.ceil((msg.length + data.response.length) / 4);
       deductTokens(realTokens);
       if (data.memory_depth !== undefined) updateMemoryIndicator(data.memory_depth);
+
+      // Handle tool_call from CIPHER
+      if (data.tool_call && isBridgeOn) {
+        await dispatchBridgeJob(data.tool_call.tool, data.tool_call.args || "");
+      } else if (data.tool_call && !isBridgeOn) {
+        print('[BRIDGE]: CIPHER wants to run a tool but your bridge is not connected.', 'err');
+        print('[BRIDGE]: Type "bridge connect" or visit bridge.html to connect.', 'logc');
+      }
     } else {
       print('[ERR]: UNEXPECTED RESPONSE.', 'err');
     }
@@ -712,54 +733,39 @@ function showModalStatus(msg, err) {
   el.style.display = 'block';
 }
 
-// ── WEBSOCKET BRIDGE ────────────────────────────────────────
-function connectBridge() {
-  if (wsClient && wsClient.readyState === WebSocket.OPEN) {
+// ── BRIDGE SYSTEM (HTTP POLLING) ─────────────────────────────
+let bridgePollTimer = null;
+
+async function connectBridge() {
+  if (document.getElementById('bridge-dot').classList.contains('connected')) {
     print('[BRIDGE]: Already connected.', 'sys'); return;
   }
-  const token = localStorage.getItem('gv_token');
-  const wsUrl = `wss://genesis-vault-backend.onrender.com/ws/bridge?token=${token}`;
-  
   setBridgeStatus('connecting');
-  print('[BRIDGE]: CONNECTING TO VAULT BRIDGE...', 'sys');
+  print('[BRIDGE]: VERIFYING BRIDGE CONNECTION...', 'sys');
 
-  wsClient = new WebSocket(wsUrl);
+  try {
+    const res = await fetch(`${BACKEND_URL}/bridge/my-token`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
+    });
+    const data = await res.json();
 
-  wsClient.onopen = () => {
-    setBridgeStatus('connected');
-    print('[BRIDGE]: ✓ BRIDGE CONNECTED. YOUR TERMUX IS LINKED.', 'sys');
-    print('[BRIDGE]: Commands prefixed with "run " will execute on your device.', 'logc');
-  };
-
-  wsClient.onmessage = (e) => {
-    try {
-      const msg = JSON.parse(e.data);
-      if (msg.type === 'result') {
-        const el = document.createElement('div');
-        el.className = 'line ai';
-        el.innerHTML = `<span style="color:var(--green);opacity:.7">[BRIDGE]:</span> `;
-        out.appendChild(el);
-        typewrite(el, msg.output, 3);
-      }
-    } catch(err) {}
-  };
-
-  wsClient.onerror = () => {
+    if (data.has_token) {
+      setBridgeStatus('connected');
+      print('[BRIDGE]: ✓ BRIDGE LINKED. CIPHER CAN NOW RUN TOOLS ON YOUR DEVICE.', 'sys');
+      print('[BRIDGE]: Make sure bridge.py is running in Termux.', 'logc');
+    } else {
+      setBridgeStatus('off');
+      print('[BRIDGE]: No bridge token found. Visit bridge.html to generate one.', 'err');
+    }
+  } catch(e) {
     setBridgeStatus('off');
-    print('[BRIDGE]: Connection error. Is your Termux bridge script running?', 'err');
-  };
-
-  wsClient.onclose = () => {
-    setBridgeStatus('off');
-    print('[BRIDGE]: DISCONNECTED.', 'err');
-    wsClient = null;
-  };
+    print('[BRIDGE]: Could not verify bridge. Check connection.', 'err');
+  }
 }
 
 function disconnectBridge() {
-  if (wsClient) { wsClient.close(); wsClient = null; }
   setBridgeStatus('off');
-  print('[BRIDGE]: DISCONNECTED.', 'sys');
+  print('[BRIDGE]: BRIDGE UNLINKED FROM TERMINAL.', 'sys');
 }
 
 function setBridgeStatus(state) {
@@ -767,16 +773,87 @@ function setBridgeStatus(state) {
   const label = document.getElementById('bridge-label');
   dot.className = 'bridge-dot' + (state !== 'off' ? ' ' + state : '');
   label.style.color = state === 'connected' ? 'var(--green)' : state === 'connecting' ? '#ffaa00' : '#333';
-  label.textContent = state === 'connected' ? 'BRIDGE ON' : state === 'connecting' ? 'CONNECTING' : 'BRIDGE OFF';
+  label.textContent = state === 'connected' ? 'BRIDGE ON' : state === 'connecting' ? 'CONNECTING...' : 'BRIDGE OFF';
+}
+
+// Dispatch a tool job and poll for result
+async function dispatchBridgeJob(tool, args) {
+  const jobLine = print(`[BRIDGE]: ▶ DISPATCHING ${tool.toUpperCase()} ${args}...`, 'sys');
+  try {
+    const res = await fetch(`${BACKEND_URL}/bridge/dispatch`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('gv_token')}`
+      },
+      body: JSON.stringify({ tool, args })
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      jobLine.textContent = `[BRIDGE]: ✗ DISPATCH FAILED — ${data.error || 'Unknown error'}`;
+      return;
+    }
+
+    const job_id = data.job_id;
+    jobLine.textContent = `[BRIDGE]: ▶ JOB ${job_id.slice(0,8)} SENT — WAITING FOR TERMUX...`;
+
+    // Poll for result (max 90 seconds)
+    const maxAttempts = 30;
+    for (let i = 0; i < maxAttempts; i++) {
+      await sleep(3000);
+      try {
+        const pr = await fetch(`${BACKEND_URL}/bridge/job/${job_id}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
+        });
+        const pd = await pr.json();
+        const job = pd.job;
+
+        if (!job) continue;
+
+        if (job.status === 'completed') {
+          jobLine.textContent = `[BRIDGE]: ✓ ${tool.toUpperCase()} COMPLETED`;
+          // Show output
+          const outEl = document.createElement('div');
+          outEl.className = 'line';
+          outEl.style.cssText = 'font-family:var(--font);font-size:11px;color:#4a7a6a;white-space:pre-wrap;padding:6px 0;border-left:2px solid #0d3d2e;padding-left:8px;margin:4px 0;';
+          outEl.textContent = job.output || '[No output]';
+          out.appendChild(outEl);
+          scrollBottom();
+
+          // Feed output back to CIPHER for analysis
+          await sleep(500);
+          const analysisMsg = `Here is the ${tool} output from my device. Please analyze it:
+
+${(job.output || '').slice(0, 3000)}`;
+          await send(analysisMsg, true); // true = silent (no user print)
+          return;
+
+        } else if (job.status === 'failed') {
+          jobLine.textContent = `[BRIDGE]: ✗ ${tool.toUpperCase()} FAILED — ${job.error || 'Unknown error'}`;
+          return;
+        }
+
+        // Still pending
+        jobLine.textContent = `[BRIDGE]: ⟳ WAITING FOR TERMUX... (${(i+1)*3}s)`;
+      } catch(e) {}
+    }
+
+    jobLine.textContent = `[BRIDGE]: ✗ TIMEOUT — Is bridge.py running in Termux?`;
+  } catch(e) {
+    print(`[BRIDGE]: ✗ ERROR — ${e.message}`, 'err');
+  }
 }
 
 function sendBridgeCommand(cmd) {
-  if (!wsClient || wsClient.readyState !== WebSocket.OPEN) {
+  const parts = cmd.trim().split(' ');
+  const tool  = parts[0];
+  const args  = parts.slice(1).join(' ');
+  if (!document.getElementById('bridge-dot').classList.contains('connected')) {
     print('[ERR]: BRIDGE NOT CONNECTED. Type "bridge connect" first.', 'err');
     return;
   }
-  wsClient.send(JSON.stringify({ type: 'command', command: cmd }));
-  print(`[BRIDGE]: EXECUTING → ${cmd}`, 'sys');
+  dispatchBridgeJob(tool, args);
 }
 
 
