@@ -489,32 +489,7 @@ async function send(msg, silent = false) {
     btn.disabled = false;
     return;
   }
-  if (msg.toLowerCase().startsWith('scan ')) {
-    const target = msg.slice(5).trim();
-    const analyzing = print(`[LOG]: INITIATING RECON ON ${target.toUpperCase()}...`, 'logc');
-    try {
-      const res = await fetch(`${BACKEND_URL}/recon`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem("gv_token")}` },
-        body: JSON.stringify({ target: target })
-      });
-      const data = await res.json();
-      analyzing.remove();
-      if (data.response) {
-        const el = document.createElement('div');
-        el.className = 'line ai';
-        el.innerHTML = `<span style="color:var(--green);opacity:.7">[RECON]:</span> `;
-        out.appendChild(el);
-        await typewrite(el, data.response, 6);
-      }
-    } catch(e) {
-      analyzing.remove();
-      print('[ERR]: RECON FAILED.', 'err');
-    }
-    busy = false;
-    btn.disabled = false;
-    return;
-  }
+  // scan commands now handled by Cipher directly via /api/vault-ai
   
   await sleep(80);
   const analyzing = print('[LOG]: ANALYZING... ROUTING TO INFINITY ENGINE...', 'logc');
