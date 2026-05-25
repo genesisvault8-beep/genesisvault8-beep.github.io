@@ -813,13 +813,13 @@ async function dispatchBridgeJob(tool, args) {
 
         if (!job) continue;
 
-        if (job.status === 'completed') {
+        if (job.status === 'completed' || job.status === 'done') {
           jobLine.textContent = `[BRIDGE]: ✓ ${tool.toUpperCase()} COMPLETED`;
           // Show output
           const outEl = document.createElement('div');
           outEl.className = 'line';
           outEl.style.cssText = 'font-family:var(--font);font-size:11px;color:#4a7a6a;white-space:pre-wrap;padding:6px 0;border-left:2px solid #0d3d2e;padding-left:8px;margin:4px 0;';
-          outEl.textContent = job.output || '[No output]';
+          outEl.textContent = job.output || job.result || '[No output]';
           out.appendChild(outEl);
           scrollBottom();
 
@@ -827,7 +827,7 @@ async function dispatchBridgeJob(tool, args) {
           await sleep(500);
           const analysisMsg = `Here is the ${tool} output from my device. Please analyze it:
 
-${(job.output || '').slice(0, 3000)}`;
+${(job.output || job.result || '').slice(0, 3000)}`;
           await send(analysisMsg, true); // true = silent (no user print)
           return;
 
