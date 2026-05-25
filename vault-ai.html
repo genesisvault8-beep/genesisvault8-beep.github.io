@@ -545,12 +545,14 @@ async function send(msg, silent = false) {
     }
 
     if (data.response) {
+      // Strip any raw tool_call tags from display (backend should already remove them)
+      const displayText = data.response.replace(/<tool_call>.*?<\/tool_call>/gs, '').trim();
       const el = document.createElement('div');
       el.className = 'line ai';
       el.innerHTML = `<span style="color:var(--green);opacity:.7">[VAULT-AI]:</span> `;
       out.appendChild(el);
       scrollBottom();
-      await typewrite(el, data.response, 7);
+      await typewrite(el, displayText, 7);
       const realTokens = data.tokens_used || Math.ceil((msg.length + data.response.length) / 4);
       deductTokens(realTokens);
       if (data.memory_depth !== undefined) updateMemoryIndicator(data.memory_depth);
