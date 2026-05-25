@@ -302,8 +302,29 @@
     <div class="tool-preview-name" id="access-name">—</div>
     <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent2);margin-top:4px;" id="access-type">—</div>
   </div>
-  <div class="info-box" id="access-info">// Loading access info...</div>
-  <button class="btn-submit" id="btn-access-go" onclick="launchTool()">[ LAUNCH IN VAULT LABS ]</button>
+
+  <!-- SCRIPT: copy code view -->
+  <div id="access-script-wrap" style="display:none;">
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// COPY & RUN ON TERMUX</div>
+    <div style="position:relative;">
+      <pre id="access-code-block" style="background:#020c0f;border:1px solid var(--border);color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.75rem;padding:14px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto;line-height:1.7;margin-bottom:8px;"></pre>
+      <button onclick="copyToolCode()" id="btn-copy-code" style="width:100%;padding:12px;background:var(--accent);color:var(--bg);border:none;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);">[ COPY CODE ]</button>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:8px;">// Paste into Termux and run with Python / Bash / Node</div>
+  </div>
+
+  <!-- WEB APP / KIT: iframe view -->
+  <div id="access-iframe-wrap" style="display:none;">
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// RUNNING INSIDE VAULT LABS</div>
+    <iframe id="access-iframe" sandbox="allow-scripts allow-forms allow-modals" style="width:100%;height:420px;border:1px solid var(--accent2);background:#fff;display:block;"></iframe>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:8px;">// Sandboxed environment — source code is protected</div>
+  </div>
+
+  <!-- AUTOMATION / AI / OTHER: info + launch -->
+  <div id="access-launch-wrap" style="display:none;">
+    <div class="info-box" id="access-info">// Loading access info...</div>
+    <button class="btn-submit" id="btn-access-go" onclick="launchTool()">[ LAUNCH IN VAULT LABS ]</button>
+  </div>
 </div>
 
 <script>
@@ -424,7 +445,7 @@ function renderTool(t) {
       : `<button class="btn-buy"  onclick="handleToolClick('${t.id}',false)">[ BUY NOW ]</button>`;
   return `
   <div class="tool-card">
-    ${t.thumbnail_url ? `<div class="tool-thumbnail"><img src="${esc(t.thumbnail_url)}" alt="${esc(t.title)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
+    ${t.thumbnail_url ? `<div class="tool-thumbnail"><img src="${t.thumbnail_url.startsWith('data:') ? t.thumbnail_url : esc(t.thumbnail_url)}" alt="${esc(t.title)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="tool-card-top">
       <h3>${esc(t.title)}</h3>
       <div class="tool-badges">${badges}</div>
@@ -447,7 +468,7 @@ function renderKit(t) {
       : `<button class="btn-buy" onclick="handleToolClick('${t.id}',false)">[ GET KIT ]</button>`;
   return `
   <div class="kit-card">
-    ${t.thumbnail_url ? `<div class="kit-thumbnail"><img src="${esc(t.thumbnail_url)}" alt="${esc(t.title)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
+    ${t.thumbnail_url ? `<div class="kit-thumbnail"><img src="${t.thumbnail_url.startsWith('data:') ? t.thumbnail_url : esc(t.thumbnail_url)}" alt="${esc(t.title)}" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="tool-card-top" style="margin-bottom:8px;">
       <h3 style="color:#ffaa00;">${esc(t.title)}</h3>
       <span class="badge badge-kit">KIT</span>
@@ -608,28 +629,66 @@ function openAccess(t) {
   document.getElementById('access-name').textContent = activeTool.title;
   document.getElementById('access-type').textContent = `// ${(activeTool.type||'tool').toUpperCase()} · OWNED`;
 
-  const type = (activeTool.type||'').toLowerCase();
-  const deliveryMap = {
-    apps:       '// This app runs directly inside Vault Labs.\n// Tap launch to open it in a sandboxed environment.',
-    automation: '// This automation runs in Vault Labs.\n// Configure inputs and execute from the lab interface.',
-    scripts:    '// This script is available for download.\n// Run locally or execute inside Vault Labs terminal.',
-    templates:  '// This template is available for download.\n// Click to download your file.',
-    kits:       '// Your starter kit is ready.\n// Access all included items below.',
-    ai:         '// This AI tool runs in the AI Terminal.\n// Launching will open the terminal with this tool pre-loaded.',
-  };
-  document.getElementById('access-info').innerHTML = (deliveryMap[type] || '// Access your tool below.').replace(/\n/g,'<br>');
+  const type    = (activeTool.type||'').toLowerCase();
+  const runType = (activeTool.tool_run_type||'').toLowerCase();
 
-  const runType2 = (activeTool.tool_run_type||'').toLowerCase();
-  const launchLabel = (type === 'scripts' || type === 'templates' || runType2 === 'download')
-    ? '[ DOWNLOAD ]'
-    : type === 'ai'
-    ? '[ OPEN IN TERMINAL ]'
-    : (runType2 === 'automation' || runType2 === 'security')
-    ? '[ RUN TOOL ]'
-    : '[ LAUNCH IN VAULT LABS ]';
-  document.getElementById('btn-access-go').textContent = launchLabel;
+  // Hide all access panels first
+  ['access-script-wrap','access-iframe-wrap','access-launch-wrap'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  // SCRIPT — show raw code with copy button
+  if (type === 'scripts' && activeTool.script_code) {
+    document.getElementById('access-code-block').textContent = activeTool.script_code;
+    document.getElementById('access-script-wrap').style.display = 'block';
+
+  // WEB APP or KIT with embedded HTML — render in iframe
+  } else if ((type === 'apps' || type === 'kits') && activeTool.html_content) {
+    const iframe = document.getElementById('access-iframe');
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(activeTool.html_content); doc.close();
+    document.getElementById('access-iframe-wrap').style.display = 'block';
+
+  // AUTOMATION / AI / OTHER — show info + launch button
+  } else {
+    const deliveryMap = {
+      apps:       '// This app runs directly inside Vault Labs.\n// Tap launch to open it in a sandboxed environment.',
+      automation: '// This automation runs in Vault Labs.\n// Configure inputs and execute from the lab interface.',
+      scripts:    '// This script is available for download.\n// Run locally or execute inside Vault Labs terminal.',
+      templates:  '// This template is available for download.\n// Click to download your file.',
+      kits:       '// Your starter kit is ready.\n// Access all included items below.',
+      ai:         '// This AI tool runs in the AI Terminal.\n// Launching will open the terminal with this tool pre-loaded.',
+    };
+    document.getElementById('access-info').innerHTML = (deliveryMap[type] || '// Access your tool below.').replace(/\n/g,'<br>');
+
+    const launchLabel = (type === 'scripts' || type === 'templates' || runType === 'download')
+      ? '[ DOWNLOAD ]'
+      : type === 'ai'
+      ? '[ OPEN IN TERMINAL ]'
+      : (runType === 'automation' || runType === 'security')
+      ? '[ RUN TOOL ]'
+      : '[ LAUNCH IN VAULT LABS ]';
+    document.getElementById('btn-access-go').textContent = launchLabel;
+    document.getElementById('access-launch-wrap').style.display = 'block';
+  }
 
   openModal('modal-access');
+}
+
+function copyToolCode() {
+  const code = document.getElementById('access-code-block').textContent;
+  const btn  = document.getElementById('btn-copy-code');
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
+  });
 }
 
 function openAccessById(id) {
@@ -643,22 +702,18 @@ function launchTool() {
   const type    = (activeTool.type||'').toLowerCase();
   const runType = (activeTool.tool_run_type||'').toLowerCase();
 
-  // Runnable tools (automation or security with script/command) → tool-runner.html
   if (runType === 'automation' || runType === 'security') {
     location.href = `tool-runner.html?tool_id=${activeTool.id}`;
     return;
   }
-  // AI tools → AI terminal
   if (type === 'ai') {
     location.href = `vault-ai.html?tool=${activeTool.id}`;
     return;
   }
-  // Downloadable tools — use secure bridge endpoint
   if (type === 'scripts' || type === 'templates' || runType === 'download') {
     secureDownload(activeTool.id, activeTool.title);
     return;
   }
-  // Default → tool-runner if no download_url, else vault-labs
   if (activeTool.script_content || activeTool.command_template) {
     location.href = `tool-runner.html?tool_id=${activeTool.id}`;
   } else {
