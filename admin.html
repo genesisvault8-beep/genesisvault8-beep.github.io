@@ -597,6 +597,17 @@
       <button class="close-btn" onclick="closeModal('modal-tool')">✕</button>
     </div>
     <div class="status-msg" id="tool-status"></div>
+
+    <!-- THUMBNAIL UPLOAD -->
+    <label>THUMBNAIL <span style="color:var(--text-dim);font-size:0.7rem;">— upload directly</span></label>
+    <img id="t-thumb-preview" src="" alt="" style="display:none;width:100%;max-height:140px;object-fit:cover;border:1px solid var(--border);margin-bottom:8px;">
+    <div id="t-thumb-area" onclick="document.getElementById('t-thumb-file').click()" style="border:1px dashed var(--border);background:var(--bg);padding:14px;text-align:center;cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';">
+      <input type="file" id="t-thumb-file" accept="image/*" style="display:none;" onchange="handleEditThumb(event)">
+      <div id="t-thumb-icon" style="font-size:1.2rem;">🖼</div>
+      <div id="t-thumb-hint" style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;margin-top:4px;">TAP TO UPLOAD THUMBNAIL</div>
+      <div id="t-thumb-change" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);margin-top:4px;display:none;">[ CHANGE IMAGE ]</div>
+    </div>
+
     <label>TITLE</label><input type="text" id="t-title" placeholder="Tool name...">
     <label>DESCRIPTION</label><textarea id="t-desc" rows="3" placeholder="What this tool does..."></textarea>
     <div class="modal-row">
@@ -612,27 +623,64 @@
       <option value="automation">AUTOMATION (Python / Bash)</option>
       <option value="ai">AI TOOL (Groq LLM)</option>
       <option value="download">DOWNLOAD / EXTERNAL LINK</option>
+      <option value="copy">SCRIPT — COPY & RUN ON TERMUX</option>
+      <option value="iframe">WEB APP / KIT — HTML IFRAME</option>
     </select>
+
     <div id="security-fields"><label>COMMAND TEMPLATE</label><input type="text" id="t-cmd" placeholder="nmap -F {target}"></div>
+
     <div id="automation-fields" style="display:none;">
       <label>LANGUAGE</label><select id="t-language"><option value="python">PYTHON</option><option value="bash">BASH</option></select>
       <label>SCRIPT CONTENT</label><textarea id="t-script" rows="10" placeholder="import sys, json&#10;params = json.loads(sys.argv[1])"></textarea>
     </div>
+
     <div id="ai-fields" style="display:none;">
       <label>SYSTEM PROMPT</label><textarea id="t-system-prompt" rows="8" placeholder="You are a penetration testing report writer..."></textarea>
       <label>INPUT LABEL (shown to user)</label><input type="text" id="t-input-label" placeholder="Paste your findings here...">
     </div>
+
     <div id="download-fields" style="display:none;">
       <div class="modal-row">
         <div><label>DELIVERY TYPE</label><select id="t-delivery"><option value="download">DOWNLOAD</option><option value="vault labs">VAULT LABS</option><option value="terminal">TERMINAL</option></select></div>
         <div><label>FILE TYPE</label><input type="text" id="t-filetype" placeholder=".zip, .py..."></div>
       </div>
       <label>FILE URL (for downloads)</label><input type="text" id="t-fileurl" placeholder="https://mediafire.com/...">
-      <label>THUMBNAIL URL <span style="color:#4a7a8a;font-size:0.7rem;">(tool preview image)</span></label><input type="text" id="t-thumbnail" placeholder="https://i.imgur.com/yourimage.png">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:#4a7a8a;letter-spacing:1px;margin-bottom:12px;">// Upload screenshot to Imgur, ImgBB or any image host → paste URL here</div>
-      <label>CONTENT URL (for apps running in Vault Labs)</label><input type="text" id="t-contenturl" placeholder="https://yourusername.github.io/repo/tool.html">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:#4a7a8a;letter-spacing:1px;margin-bottom:12px;">// Paste GitHub Pages URL. Tool runs inside Vault Labs iframe.</div>
+      <label>CONTENT URL (for apps in Vault Labs)</label><input type="text" id="t-contenturl" placeholder="https://yourusername.github.io/repo/tool.html">
     </div>
+
+    <!-- COPY MODE: Script code editor -->
+    <div id="copy-fields" style="display:none;">
+      <div class="divider-line"></div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// TERMUX SCRIPT — PASTE CODE</div>
+      <label>LANGUAGE</label>
+      <select id="t-script-lang">
+        <option value=".py">Python (.py)</option>
+        <option value=".sh">Bash (.sh)</option>
+        <option value=".js">JavaScript (.js)</option>
+        <option value=".txt">Text (.txt)</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span id="t-code-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;border:1px solid var(--accent2);color:var(--accent2);">Python</span>
+        <span id="t-code-lines" style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--text-dim);">0 lines</span>
+        <button onclick="document.getElementById('t-script-code').value='';updateEditLineCount();" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;cursor:pointer;margin-left:auto;" onmouseover="this.style.color='var(--accent3)';" onmouseout="this.style.color='var(--text-dim)';">[ CLEAR ]</button>
+      </div>
+      <textarea id="t-script-code" rows="12" oninput="updateEditLineCount()" placeholder="# Paste your script code here..." style="background:#020c0f;color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;margin-bottom:8px;"></textarea>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;">// Members get a [ COPY CODE ] button — paste straight into Termux.</div>
+    </div>
+
+    <!-- IFRAME MODE: HTML paste + preview -->
+    <div id="iframe-fields" style="display:none;">
+      <div class="divider-line"></div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// WEB APP / KIT — PASTE HTML</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
+        <button onclick="previewEditHtml()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;cursor:pointer;margin-left:auto;transition:all 0.2s;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
+      </div>
+      <textarea id="t-html-content" rows="12" oninput="document.getElementById('t-iframe-preview').style.display='none';" placeholder="<!DOCTYPE html>&#10;<html>&#10;<body>&#10;  <!-- Your tool HTML here -->&#10;</body>&#10;</html>" style="background:#020c0f;color:#ffaa00;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;margin-bottom:8px;"></textarea>
+      <iframe id="t-iframe-preview" style="display:none;width:100%;height:200px;border:1px solid var(--accent2);background:#fff;margin-bottom:8px;" sandbox="allow-scripts allow-forms"></iframe>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;">// Runs in sandboxed iframe — members can't see source code.</div>
+    </div>
+
     <div class="divider-line"></div>
     <label>PARAMS SCHEMA (JSON)</label>
     <textarea id="t-params-schema" rows="4" placeholder='[{"name":"target","type":"text","label":"Target Domain","placeholder":"example.com"}]'></textarea>
@@ -929,21 +977,59 @@ function openAddTool() { editingToolId=null; document.getElementById('modal-tool
 
 function openEditTool(id) {
   const t=allTools.find(x=>String(x.id)===String(id)); if(!t)return;
-  editingToolId=id; document.getElementById('modal-tool-title').textContent='// Edit Tool'; document.getElementById('btn-tool-submit').textContent='[ UPDATE TOOL ]'; document.getElementById('btn-tool-submit').onclick=submitTool;
-  document.getElementById('t-title').value=t.title||''; document.getElementById('t-desc').value=t.description||'';
-  document.getElementById('t-cat').value=t.type||'automation'; document.getElementById('t-price').value=t.vc_price||t.price||0;
-  const rt=t.tool_run_type||(t.download_url?'download':'security');
+  editingToolId=id; editThumbBase64=null;
+  document.getElementById('modal-tool-title').textContent='// Edit Tool';
+  document.getElementById('btn-tool-submit').textContent='[ UPDATE TOOL ]';
+  document.getElementById('btn-tool-submit').onclick=submitTool;
+  document.getElementById('t-title').value=t.title||'';
+  document.getElementById('t-desc').value=t.description||'';
+  document.getElementById('t-cat').value=t.type||'automation';
+  document.getElementById('t-price').value=t.vc_price||t.price||0;
+
+  // Detect run type — support new copy/iframe modes
+  let rt = t.tool_run_type || (t.download_url?'download':'security');
+  if (t.script_code && !rt) rt = 'copy';
+  if (t.html_content && !rt) rt = 'iframe';
   document.getElementById('t-run-type').value=rt; onRunTypeChange();
+
+  // Load fields
   document.getElementById('t-cmd').value=t.command_template||'';
   const tl=document.getElementById('t-language'); if(tl)tl.value=t.language||'python';
-  const ts=document.getElementById('t-script');   if(ts)ts.value=t.script_content||'';
+  const ts=document.getElementById('t-script'); if(ts)ts.value=t.script_content||'';
   const sp=document.getElementById('t-system-prompt'); if(sp)sp.value=t.system_prompt||'';
-  const il=document.getElementById('t-input-label');   if(il)il.value=t.input_label||'';
+  const il=document.getElementById('t-input-label'); if(il)il.value=t.input_label||'';
   const ft=document.getElementById('t-filetype'); if(ft)ft.value=t.file_type||'';
-  const fu=document.getElementById('t-fileurl');  if(fu)fu.value=t.download_url||'';
+  const fu=document.getElementById('t-fileurl'); if(fu)fu.value=t.download_url||'';
   const cu=document.getElementById('t-contenturl'); if(cu)cu.value=t.content_url||'';
-  const tu=document.getElementById('t-thumbnail'); if(tu)tu.value=t.thumbnail_url||'';
   const dv=document.getElementById('t-delivery'); if(dv)dv.value=t.delivery||'download';
+
+  // Load script_code
+  const sc=document.getElementById('t-script-code'); if(sc){sc.value=t.script_code||'';updateEditLineCount();}
+  const sl=document.getElementById('t-script-lang'); if(sl)sl.value=t.file_type||'.py';
+
+  // Load html_content
+  const hc=document.getElementById('t-html-content'); if(hc)hc.value=t.html_content||'';
+  const ip=document.getElementById('t-iframe-preview'); if(ip)ip.style.display='none';
+
+  // Load thumbnail
+  const preview=document.getElementById('t-thumb-preview');
+  if(t.thumbnail_url){
+    preview.src=t.thumbnail_url; preview.style.display='block';
+    document.getElementById('t-thumb-icon').style.display='none';
+    document.getElementById('t-thumb-hint').style.display='none';
+    document.getElementById('t-thumb-change').style.display='block';
+    document.getElementById('t-thumb-area').style.padding='8px';
+    // If it's already base64 keep it, otherwise treat as existing URL
+    editThumbBase64 = t.thumbnail_url.startsWith('data:') ? t.thumbnail_url : null;
+    if(!editThumbBase64) editThumbBase64 = t.thumbnail_url; // keep URL as-is
+  } else {
+    preview.src=''; preview.style.display='none';
+    document.getElementById('t-thumb-icon').style.display='';
+    document.getElementById('t-thumb-hint').style.display='';
+    document.getElementById('t-thumb-change').style.display='none';
+    document.getElementById('t-thumb-area').style.padding='14px';
+  }
+
   document.getElementById('t-params-schema').value=t.params_schema?JSON.stringify(t.params_schema,null,2):'';
   setToggle('kit',t.is_kit||false); setToggle('featured',t.is_featured||false); setToggle('new-badge',t.is_new||false);
   kitFields=t.kit_items||[]; if(toggleStates['kit']){document.getElementById('kit-items-wrap').style.display='block';renderKitItems();}
@@ -969,6 +1055,8 @@ function onRunTypeChange() {
   document.getElementById('automation-fields').style.display=v==='automation'?'block':'none';
   document.getElementById('ai-fields').style.display=v==='ai'?'block':'none';
   document.getElementById('download-fields').style.display=v==='download'?'block':'none';
+  document.getElementById('copy-fields').style.display=v==='copy'?'block':'none';
+  document.getElementById('iframe-fields').style.display=v==='iframe'?'block':'none';
 }
 
 async function submitTool() {
@@ -976,9 +1064,41 @@ async function submitTool() {
   const rt=document.getElementById('t-run-type').value;
   let ps=null; try{const r=document.getElementById('t-params-schema').value.trim();if(r)ps=JSON.parse(r);}catch(e){showStatus(msg,'// Invalid JSON in params schema.',true);return;}
   const gv=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
-  const payload={title:document.getElementById('t-title').value.trim(),description:document.getElementById('t-desc').value.trim(),type:document.getElementById('t-cat').value,vc_price:parseInt(document.getElementById('t-price').value)||0,price:0,tool_run_type:rt,command_template:rt==='security'?gv('t-cmd'):null,language:rt==='automation'?gv('t-language'):null,script_content:rt==='automation'?document.getElementById('t-script').value:null,delivery:rt==='download'?gv('t-delivery'):null,file_type:rt==='download'?gv('t-filetype'):null,download_url:rt==='download'?gv('t-fileurl'):null,content_url:rt==='download'?gv('t-contenturl'):null,system_prompt:rt==='ai'?document.getElementById('t-system-prompt').value.trim():null,input_label:rt==='ai'?gv('t-input-label'):null,params_schema:ps,is_kit:toggleStates['kit'],kit_items:toggleStates['kit']?kitFields.filter(Boolean):[],is_featured:toggleStates['featured'],is_new:toggleStates['new-badge']};
+
+  // Build base payload
+  const payload={
+    title:document.getElementById('t-title').value.trim(),
+    description:document.getElementById('t-desc').value.trim(),
+    type:document.getElementById('t-cat').value,
+    vc_price:parseInt(document.getElementById('t-price').value)||0,
+    price:0,
+    tool_run_type:rt,
+    thumbnail_url: editThumbBase64 || null,
+    params_schema:ps,
+    is_kit:toggleStates['kit'],
+    kit_items:toggleStates['kit']?kitFields.filter(Boolean):[],
+    is_featured:toggleStates['featured'],
+    is_new:toggleStates['new-badge'],
+    // Legacy fields
+    command_template:rt==='security'?gv('t-cmd'):null,
+    language:rt==='automation'?gv('t-language'):null,
+    script_content:rt==='automation'?document.getElementById('t-script').value:null,
+    delivery:rt==='download'?gv('t-delivery'):(rt==='copy'?'copy':rt==='iframe'?'iframe':null),
+    file_type:rt==='download'?gv('t-filetype'):(rt==='copy'?gv('t-script-lang'):null),
+    download_url:rt==='download'?gv('t-fileurl'):null,
+    content_url:rt==='download'?gv('t-contenturl'):null,
+    system_prompt:rt==='ai'?document.getElementById('t-system-prompt').value.trim():null,
+    input_label:rt==='ai'?gv('t-input-label'):null,
+    // New fields
+    script_code:rt==='copy'?document.getElementById('t-script-code').value:null,
+    html_content:rt==='iframe'?document.getElementById('t-html-content').value:null,
+  };
+
   if(!payload.title){showStatus(msg,'// Title required.',true);return;}
   if(rt==='ai'&&!payload.system_prompt){showStatus(msg,'// System prompt required for AI tools.',true);return;}
+  if(rt==='copy'&&!payload.script_code){showStatus(msg,'// Script code is required.',true);return;}
+  if(rt==='iframe'&&!payload.html_content){showStatus(msg,'// HTML content is required.',true);return;}
+
   btn.disabled=true; btn.textContent='[ SAVING... ]';
   try {
     const url=editingToolId?`${API}/admin/tools/${editingToolId}`:`${API}/admin/tools`;
@@ -991,11 +1111,63 @@ async function submitTool() {
 }
 
 function clearToolForm() {
-  ['t-title','t-desc','t-filetype','t-fileurl','t-contenturl','t-thumbnail','t-cmd','t-script','t-params-schema','t-system-prompt','t-input-label'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  editThumbBase64=null;
+  ['t-title','t-desc','t-filetype','t-fileurl','t-contenturl','t-cmd','t-script','t-params-schema','t-system-prompt','t-input-label','t-script-code','t-html-content'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const rt=document.getElementById('t-run-type'); if(rt){rt.value='security';onRunTypeChange();}
   document.getElementById('t-price').value=0; document.getElementById('t-cat').value='automation';
+  // Reset thumbnail
+  document.getElementById('t-thumb-preview').src=''; document.getElementById('t-thumb-preview').style.display='none';
+  document.getElementById('t-thumb-icon').style.display=''; document.getElementById('t-thumb-hint').style.display='';
+  document.getElementById('t-thumb-change').style.display='none'; document.getElementById('t-thumb-area').style.padding='14px';
+  document.getElementById('t-thumb-file').value='';
+  document.getElementById('t-iframe-preview').style.display='none';
+  updateEditLineCount();
   setToggle('kit',false);setToggle('featured',false);setToggle('new-badge',false);
   kitFields=[];renderKitItems();document.getElementById('kit-items-wrap').style.display='none';document.getElementById('tool-status').style.display='none';
+}
+
+// Edit modal helpers
+let editThumbBase64 = null;
+
+function handleEditThumb(e) {
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const img=new Image();
+    img.onload=function(){
+      const MAX=600; let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      editThumbBase64=canvas.toDataURL('image/jpeg',0.75);
+      const preview=document.getElementById('t-thumb-preview');
+      preview.src=editThumbBase64; preview.style.display='block';
+      document.getElementById('t-thumb-area').style.padding='8px';
+      document.getElementById('t-thumb-icon').style.display='none';
+      document.getElementById('t-thumb-hint').style.display='none';
+      const kb=Math.round((editThumbBase64.length*3/4)/1024);
+      const chg=document.getElementById('t-thumb-change');
+      chg.style.display='block'; chg.textContent=`[ CHANGE IMAGE ] · ${kb}KB`;
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateEditLineCount() {
+  const code=document.getElementById('t-script-code')?document.getElementById('t-script-code').value:'';
+  const lines=code?code.split('\n').length:0;
+  const el=document.getElementById('t-code-lines'); if(el)el.textContent=lines+' line'+(lines!==1?'s':'');
+}
+
+function previewEditHtml() {
+  const html=document.getElementById('t-html-content').value.trim();
+  const iframe=document.getElementById('t-iframe-preview');
+  if(!html)return;
+  iframe.style.display='block';
+  const doc=iframe.contentDocument||iframe.contentWindow.document;
+  doc.open();doc.write(html);doc.close();
 }
 
 function setToggle(name,val){toggleStates[name]=val;const t=document.getElementById('toggle-'+name);if(t)t.classList.toggle('on',val);}
