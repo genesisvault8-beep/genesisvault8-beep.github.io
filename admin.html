@@ -1227,13 +1227,26 @@ function handlePostThumb(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = function(ev) {
-    postThumbBase64 = ev.target.result;
-    const preview = document.getElementById('p-thumb-preview');
-    preview.src = postThumbBase64; preview.style.display = 'block';
-    document.getElementById('p-thumb-upload-area').style.padding = '8px';
-    document.getElementById('p-thumb-icon').style.display = 'none';
-    document.getElementById('p-thumb-hint').style.display = 'none';
-    document.getElementById('p-thumb-change').style.display = 'block';
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 600;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      postThumbBase64 = canvas.toDataURL('image/jpeg', 0.75);
+      const preview = document.getElementById('p-thumb-preview');
+      preview.src = postThumbBase64; preview.style.display = 'block';
+      document.getElementById('p-thumb-upload-area').style.padding = '8px';
+      document.getElementById('p-thumb-icon').style.display = 'none';
+      document.getElementById('p-thumb-hint').style.display = 'none';
+      const kb = Math.round((postThumbBase64.length * 3/4) / 1024);
+      const chg = document.getElementById('p-thumb-change');
+      chg.style.display = 'block';
+      chg.textContent = `[ CHANGE IMAGE ] · ${kb}KB`;
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
