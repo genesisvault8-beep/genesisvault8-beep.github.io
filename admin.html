@@ -763,10 +763,19 @@ function hideAdminWakeup() { const o=document.getElementById('admin-wakeup'); if
 // Unified fetch (replaces both apiFetch and fetchWithAuth)
 async function apiFetch(url, options={}) {
   const MAX = 3;
+  const method = (options.method || 'GET').toUpperCase();
+  const isAction = method !== 'GET'; // DELETE, PUT, POST = user actions, no wakeup overlay
+
   for (let i=0; i<MAX; i++) {
     try {
-      const res = await fetch(url, {...options, headers:authHeaders(), signal:AbortSignal.timeout(15000)});
+      const res = await fetch(url, {...options, headers:authHeaders(), signal:AbortSignal.timeout(20000)});
       if (res.status===401) {
+        // Never redirect mid-action — just show error toast and return null
+        if (isAction) {
+          hideAdminWakeup();
+          toast('// Session expired. Please log in again.', true);
+          return null;
+        }
         if (i<MAX-1) { showAdminWakeup(WAKE_MESSAGES[Math.min(i,4)]); updateAdminWakeupLog(`Auth retry ${i+1}/${MAX}`,'#ffaa00'); await new Promise(r=>setTimeout(r,8000)); continue; }
         hideAdminWakeup();
         sessionStorage.removeItem('gv_admin_token'); localStorage.removeItem('gv_admin_token'); sessionStorage.removeItem('gv_admin_id');
@@ -774,6 +783,10 @@ async function apiFetch(url, options={}) {
       }
       hideAdminWakeup(); return res;
     } catch(err) {
+      if (isAction) {
+        // On action failure just return null — let the calling function handle it with a toast
+        hideAdminWakeup(); return null;
+      }
       if (i<MAX-1) { showAdminWakeup(WAKE_MESSAGES[Math.min(i,4)]); updateAdminWakeupLog(`Connection failed, retrying...`,'#ffaa00'); await new Promise(r=>setTimeout(r,6000)); }
       else { hideAdminWakeup(); return null; }
     }
@@ -1042,10 +1055,19 @@ async function confirmDelete() {
   const btn=document.getElementById('btn-delete-confirm'); const msg=document.getElementById('delete-status');
   btn.disabled=true; btn.textContent='[ DELETING... ]';
   try {
-    const res=await apiFetch(`${API}/admin/tools/${deletingToolId}`,{method:'DELETE'}); if(!res){btn.disabled=false;btn.textContent='[ CONFIRM DELETE ]';return;}
+    const res=await apiFetch(`${API}/admin/tools/${deletingToolId}`,{method:'DELETE'});
+    if(!res){showStatus(msg,'// Server unreachable. Try again.',true);btn.disabled=false;btn.textContent='[ CONFIRM DELETE ]';return;}
+    if(res.status===404){showStatus(msg,'// Tool not found — may already be deleted.',true);btn.disabled=false;btn.textContent='[ CONFIRM DELETE ]';return;}
     const data=await res.json();
-    if(data.status==='success'){closeModal('modal-delete');allTools=allTools.filter(t=>String(t.id)!==String(deletingToolId));renderToolsMgr();toast('// Tool deleted.');}
-    else{showStatus(msg,data.message||'// Failed.',true);btn.disabled=false;btn.textContent='[ CONFIRM DELETE ]';}
+    if(data.status==='success'){
+      closeModal('modal-delete');
+      allTools=allTools.filter(t=>String(t.id)!==String(deletingToolId));
+      renderToolsMgr(); loadMarketStats();
+      toast('// Tool deleted.');
+    } else {
+      showStatus(msg,data.message||'// Failed.',true);
+      btn.disabled=false; btn.textContent='[ CONFIRM DELETE ]';
+    }
   }catch(e){showStatus(msg,'// Network error.',true);btn.disabled=false;btn.textContent='[ CONFIRM DELETE ]';}
 }
 
