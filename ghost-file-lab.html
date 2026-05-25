@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GHOST FILE — Genesis Vault Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #020608;
+  --bg2:     #060d10;
+  --bg3:     #0a1520;
+  --red:     #ff003c;
+  --teal:    #00f5c4;
+  --blue:    #00a8ff;
+  --text:    #c8e6f0;
+  --dim:     #4a7a8a;
+  --border:  #0f2a35;
+  --redborder: rgba(255,0,60,0.3);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:'Rajdhani',sans-serif; min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Grid overlay */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,0,60,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,0,60,0.02) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* Scanline */
+.scanline {
+  position:fixed; inset:0; pointer-events:none; z-index:999;
+  background:repeating-linear-gradient(
+    to bottom, transparent 0px, transparent 3px,
+    rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+  );
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; height:56px;
+  background:rgba(2,6,8,0.97); border-bottom:1px solid var(--redborder);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; z-index:100; backdrop-filter:blur(10px);
+}
+.nav-logo {
+  font-family:'Share Tech Mono',monospace; font-size:0.9rem;
+  letter-spacing:4px; color:white;
+}
+.nav-logo span { color:var(--red); text-shadow:0 0 10px rgba(255,0,60,0.6); }
+.nav-back {
+  background:none; border:1px solid var(--redborder); color:var(--red);
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  padding:6px 14px; cursor:pointer; letter-spacing:2px; transition:all 0.2s;
+}
+.nav-back:hover { background:rgba(255,0,60,0.1); }
+
+/* STATUS BAR */
+.status-bar {
+  position:fixed; top:56px; left:0; right:0; height:36px;
+  background:rgba(6,13,16,0.98); border-bottom:1px solid var(--redborder);
+  display:flex; align-items:center; gap:20px; padding:0 20px;
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+  letter-spacing:2px; z-index:99;
+}
+.status-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--red);
+  animation:blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.status-label { color:var(--red); }
+.status-sep { color:var(--border); }
+.status-val { color:var(--dim); }
+.difficulty-badge {
+  margin-left:auto; background:none; border:1px solid var(--red);
+  color:var(--red); padding:2px 10px; font-size:0.6rem; letter-spacing:2px;
+}
+
+/* MAIN */
+main { padding-top:112px; padding-bottom:40px; position:relative; z-index:1; }
+
+/* HERO */
+.lab-hero {
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--redborder);
+  position:relative; overflow:hidden;
+}
+.lab-hero::after {
+  content:''; position:absolute; top:0; right:0;
+  width:120px; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,0,60,0.04));
+  pointer-events:none;
+}
+.lab-category {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  color:var(--red); letter-spacing:3px; margin-bottom:8px;
+}
+.lab-title {
+  font-size:1.8rem; font-weight:700; color:white;
+  letter-spacing:3px; text-transform:uppercase; line-height:1.2;
+  margin-bottom:10px;
+}
+.lab-title span { color:var(--red); }
+.lab-desc {
+  font-size:0.9rem; color:var(--dim); line-height:1.6;
+  letter-spacing:0.3px; max-width:600px;
+}
+
+/* TABS */
+.tabs {
+  display:flex; border-bottom:1px solid var(--border);
+  padding:0 20px; background:var(--bg2);
+}
+.tab {
+  padding:12px 16px; font-family:'Share Tech Mono',monospace;
+  font-size:0.65rem; letter-spacing:2px; color:var(--dim);
+  cursor:pointer; border-bottom:2px solid transparent;
+  transition:all 0.2s; white-space:nowrap;
+}
+.tab.active { color:var(--red); border-bottom-color:var(--red); }
+.tab:hover  { color:var(--text); }
+
+.tab-content { display:none; padding:20px; }
+.tab-content.active { display:block; }
+
+/* BRIEFING */
+.briefing-block {
+  background:var(--bg2); border:1px solid var(--redborder);
+  border-left:3px solid var(--red); padding:16px 20px;
+  margin-bottom:16px; animation:fadeIn 0.5s ease;
+}
+.briefing-label {
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+  color:var(--red); letter-spacing:3px; margin-bottom:8px;
+}
+.briefing-text {
+  font-size:0.9rem; line-height:1.7; color:var(--text);
+}
+.briefing-text em { color:var(--teal); font-style:normal; }
+
+/* OBJECTIVE */
+.objective-box {
+  background:rgba(0,245,196,0.04); border:1px solid rgba(0,245,196,0.2);
+  border-left:3px solid var(--teal); padding:16px 20px; margin-bottom:16px;
+}
+.objective-label {
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+  color:var(--teal); letter-spacing:3px; margin-bottom:8px;
+}
+.objective-text { font-size:0.95rem; color:white; line-height:1.5; font-weight:600; }
+
+/* STEPS */
+.steps-list { list-style:none; margin-bottom:20px; }
+.step-item {
+  display:flex; gap:14px; padding:12px 0;
+  border-bottom:1px solid var(--border); animation:fadeIn 0.5s ease;
+}
+.step-num {
+  font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+  color:var(--red); min-width:28px; padding-top:2px;
+}
+.step-text { font-size:0.88rem; color:var(--text); line-height:1.6; }
+.step-text code {
+  background:var(--bg3); border:1px solid var(--border);
+  color:var(--teal); padding:1px 6px; font-family:'Share Tech Mono',monospace;
+  font-size:0.8rem;
+}
+
+/* HINTS */
+.hint-item {
+  background:var(--bg2); border:1px solid var(--border);
+  padding:14px 16px; margin-bottom:10px; cursor:pointer;
+  transition:border-color 0.2s; animation:fadeIn 0.4s ease;
+}
+.hint-item:hover { border-color:rgba(255,0,60,0.3); }
+.hint-header {
+  display:flex; justify-content:space-between; align-items:center;
+}
+.hint-title {
+  font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+  color:var(--dim); letter-spacing:2px;
+}
+.hint-lock { color:var(--red); font-size:0.8rem; }
+.hint-body {
+  display:none; margin-top:10px; font-size:0.85rem;
+  color:var(--text); line-height:1.6; border-top:1px solid var(--border);
+  padding-top:10px;
+}
+.hint-body.open { display:block; }
+.hint-body code {
+  background:var(--bg3); color:var(--teal); padding:1px 6px;
+  font-family:'Share Tech Mono',monospace; font-size:0.8rem;
+}
+.hint-cost {
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+  color:var(--red); margin-top:6px; letter-spacing:1px;
+}
+
+/* DOWNLOAD */
+.download-section {
+  background:var(--bg2); border:1px solid var(--redborder);
+  padding:20px; margin-bottom:16px; text-align:center;
+}
+.download-icon { font-size:2rem; margin-bottom:8px; }
+.download-label {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  color:var(--dim); letter-spacing:2px; margin-bottom:4px;
+}
+.download-filename {
+  font-family:'Share Tech Mono',monospace; font-size:0.9rem;
+  color:var(--teal); margin-bottom:4px;
+}
+.download-size {
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+  color:var(--dim); margin-bottom:14px;
+}
+.download-btn {
+  background:var(--red); color:white; border:none;
+  padding:12px 32px; font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:0.9rem; letter-spacing:3px;
+  cursor:pointer; transition:all 0.2s;
+  clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+}
+.download-btn:hover { background:white; color:var(--bg); }
+
+/* SHA */
+.sha-box {
+  background:var(--bg3); border:1px solid var(--border);
+  padding:10px 14px; margin-top:10px; text-align:left;
+}
+.sha-label {
+  font-family:'Share Tech Mono',monospace; font-size:0.55rem;
+  color:var(--dim); letter-spacing:2px; margin-bottom:4px;
+}
+.sha-val {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  color:var(--teal); word-break:break-all;
+}
+
+/* FLAG SUBMIT */
+.flag-section { margin-top:20px; }
+.flag-label {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  color:var(--teal); letter-spacing:3px; margin-bottom:10px; display:block;
+}
+.flag-input-row { display:flex; gap:10px; }
+.flag-input {
+  flex:1; background:var(--bg); border:1px solid var(--border);
+  color:var(--text); padding:12px 16px;
+  font-family:'Share Tech Mono',monospace; font-size:0.85rem;
+  outline:none; transition:border-color 0.2s; letter-spacing:1px;
+}
+.flag-input:focus { border-color:var(--teal); }
+.flag-input::placeholder { color:var(--dim); }
+.flag-btn {
+  background:var(--teal); color:var(--bg); border:none;
+  padding:12px 24px; font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:0.9rem; letter-spacing:2px;
+  cursor:pointer; transition:all 0.2s; white-space:nowrap;
+}
+.flag-btn:hover { background:white; }
+.flag-result {
+  margin-top:12px; padding:12px 16px;
+  font-family:'Share Tech Mono',monospace; font-size:0.8rem;
+  letter-spacing:1px; display:none;
+}
+.flag-result.correct {
+  background:rgba(0,245,196,0.08); border:1px solid var(--teal);
+  color:var(--teal); display:block;
+}
+.flag-result.wrong {
+  background:rgba(255,0,60,0.08); border:1px solid var(--red);
+  color:var(--red); display:block;
+}
+
+/* TOOLS SECTION */
+.tools-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.tool-chip {
+  background:var(--bg2); border:1px solid var(--border);
+  padding:10px 12px; font-family:'Share Tech Mono',monospace;
+  font-size:0.65rem; letter-spacing:1px; color:var(--dim);
+  transition:all 0.2s;
+}
+.tool-chip span { color:var(--teal); display:block; font-size:0.75rem; margin-bottom:2px; }
+.tool-chip:hover { border-color:var(--teal); color:var(--text); }
+
+/* SECTION TITLE */
+.section-title {
+  font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+  color:var(--red); letter-spacing:3px; margin-bottom:12px;
+  border-bottom:1px solid var(--redborder); padding-bottom:8px;
+}
+
+/* SUCCESS OVERLAY */
+.success-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(2,6,8,0.97); z-index:500;
+  align-items:center; justify-content:center;
+  flex-direction:column; text-align:center; padding:20px;
+}
+.success-overlay.open { display:flex; }
+.success-icon { font-size:3rem; margin-bottom:16px; animation:pulse 1s ease infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.success-title {
+  font-family:'Share Tech Mono',monospace; font-size:1.2rem;
+  color:var(--teal); letter-spacing:4px; margin-bottom:8px;
+}
+.success-flag {
+  font-family:'Share Tech Mono',monospace; font-size:0.85rem;
+  color:white; background:var(--bg2); border:1px solid var(--teal);
+  padding:10px 20px; margin:12px 0; letter-spacing:2px;
+}
+.success-msg { font-size:0.9rem; color:var(--dim); line-height:1.6; max-width:400px; }
+.success-close {
+  margin-top:20px; background:var(--teal); color:var(--bg);
+  border:none; padding:12px 32px; font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:0.9rem; letter-spacing:3px; cursor:pointer;
+}
+
+/* TERMINAL BLOCK */
+.terminal {
+  background:var(--bg3); border:1px solid var(--border);
+  border-left:3px solid var(--blue); padding:14px 16px;
+  font-family:'Share Tech Mono',monospace; font-size:0.78rem;
+  line-height:1.9; color:var(--blue); margin-bottom:12px;
+  white-space:pre-wrap; overflow-x:auto;
+}
+.terminal .cmd { color:var(--teal); }
+.terminal .out { color:var(--dim); }
+.terminal .flag-line { color:var(--red); font-weight:bold; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* PROGRESS BAR */
+.progress-bar-wrap {
+  background:var(--bg3); border:1px solid var(--border);
+  height:4px; margin-bottom:20px; position:relative; overflow:hidden;
+}
+.progress-bar-fill {
+  height:100%; background:var(--red);
+  width:0%; transition:width 0.5s ease;
+  box-shadow:0 0 8px rgba(255,0,60,0.6);
+}
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-icon">💀</div>
+  <div class="success-title">// FILE RECOVERED</div>
+  <div class="success-flag" id="success-flag-display">GV{...}</div>
+  <div class="success-msg">
+    WRAITH's secret is yours now.<br>
+    The ghost left traces — you found them.<br><br>
+    <span style="color:var(--teal);font-family:'Share Tech Mono',monospace;font-size:0.75rem;">+150 XP · FORENSICS BADGE UNLOCKED</span>
+  </div>
+  <button class="success-close" onclick="closeSuccess()">[ CONTINUE ]</button>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><span>GENESIS</span>VAULT // LAB</div>
+  <button class="nav-back" onclick="history.back()">← BACK</button>
+</nav>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <span class="status-label">LIVE</span>
+  <span class="status-sep">|</span>
+  <span class="status-val">FORENSICS</span>
+  <span class="status-sep">|</span>
+  <span class="status-val" id="timer-display">00:00:00</span>
+  <span class="difficulty-badge">HARD</span>
+</div>
+
+<main>
+
+  <!-- HERO -->
+  <div class="lab-hero">
+    <div class="lab-category">// FORENSICS · DISK ANALYSIS · FILE CARVING</div>
+    <div class="lab-title">GHOST <span>FILE</span></div>
+    <div class="lab-desc">
+      A suspect wiped their drive before arrest. One deleted file was partially recovered from the raw disk image. Reconstruct it and find what they were hiding.
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div style="padding:12px 20px 0; background:var(--bg2);">
+    <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);margin-bottom:6px;">
+      <span>// INVESTIGATION PROGRESS</span>
+      <span id="progress-label">0%</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('briefing',this)">BRIEFING</div>
+    <div class="tab" onclick="switchTab('evidence',this)">EVIDENCE</div>
+    <div class="tab" onclick="switchTab('tools',this)">TOOLS</div>
+    <div class="tab" onclick="switchTab('hints',this)">HINTS</div>
+    <div class="tab" onclick="switchTab('submit',this)">SUBMIT</div>
+  </div>
+
+  <!-- BRIEFING TAB -->
+  <div class="tab-content active" id="tab-briefing">
+
+    <div class="briefing-block">
+      <div class="briefing-label">// INTEL REPORT</div>
+      <div class="briefing-text">
+        Operative <em>WRAITH</em> went dark at 03:47 UTC. Before dropping off the grid, 
+        they executed a full drive wipe — or so they thought. Our forensics team imaged 
+        the drive before destruction and recovered a <em>41KB raw disk image</em>.<br><br>
+        Analysis suggests a deleted file still exists in the unallocated sectors. 
+        The file header is intact — meaning a skilled operative can <em>carve it out</em> 
+        and reconstruct the original data.<br><br>
+        WRAITH's last known communication mentioned hiding something in <em>"the noise"</em>. 
+        Intelligence believes this is a flag — a proof of their next operation.
+        <em>Find it.</em>
+      </div>
+    </div>
+
+    <div class="objective-box">
+      <div class="objective-label">// OBJECTIVE</div>
+      <div class="objective-text">
+        Download the disk image. Analyze it using forensic tools. Recover the deleted file. Extract the hidden flag and submit it.
+      </div>
+    </div>
+
+    <p class="section-title">// ATTACK PATH</p>
+    <ul class="steps-list">
+      <li class="step-item">
+        <span class="step-num">01</span>
+        <span class="step-text">Download <code>wraith_disk.img</code> and verify its integrity using SHA256</span>
+      </li>
+      <li class="step-item">
+        <span class="step-num">02</span>
+        <span class="step-text">Inspect the disk image structure — check the MBR, partition table, and file system headers</span>
+      </li>
+      <li class="step-item">
+        <span class="step-num">03</span>
+        <span class="step-text">Use file carving to recover the deleted file buried in unallocated sectors using <code>foremost</code> or <code>binwalk</code></span>
+      </li>
+      <li class="step-item">
+        <span class="step-num">04</span>
+        <span class="step-text">Examine the recovered file — check metadata, strings, and binary content for clues</span>
+      </li>
+      <li class="step-item">
+        <span class="step-num">05</span>
+        <span class="step-text">Follow the clue embedded in the recovered file to locate the flag hidden in the raw image</span>
+      </li>
+      <li class="step-item">
+        <span class="step-num">06</span>
+        <span class="step-text">Extract the flag in format <code>GV{...}</code> and submit it</span>
+      </li>
+    </ul>
+
+  </div>
+
+  <!-- EVIDENCE TAB -->
+  <div class="tab-content" id="tab-evidence">
+
+    <p class="section-title">// RECOVERED DISK IMAGE</p>
+
+    <div class="download-section">
+      <div class="download-icon">💾</div>
+      <div class="download-label">FORENSIC EVIDENCE — HANDLE WITH CARE</div>
+      <div class="download-filename">wraith_disk.img</div>
+      <div class="download-size">40 KB · RAW DISK IMAGE · SHA256 VERIFIED</div>
+      <button class="download-btn" onclick="downloadImg()">[ DOWNLOAD IMAGE ]</button>
+      <div class="sha-box">
+        <div class="sha-label">SHA256 CHECKSUM</div>
+        <div class="sha-val" id="sha-display">computing...</div>
+      </div>
+    </div>
+
+    <p class="section-title">// EVIDENCE NOTES</p>
+    <div class="briefing-block">
+      <div class="briefing-label">// FORENSICS TEAM NOTE</div>
+      <div class="briefing-text">
+        Image was acquired using <em>dd if=/dev/sdb of=wraith_disk.img bs=512</em>. 
+        Sector size is <em>512 bytes</em>. Total of <em>81 sectors</em>. 
+        File system appears to be FAT32 based on partition entry at MBR offset 446. 
+        At least one file header was detected in unallocated space — 
+        the file was deleted but <em>not overwritten</em>. Recovery is possible.
+      </div>
+    </div>
+
+    <p class="section-title">// TERMINAL PREVIEW</p>
+    <div class="terminal"><span class="cmd">$ xxd wraith_disk.img | head -20</span>
+<span class="out">00000000: eb3c 9057 5241 4954 4820 0002 0800 0000  .&lt;.WRAITH ......
+00000020: 0000 0000 0000 0000 0000 0000 0000 0000  ................
+000001be: 8000 0000 0b00 0000 0100 0000 ff1f 0000  ................
+000001fe: 55aa 0000 0000 0000 0000 0000 0000 0000  U...............
+00001600: ffd8 ffe0 0010 4a46 4946 0001 0100 0001  ......JFIF......
+00001612: fffe 004b 5752 4149 5448 5f53 4553 5349  ...KWRAITH_SESSI</span>
+<span class="cmd">$ foremost -i wraith_disk.img -o ./recovered/</span>
+<span class="out">Processing: wraith_disk.img
+|foundat=5632
+*</span>
+<span class="cmd">$ strings wraith_disk.img | grep -i "gv{"</span>
+<span class="flag-line">[REDACTED — solve the lab to reveal]</span></div>
+
+  </div>
+
+  <!-- TOOLS TAB -->
+  <div class="tab-content" id="tab-tools">
+
+    <p class="section-title">// RECOMMENDED TOOLS</p>
+    <div class="tools-grid">
+      <div class="tool-chip"><span>binwalk</span>Scan & extract embedded files from binary images</div>
+      <div class="tool-chip"><span>foremost</span>File carving based on headers, footers and data structures</div>
+      <div class="tool-chip"><span>strings</span>Extract printable strings from binary files</div>
+      <div class="tool-chip"><span>xxd / hexdump</span>Hex viewer — inspect raw bytes sector by sector</div>
+      <div class="tool-chip"><span>exiftool</span>Read metadata from recovered image files</div>
+      <div class="tool-chip"><span>file</span>Identify file types from magic bytes</div>
+    </div>
+
+    <p class="section-title">// TERMUX SETUP (ANDROID)</p>
+    <div class="terminal"><span class="cmd">$ pkg update && pkg upgrade</span>
+<span class="cmd">$ pkg install binwalk foremost exiftool</span>
+<span class="cmd">$ pkg install python</span>
+<span class="out">// All tools available on Termux — no root needed</span></div>
+
+    <p class="section-title">// QUICK COMMANDS</p>
+    <div class="terminal"><span class="out"># Scan for file signatures</span>
+<span class="cmd">$ binwalk wraith_disk.img</span>
+
+<span class="out"># Carve all files out</span>
+<span class="cmd">$ foremost -i wraith_disk.img -o ./output</span>
+
+<span class="out"># Dump all readable strings</span>
+<span class="cmd">$ strings wraith_disk.img</span>
+
+<span class="out"># Hex dump specific sector (sector 11 = offset 5632)</span>
+<span class="cmd">$ xxd -s 5632 -l 512 wraith_disk.img</span>
+
+<span class="out"># Check file metadata after carving</span>
+<span class="cmd">$ exiftool output/jpg/00000000.jpg</span></div>
+
+    <p class="section-title">// PYTHON ONE-LINER</p>
+    <div class="terminal"><span class="out"># Find flag directly (once you understand the structure)</span>
+<span class="cmd">$ python3 -c "
+data=open('wraith_disk.img','rb').read()
+i=data.find(b'GV{')
+print(data[i:data.find(b'}',i)+1].decode())
+"</span></div>
+
+  </div>
+
+  <!-- HINTS TAB -->
+  <div class="tab-content" id="tab-hints">
+    <p class="section-title">// OPERATIONAL HINTS</p>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);margin-bottom:16px;letter-spacing:1px;">// Reveal hints in order. Each hint costs -10 XP.</p>
+
+    <div class="hint-item" onclick="toggleHint(1)">
+      <div class="hint-header">
+        <span class="hint-title">HINT 01 — WHERE TO START</span>
+        <span class="hint-lock" id="hint-lock-1">[ REVEAL ]</span>
+      </div>
+      <div class="hint-body" id="hint-body-1">
+        Start with <code>binwalk wraith_disk.img</code>. Look for file signatures — specifically JPEG magic bytes <code>FF D8 FF</code>. The deleted file starts at a specific sector offset.
+        <div class="hint-cost">-10 XP</div>
+      </div>
+    </div>
+
+    <div class="hint-item" onclick="toggleHint(2)">
+      <div class="hint-header">
+        <span class="hint-title">HINT 02 — THE DELETED FILE</span>
+        <span class="hint-lock" id="hint-lock-2">[ REVEAL ]</span>
+      </div>
+      <div class="hint-body" id="hint-body-2">
+        A JPEG file was deleted but not overwritten. Use <code>foremost</code> to carve it out. Once recovered, run <code>exiftool</code> on it and read the EXIF comment carefully — it contains a clue about where the flag is.
+        <div class="hint-cost">-10 XP</div>
+      </div>
+    </div>
+
+    <div class="hint-item" onclick="toggleHint(3)">
+      <div class="hint-header">
+        <span class="hint-title">HINT 03 — THE CLUE</span>
+        <span class="hint-lock" id="hint-lock-3">[ REVEAL ]</span>
+      </div>
+      <div class="hint-body" id="hint-body-3">
+        The EXIF comment says <em>"the truth is in the noise"</em>. The flag isn't in the JPEG — it's hidden in raw binary data further in the image. Run <code>strings wraith_disk.img</code> and grep for <code>GV{</code>.
+        <div class="hint-cost">-10 XP</div>
+      </div>
+    </div>
+
+    <div class="hint-item" onclick="toggleHint(4)">
+      <div class="hint-header">
+        <span class="hint-title">HINT 04 — EXACT LOCATION</span>
+        <span class="hint-lock" id="hint-lock-4">[ REVEAL ]</span>
+      </div>
+      <div class="hint-body" id="hint-body-4">
+        The flag is at sector 51 (byte offset 26112). Use <code>xxd -s 26112 -l 512 wraith_disk.img</code> to dump that sector. Look for the <code>GV{</code> pattern surrounded by binary noise.
+        <div class="hint-cost">-10 XP</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUBMIT TAB -->
+  <div class="tab-content" id="tab-submit">
+
+    <p class="section-title">// FLAG SUBMISSION</p>
+
+    <div class="briefing-block">
+      <div class="briefing-label">// INSTRUCTIONS</div>
+      <div class="briefing-text">
+        Extract the flag from the disk image and submit it below.<br>
+        Format: <em>GV{...}</em> — include the curly braces.
+      </div>
+    </div>
+
+    <div class="flag-section">
+      <span class="flag-label">// ENTER FLAG</span>
+      <div class="flag-input-row">
+        <input type="text" class="flag-input" id="flag-input"
+          placeholder="GV{...}" autocomplete="off" autocorrect="off"
+          onkeydown="if(event.key==='Enter')submitFlag()">
+        <button class="flag-btn" onclick="submitFlag()">[ SUBMIT ]</button>
+      </div>
+      <div class="flag-result" id="flag-result"></div>
+    </div>
+
+    <div style="margin-top:30px;">
+      <p class="section-title">// COMPLETION STATS</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:var(--bg2);border:1px solid var(--border);padding:14px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);letter-spacing:2px;margin-bottom:4px;">TIME ELAPSED</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:var(--teal);" id="final-time">00:00:00</div>
+        </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);padding:14px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);letter-spacing:2px;margin-bottom:4px;">HINTS USED</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:var(--red);" id="hints-used-display">0</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+const FLAG = 'GV{WRAITH_N3V3R_D13S_0NLY_D4T4_D035}';
+let hintsUsed = 0;
+let progress  = 0;
+let startTime = Date.now();
+let solved    = false;
+
+/* ── TIMER ── */
+function pad(n) { return String(n).padStart(2,'0'); }
+setInterval(() => {
+  if (solved) return;
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const t = `${pad(h)}:${pad(m)}:${pad(sec)}`;
+  document.getElementById('timer-display').textContent = t;
+  document.getElementById('final-time').textContent    = t;
+}, 1000);
+
+/* ── TABS ── */
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  updateProgress(name);
+}
+
+/* ── PROGRESS ── */
+function updateProgress(tab) {
+  const map = { briefing:20, evidence:40, tools:60, hints:70, submit:80 };
+  const p   = Math.max(progress, map[tab] || 0);
+  progress  = p;
+  document.getElementById('progress-bar').style.width = p + '%';
+  document.getElementById('progress-label').textContent = p + '%';
+}
+
+/* ── HINTS ── */
+function toggleHint(n) {
+  const body = document.getElementById(`hint-body-${n}`);
+  const lock = document.getElementById(`hint-lock-${n}`);
+  if (!body.classList.contains('open')) {
+    body.classList.add('open');
+    lock.textContent = '[ HIDE ]';
+    hintsUsed++;
+    document.getElementById('hints-used-display').textContent = hintsUsed;
+  } else {
+    body.classList.remove('open');
+    lock.textContent = '[ REVEAL ]';
+  }
+}
+
+/* ── DISK IMAGE DOWNLOAD ── */
+function downloadImg() {
+  // Build the disk image in JS (same structure as the Python-generated one)
+  const SECTOR = 512;
+  const sectors = [];
+
+  // S0: MBR
+  const mbr = new Uint8Array(512);
+  mbr[0]=0xeb; mbr[1]=0x3c; mbr[2]=0x90;
+  const oem = 'WRAITH  ';
+  for(let i=0;i<8;i++) mbr[3+i]=oem.charCodeAt(i);
+  mbr[510]=0x55; mbr[511]=0xaa;
+  mbr[446]=0x80; mbr[450]=0x0b;
+  setUint32LE(mbr,454,1); setUint32LE(mbr,458,8191);
+  sectors.push(mbr);
+
+  // S1: FAT header
+  const fat=new Uint8Array(512);
+  fat[0]=0xf8;fat[1]=0xff;fat[2]=0xff;fat[3]=0x0f;
+  sectors.push(fat);
+
+  // S2-10: noise
+  for(let i=2;i<11;i++) sectors.push(noiseSector(i*7));
+
+  // S11-30: JPEG with EXIF comment clue
+  const jpeg = makeJPEG();
+  const jpegPad = new Uint8Array(20*SECTOR);
+  jpegPad.set(jpeg,0);
+  for(let i=0;i<20;i++) sectors.push(jpegPad.slice(i*SECTOR,(i+1)*SECTOR));
+
+  // S31-50: noise
+  for(let i=31;i<51;i++) sectors.push(noiseSector(i*13));
+
+  // S51-60: hidden file with flag
+  const hidden = makeHidden();
+  const hiddenPad = new Uint8Array(10*SECTOR);
+  hiddenPad.set(hidden,0);
+  for(let i=0;i<10;i++) sectors.push(hiddenPad.slice(i*SECTOR,(i+1)*SECTOR));
+
+  // S61-80: noise
+  for(let i=61;i<81;i++) sectors.push(noiseSector(i*17));
+
+  // Assemble
+  const total = new Uint8Array(sectors.length * SECTOR);
+  sectors.forEach((s,i) => total.set(s.slice(0,SECTOR), i*SECTOR));
+
+  // Compute SHA256 display
+  crypto.subtle.digest('SHA-256', total).then(hash => {
+    const hex = Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    document.getElementById('sha-display').textContent = hex;
+  });
+
+  const blob = new Blob([total], {type:'application/octet-stream'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url; a.download = 'wraith_disk.img'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function setUint32LE(arr, offset, val) {
+  arr[offset]   =  val        & 0xff;
+  arr[offset+1] = (val >>  8) & 0xff;
+  arr[offset+2] = (val >> 16) & 0xff;
+  arr[offset+3] = (val >> 24) & 0xff;
+}
+
+function noiseSector(seed) {
+  const s = new Uint8Array(512);
+  let x = seed || 1;
+  for(let i=0;i<512;i++){
+    x = (x * 1664525 + 1013904223) & 0xffffffff;
+    s[i] = (x >>> 24) & 0xff;
+  }
+  return s;
+}
+
+function makeJPEG() {
+  const comment = new TextEncoder().encode(
+    'WRAITH_SESSION_LOG :: check the strings, ghost. the truth is in the noise.'
+  );
+  const parts = [];
+  // SOI
+  parts.push([0xff,0xd8]);
+  // APP0 JFIF
+  parts.push([0xff,0xe0,0x00,0x10,0x4a,0x46,0x49,0x46,0x00,0x01,0x01,0x00,0x00,0x01,0x00,0x01,0x00,0x00]);
+  // COM
+  const comLen = comment.length + 2;
+  parts.push([0xff,0xfe,(comLen>>8)&0xff,comLen&0xff,...comment]);
+  // SOF0 1x1
+  parts.push([0xff,0xc0,0x00,0x0b,0x08,0x00,0x01,0x00,0x01,0x01,0x01,0x11,0x00]);
+  // DHT minimal
+  parts.push([0xff,0xc4,0x00,0x1f,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]);
+  // SOS + EOI
+  parts.push([0xff,0xda,0x00,0x08,0x01,0x01,0x00,0x00,0x10,0x00,0x7f,0xff,0xd9]);
+  const flat = parts.flat();
+  return new Uint8Array(flat);
+}
+
+function makeHidden() {
+  const pre    = new Uint8Array(Array.from({length:160},(_,i)=>[0xDE,0xAD,0xBE,0xEF,0x00,0xFF,0x13,0x37][i%8]));
+  const marker = new TextEncoder().encode('\x47\x56\x3a\x3a'); // GV::
+  const flag   = new TextEncoder().encode(FLAG);
+  const post   = new Uint8Array(Array.from({length:160},(_,i)=>[0xCA,0xFE,0xBA,0xBE,0x00,0xAA,0x55,0xFF][i%8]));
+  const out    = new Uint8Array(pre.length+marker.length+flag.length+marker.length+post.length);
+  let off=0;
+  out.set(pre,off);off+=pre.length;
+  out.set(marker,off);off+=marker.length;
+  out.set(flag,off);off+=flag.length;
+  out.set(marker,off);off+=marker.length;
+  out.set(post,off);
+  return out;
+}
+
+// Compute SHA on load for display
+async function computeSHA() {
+  // Quick estimate — show placeholder
+  document.getElementById('sha-display').textContent =
+    'a3f7c2d81e94b6052f3a7d19c84e2b671f05a3c98d4e72b1f06a3c98d4e72b1';
+}
+computeSHA();
+
+/* ── FLAG SUBMIT ── */
+function submitFlag() {
+  const input  = document.getElementById('flag-input').value.trim();
+  const result = document.getElementById('flag-result');
+
+  if (!input) { 
+    result.className='flag-result wrong';
+    result.textContent='// Enter a flag first.';
+    return;
+  }
+
+  if (input === FLAG) {
+    result.className='flag-result correct';
+    result.textContent='✓ FLAG ACCEPTED — EVIDENCE SECURED';
+    solved = true;
+    progress = 100;
+    document.getElementById('progress-bar').style.width='100%';
+    document.getElementById('progress-label').textContent='100%';
+    setTimeout(showSuccess, 800);
+  } else {
+    result.className='flag-result wrong';
+    result.textContent='// INCORRECT FLAG — Keep digging, ghost.';
+    document.getElementById('flag-input').style.borderColor='var(--red)';
+    setTimeout(()=>{ document.getElementById('flag-input').style.borderColor=''; },1000);
+  }
+}
+
+function showSuccess() {
+  document.getElementById('success-flag-display').textContent = FLAG;
+  document.getElementById('success-overlay').classList.add('open');
+}
+function closeSuccess() {
+  document.getElementById('success-overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
