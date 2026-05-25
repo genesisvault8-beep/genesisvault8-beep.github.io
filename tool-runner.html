@@ -252,6 +252,18 @@ function renderRunner() {
       <div class="section-title">// RUNNING IN VAULT LABS</div>
       <div id="iframe-container"><!-- injected --></div>
     </div>
+
+    <!-- COPY CODE (Scripts via Termux) -->
+    <div id="mode-copy" style="display:none;animation:fadeIn 0.4s ease;">
+      <div class="section-title">// COPY & RUN ON TERMUX</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span id="copy-lang-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;padding:2px 10px;letter-spacing:1px;border:1px solid var(--accent2);color:var(--accent2);">SCRIPT</span>
+        <span id="copy-line-count" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);"></span>
+      </div>
+      <pre id="copy-code-block" style="background:#020c0f;border:1px solid var(--border);color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;padding:16px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;line-height:1.7;margin-bottom:12px;"></pre>
+      <button id="btn-copy-code" onclick="copyScriptCode()" style="width:100%;padding:14px;background:var(--accent);color:var(--bg);border:none;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;letter-spacing:3px;cursor:pointer;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);margin-bottom:10px;">[ COPY CODE ]</button>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:1px;">// Open Termux → paste the code → run with Python / Bash / Node</div>
+    </div>
   `;
 
   // Dispatch to correct mode
@@ -259,12 +271,15 @@ function renderRunner() {
     initSecurityMode();
   } else if (rt === 'ai') {
     initAIMode();
-  } else if (rt === 'download' || type === 'scripts' || type === 'templates') {
+  } else if (type === 'scripts' && tool.script_code) {
+    initCopyMode();
+  } else if (rt === 'download' || type === 'templates') {
     initDownloadMode();
+  } else if ((type === 'apps' || type === 'kits') && tool.html_content) {
+    initAppMode();
   } else if (type === 'apps' || tool.content_url) {
     initAppMode();
   } else {
-    // Fallback: show all available options
     initFallback();
   }
 }
@@ -469,14 +484,66 @@ async function doDownload() {
   btn.disabled = false;
 }
 
+/* ── COPY CODE MODE (Scripts → Termux) ── */
+function initCopyMode() {
+  document.getElementById('mode-copy').style.display = 'block';
+  const code  = tool.script_code || '';
+  const lines = code.split('\n').length;
+  const langMap = { '.py':'Python', '.sh':'Bash', '.js':'JavaScript', '.txt':'Text' };
+  const lang  = langMap[tool.file_type] || 'Script';
+  document.getElementById('copy-code-block').textContent = code;
+  document.getElementById('copy-lang-badge').textContent = lang.toUpperCase();
+  document.getElementById('copy-line-count').textContent = lines + ' line' + (lines !== 1 ? 's' : '');
+}
+
+function copyScriptCode() {
+  const code = document.getElementById('copy-code-block').textContent;
+  const btn  = document.getElementById('btn-copy-code');
+  const doCopy = () => {
+    btn.textContent = '[ COPIED ✓ ]';
+    btn.style.background = 'white';
+    setTimeout(() => { btn.textContent = '[ COPY CODE ]'; btn.style.background = 'var(--accent)'; }, 2200);
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(doCopy).catch(() => fallbackCopy(code, doCopy));
+  } else {
+    fallbackCopy(code, doCopy);
+  }
+}
+
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  cb();
+}
+
 /* ── APP / IFRAME MODE ── */
 function initAppMode() {
   document.getElementById('mode-app').style.display = 'block';
   const container = document.getElementById('iframe-container');
-  if (tool.content_url) {
+
+  // If we have embedded HTML — write directly into iframe (no external URL needed)
+  if (tool.html_content) {
     container.innerHTML = `
       <div class="iframe-toolbar">
-        <span class="iframe-url">// ${esc(tool.content_url)}</span>
+        <span class="iframe-url">// VAULT LABS · SANDBOXED</span>
+      </div>
+      <iframe id="app-iframe" class="iframe-sandbox"
+        sandbox="allow-scripts allow-forms allow-modals"
+        title="${esc(tool.title)}">
+      </iframe>`;
+    const iframe = document.getElementById('app-iframe');
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(tool.html_content); doc.close();
+
+  // Legacy: external URL
+  } else if (tool.content_url) {
+    container.innerHTML = `
+      <div class="iframe-toolbar">
+        <span class="iframe-url">// VAULT LABS · EXTERNAL</span>
         <button class="btn-copy" onclick="window.open('${esc(tool.content_url)}','_blank')">OPEN FULL</button>
       </div>
       <iframe class="iframe-sandbox"
@@ -488,8 +555,8 @@ function initAppMode() {
   } else {
     container.innerHTML = `
       <div class="iframe-placeholder">
-        <p>// App content URL not configured yet.</p>
-        <p>// Admin needs to set the content_url for this tool.</p>
+        <p>// App content not configured yet.</p>
+        <p>// Admin needs to add HTML content for this tool.</p>
       </div>`;
   }
 }
