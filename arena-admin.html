@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis Vault | Arena Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #020608;
+    --bg2:      #060d10;
+    --bg3:      #0a1520;
+    --accent:   #00f5c4;
+    --accent2:  #00a8ff;
+    --accent3:  #ff003c;
+    --text:     #c8e6f0;
+    --text-dim: #4a7a8a;
+    --border:   #0f2a35;
+    --glow:     0 0 20px rgba(0,245,196,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:'Rajdhani',sans-serif; min-height:100vh;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.02) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,245,196,0.02) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none; z-index:0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position:fixed; top:0; left:0; right:0;
+    background:rgba(2,6,8,0.95); border-bottom:1px solid var(--border);
+    padding:0 20px; height:56px; display:flex; align-items:center;
+    justify-content:space-between; z-index:100; backdrop-filter:blur(10px);
+  }
+  .nav-logo {
+    font-family:'Share Tech Mono',monospace;
+    font-size:1rem; letter-spacing:4px;
+  }
+  .nav-logo .g { color:var(--accent); text-shadow:0 0 8px rgba(0,245,196,0.8); }
+  .nav-logo .v { color:white; }
+  .nav-right { display:flex; align-items:center; gap:12px; }
+  .admin-badge {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    letter-spacing:2px; color:var(--accent3);
+    border:1px solid var(--accent3); padding:3px 10px;
+  }
+  .back-btn {
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    letter-spacing:2px; color:var(--text-dim);
+    border:1px solid var(--border); padding:5px 12px;
+    background:none; cursor:pointer; transition:all 0.2s;
+    text-decoration:none; display:inline-block;
+  }
+  .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* ── LAYOUT ── */
+  main { padding:76px 20px 40px; position:relative; z-index:1; max-width:900px; margin:0 auto; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    background:var(--bg2); border:1px solid var(--border);
+    border-left:3px solid var(--accent3); padding:16px 20px;
+    margin-bottom:24px; display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .page-header h1 {
+    font-family:'Share Tech Mono',monospace; font-size:1rem;
+    letter-spacing:4px; color:white;
+  }
+  .page-header h1 span { color:var(--accent3); }
+  .page-header p {
+    font-size:0.72rem; color:var(--text-dim);
+    letter-spacing:1px; margin-top:3px;
+    font-family:'Share Tech Mono',monospace;
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:10px; margin-bottom:24px;
+  }
+  .stat-box {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:14px 12px; text-align:center; position:relative; overflow:hidden;
+  }
+  .stat-box::before {
+    content:''; position:absolute; top:0; left:0;
+    width:100%; height:2px; background:var(--accent2);
+  }
+  .stat-box.red::before { background:var(--accent3); }
+  .stat-box.green::before { background:var(--accent); }
+  .stat-box.yellow::before { background:#f0c040; }
+  .stat-val {
+    font-family:'Share Tech Mono',monospace; font-size:1.6rem;
+    color:var(--accent); display:block;
+  }
+  .stat-val.red { color:var(--accent3); }
+  .stat-val.yellow { color:#f0c040; }
+  .stat-lbl {
+    font-size:0.6rem; letter-spacing:2px; color:var(--text-dim);
+    text-transform:uppercase; margin-top:3px; display:block;
+  }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    color:var(--accent); letter-spacing:3px; text-transform:uppercase;
+    margin-bottom:12px; border-bottom:1px solid var(--border);
+    padding-bottom:8px; display:flex; align-items:center;
+    justify-content:space-between;
+  }
+
+  /* ── FORM PANEL ── */
+  .form-panel {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:20px; margin-bottom:24px;
+  }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  label {
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    letter-spacing:2px; color:var(--text-dim); text-transform:uppercase;
+  }
+  input, select, textarea {
+    background:var(--bg); border:1px solid var(--border);
+    color:var(--text); padding:10px 14px;
+    font-family:'Share Tech Mono',monospace; font-size:0.82rem;
+    outline:none; transition:border-color 0.2s; width:100%;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+  input::placeholder, textarea::placeholder { color:var(--text-dim); }
+  select option { background:var(--bg); }
+  textarea { resize:vertical; min-height:70px; }
+
+  /* Mode selector */
+  .mode-selector { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .mode-opt {
+    border:1px solid var(--border); padding:10px 8px;
+    text-align:center; cursor:pointer; transition:all 0.2s;
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    letter-spacing:1px; color:var(--text-dim); background:var(--bg);
+  }
+  .mode-opt:hover { border-color:var(--accent2); color:var(--accent2); }
+  .mode-opt.active { border-color:var(--accent); color:var(--accent); background:rgba(0,245,196,0.05); }
+  .mode-opt .mode-emoji { font-size:1.2rem; display:block; margin-bottom:4px; }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background:var(--accent); color:var(--bg); border:none;
+    padding:12px 28px; font-family:'Rajdhani',sans-serif;
+    font-weight:700; font-size:0.9rem; letter-spacing:3px;
+    cursor:pointer; transition:all 0.2s; text-transform:uppercase;
+  }
+  .btn-primary:hover { background:white; }
+  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-danger {
+    background:none; color:var(--accent3); border:1px solid var(--accent3);
+    padding:8px 16px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-danger:hover { background:var(--accent3); color:var(--bg); }
+  .btn-secondary {
+    background:none; color:var(--accent2); border:1px solid var(--accent2);
+    padding:8px 16px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-secondary:hover { background:var(--accent2); color:var(--bg); }
+  .btn-sm {
+    padding:5px 12px; font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; letter-spacing:1px; cursor:pointer;
+    border:1px solid var(--border); background:none;
+    color:var(--text-dim); transition:all 0.2s;
+  }
+  .btn-sm:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-sm.end { border-color:rgba(255,0,60,0.4); color:var(--accent3); }
+  .btn-sm.end:hover { background:var(--accent3); color:var(--bg); }
+
+  /* ── MATCH LIST ── */
+  .match-item {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:14px 16px; margin-bottom:8px; transition:border-color 0.2s;
+    animation:fadeIn 0.3s ease;
+  }
+  .match-item:hover { border-color:rgba(0,245,196,0.2); }
+  .match-top {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:8px; margin-bottom:10px;
+  }
+  .match-id {
+    font-family:'Share Tech Mono',monospace; font-size:0.7rem;
+    color:var(--text-dim); letter-spacing:1px;
+  }
+  .match-mode {
+    font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+    letter-spacing:2px; padding:3px 10px; border:1px solid;
+  }
+  .match-mode.hvh { color:var(--accent3); border-color:rgba(255,0,60,0.4); }
+  .match-mode.aih { color:var(--accent); border-color:rgba(0,245,196,0.4); }
+  .match-mode.aia { color:var(--accent2); border-color:rgba(0,168,255,0.4); }
+  .match-status {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    letter-spacing:2px; display:flex; align-items:center; gap:5px;
+  }
+  .status-dot {
+    width:6px; height:6px; border-radius:50%;
+    display:inline-block;
+  }
+  .status-dot.live { background:var(--accent3); animation:pulse 1s infinite; box-shadow:0 0 6px var(--accent3); }
+  .status-dot.waiting { background:#f0c040; animation:pulse 1.5s infinite; }
+  .status-dot.ended { background:var(--text-dim); }
+  .match-info {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:8px; font-size:0.72rem;
+  }
+  .match-info-item { display:flex; flex-direction:column; gap:2px; }
+  .match-info-item .lbl {
+    font-family:'Share Tech Mono',monospace; font-size:0.58rem;
+    color:var(--text-dim); letter-spacing:1px; text-transform:uppercase;
+  }
+  .match-info-item .val { color:var(--text); font-weight:600; letter-spacing:1px; }
+  .match-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+
+  /* ── PLAYERS TABLE ── */
+  .players-table { width:100%; border-collapse:collapse; }
+  .players-table th {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    letter-spacing:2px; color:var(--text-dim); text-align:left;
+    padding:8px 12px; border-bottom:1px solid var(--border);
+    background:rgba(0,245,196,0.02); text-transform:uppercase;
+  }
+  .players-table td {
+    padding:10px 12px; font-size:0.8rem; border-bottom:1px solid var(--border);
+    transition:background 0.15s;
+  }
+  .players-table tr:last-child td { border-bottom:none; }
+  .players-table tr:hover td { background:rgba(0,245,196,0.02); }
+  .player-name-cell {
+    font-family:'Share Tech Mono',monospace; color:var(--accent); font-size:0.78rem;
+  }
+  .rank-cell {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    color:var(--accent2); border:1px solid rgba(0,168,255,0.3);
+    padding:1px 6px; display:inline-block;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+    background:var(--bg2); border:1px solid var(--accent);
+    color:var(--accent); padding:8px 20px;
+    font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    letter-spacing:1px; z-index:999; pointer-events:none;
+    animation:fadeIn 0.3s ease; white-space:nowrap;
+  }
+  .toast.err { border-color:var(--accent3); color:var(--accent3); }
+
+  /* ── MODAL ── */
+  .modal {
+    display:none; position:fixed; inset:0;
+    background:rgba(2,6,8,0.97); z-index:200;
+    padding:20px; overflow-y:auto; align-items:flex-start;
+    justify-content:center;
+  }
+  .modal.active { display:flex; }
+  .modal-box {
+    background:var(--bg2); border:1px solid var(--accent);
+    padding:24px; max-width:500px; width:100%; margin-top:60px;
+    box-shadow:var(--glow);
+  }
+  .modal-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border);
+  }
+  .modal-header h3 {
+    font-family:'Share Tech Mono',monospace; font-size:0.85rem;
+    letter-spacing:3px; color:var(--accent);
+  }
+  .close-btn {
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    width:30px; height:30px; cursor:pointer; font-size:1rem; transition:all 0.2s;
+  }
+  .close-btn:hover { border-color:var(--accent3); color:var(--accent3); }
+
+  /* ── TABS ── */
+  .tabs {
+    display:flex; gap:0; border-bottom:1px solid var(--border);
+    margin-bottom:20px; overflow-x:auto;
+  }
+  .tab {
+    padding:8px 18px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; letter-spacing:2px; color:var(--text-dim);
+    cursor:pointer; border-bottom:2px solid transparent;
+    white-space:nowrap; transition:all 0.2s; background:none; border-top:none;
+    border-left:none; border-right:none;
+  }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab:hover { color:var(--text); }
+
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    padding:30px; text-align:center;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; color:var(--text-dim); letter-spacing:2px;
+    border:1px dashed var(--border);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── SCANLINE ── */
+  .scanline {
+    position:fixed; inset:0; pointer-events:none; z-index:999;
+    background:repeating-linear-gradient(
+      to bottom, transparent 0px, transparent 3px,
+      rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+    );
+  }
+
+  @media(max-width:600px) {
+    .stats-row { grid-template-columns:1fr 1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .match-info { grid-template-columns:1fr 1fr; }
+    .mode-selector { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </div>
+  <div class="nav-right">
+    <span class="admin-badge">⬡ ADMIN</span>
+    <a href="vault-arena.html" class="back-btn">← ARENA</a>
+    <a href="dashboard.html" class="back-btn">← DASH</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>ARENA <span>ADMIN</span></h1>
+      <p>// VAULT ARENA CONTROL PANEL — MANAGE MATCHES & PLAYERS</p>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;" id="clock">--:--:--</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-box green">
+      <span class="stat-val" id="s-live">0</span>
+      <span class="stat-lbl">Live Matches</span>
+    </div>
+    <div class="stat-box yellow">
+      <span class="stat-val yellow" id="s-waiting">0</span>
+      <span class="stat-lbl">Waiting</span>
+    </div>
+    <div class="stat-box red">
+      <span class="stat-val red" id="s-ended">0</span>
+      <span class="stat-lbl">Ended Today</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-val" id="s-players">0</span>
+      <span class="stat-lbl">Active Players</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('create')">// CREATE MATCH</button>
+    <button class="tab" onclick="switchTab('matches')">// MANAGE MATCHES</button>
+    <button class="tab" onclick="switchTab('players')">// PLAYERS</button>
+  </div>
+
+  <!-- TAB: CREATE MATCH -->
+  <div class="tab-content active" id="tab-create">
+    <div class="section-title">// NEW MATCH CONFIGURATION</div>
+
+    <div class="form-panel">
+      <div class="form-grid">
+
+        <!-- Mode -->
+        <div class="form-group full">
+          <label>Match Mode</label>
+          <div class="mode-selector">
+            <div class="mode-opt active" onclick="selectMode(this,'aih')" data-mode="aih">
+              <span class="mode-emoji">🤖</span>
+              AI VS HUMAN
+            </div>
+            <div class="mode-opt" onclick="selectMode(this,'hvh')" data-mode="hvh">
+              <span class="mode-emoji">⚔️</span>
+              HUMAN VS HUMAN
+            </div>
+            <div class="mode-opt" onclick="selectMode(this,'aia')" data-mode="aia">
+              <span class="mode-emoji">👁️</span>
+              AI VS AI
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Scenario -->
+        <div class="form-group">
+          <label>Target Scenario</label>
+          <select id="f-target">
+            <option value="sqli_01">SQLi Showdown — Login Bypass</option>
+            <option value="xss_01">XSS Domination — Stored Payload</option>
+            <option value="idor_01">IDOR Breach — Account Takeover</option>
+            <option value="jwt_01">Auth Bypass — JWT Crack</option>
+            <option value="lfi_01">LFI Hunt — Path Traversal</option>
+          </select>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select id="f-difficulty">
+            <option value="easy">EASY — Hints enabled</option>
+            <option value="medium" selected>MEDIUM — Limited hints</option>
+            <option value="hard">HARD — No hints. No mercy.</option>
+          </select>
+        </div>
+
+        <!-- Timer -->
+        <div class="form-group">
+          <label>Match Timer (minutes)</label>
+          <input type="number" id="f-timer" value="10" min="2" max="60" placeholder="10">
+        </div>
+
+        <!-- Max Players -->
+        <div class="form-group">
+          <label>Max Spectators</label>
+          <input type="number" id="f-spectators" value="50" min="0" max="500" placeholder="50">
+        </div>
+
+        <!-- VC Reward -->
+        <div class="form-group">
+          <label>VC Reward (winner)</label>
+          <input type="number" id="f-vc" value="100" min="0" placeholder="100">
+        </div>
+
+        <!-- VC Entry Fee -->
+        <div class="form-group">
+          <label>Entry Fee (VC) — 0 = free</label>
+          <input type="number" id="f-fee" value="0" min="0" placeholder="0">
+        </div>
+
+        <!-- Match Title -->
+        <div class="form-group full">
+          <label>Match Title (optional)</label>
+          <input type="text" id="f-title" placeholder="e.g. FRIDAY NIGHT WARS — SQLi Edition">
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group full">
+          <label>Admin Notes (internal)</label>
+          <textarea id="f-notes" placeholder="Optional notes visible only to admins..."></textarea>
+        </div>
+
+      </div>
+
+      <!-- Submit -->
+      <div style="margin-top:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <button class="btn-primary" id="create-btn" onclick="createMatch()">[ POST MATCH TO ARENA ]</button>
+        <button class="btn-secondary" onclick="resetForm()">[ RESET ]</button>
+        <span id="create-status" style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:1px;"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: MANAGE MATCHES -->
+  <div class="tab-content" id="tab-matches">
+    <div class="section-title">
+      // ACTIVE & RECENT MATCHES
+      <button class="btn-sm" onclick="loadMatches()">↻ REFRESH</button>
+    </div>
+    <div id="matches-list">
+      <div class="empty">// No matches yet. Create one above.</div>
+    </div>
+  </div>
+
+  <!-- TAB: PLAYERS -->
+  <div class="tab-content" id="tab-players">
+    <div class="section-title">
+      // ARENA PLAYERS
+      <button class="btn-sm" onclick="loadPlayers()">↻ REFRESH</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input type="text" id="player-search" placeholder="Search by username..." style="max-width:300px;" oninput="filterPlayers(this.value)">
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);overflow:hidden;">
+      <table class="players-table">
+        <thead>
+          <tr>
+            <th>PLAYER</th>
+            <th>RANK</th>
+            <th>WINS</th>
+            <th>LOSSES</th>
+            <th>VC EARNED</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="players-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:24px;font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--text-dim);">// Loading players...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- AWARD VC MODAL -->
+<div class="modal" id="vc-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>// AWARD VC</h3>
+      <button class="close-btn" onclick="closeModal('vc-modal')">✕</button>
+    </div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>Player</label>
+      <input type="text" id="vc-player" readonly style="color:var(--accent);">
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Amount (VC)</label>
+      <input type="number" id="vc-amount" value="50" min="1">
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Reason</label>
+      <input type="text" id="vc-reason" placeholder="e.g. Match winner bonus">
+    </div>
+    <button class="btn-primary" onclick="awardVC()">[ AWARD VC ]</button>
+  </div>
+</div>
+
+<!-- END MATCH MODAL -->
+<div class="modal" id="end-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>// END MATCH</h3>
+      <button class="close-btn" onclick="closeModal('end-modal')">✕</button>
+    </div>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:16px;">
+      // Select the winner to award VC and close the match.
+    </p>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Match Winner</label>
+      <select id="end-winner">
+        <option value="attacker">ATTACKER</option>
+        <option value="defender">DEFENDER</option>
+        <option value="draw">DRAW — No winner</option>
+      </select>
+    </div>
+    <input type="hidden" id="end-match-id">
+    <button class="btn-primary" style="background:var(--accent3);" onclick="endMatch()">[ END MATCH & AWARD VC ]</button>
+  </div>
+</div>
+
+<script>
+  /* ── CONFIG ── */
+  const API = 'https://genesis-ai-backend.onrender.com';
+
+  /* ── HELPERS ── */
+  function getToken() { return localStorage.getItem('gv_token') || ''; }
+  function fetchAuth(url, opts={}) {
+    return fetch(url, {
+      ...opts,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+        ...(opts.headers||{})
+      }
+    });
+  }
+  function toast(msg, err=false) {
+    const t = document.createElement('div');
+    t.className = 'toast' + (err ? ' err' : '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+  /* ── CLOCK ── */
+  function updateClock() {
+    document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
+  }
+  setInterval(updateClock, 1000); updateClock();
+
+  /* ── TABS ── */
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    if (name === 'matches') loadMatches();
+    if (name === 'players') loadPlayers();
+  }
+
+  /* ── MODE SELECT ── */
+  let selectedMode = 'aih';
+  function selectMode(el, mode) {
+    document.querySelectorAll('.mode-opt').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    selectedMode = mode;
+  }
+
+  /* ── CREATE MATCH ── */
+  async function createMatch() {
+    const btn = document.getElementById('create-btn');
+    const status = document.getElementById('create-status');
+    const title = document.getElementById('f-title').value.trim();
+    const target = document.getElementById('f-target').value;
+    const difficulty = document.getElementById('f-difficulty').value;
+    const timer = parseInt(document.getElementById('f-timer').value) || 10;
+    const spectators = parseInt(document.getElementById('f-spectators').value) || 50;
+    const vc = parseInt(document.getElementById('f-vc').value) || 100;
+    const fee = parseInt(document.getElementById('f-fee').value) || 0;
+    const notes = document.getElementById('f-notes').value.trim();
+
+    btn.disabled = true;
+    btn.textContent = '[ POSTING... ]';
+    status.textContent = '// Connecting to backend...';
+
+    const payload = {
+      mode: selectedMode,
+      target,
+      difficulty,
+      timer_minutes: timer,
+      max_spectators: spectators,
+      vc_reward: vc,
+      entry_fee: fee,
+      title: title || null,
+      notes: notes || null,
+      status: 'waiting'
+    };
+
+    try {
+      const res = await fetchAuth(`${API}/arena/matches`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast('// Match posted to arena!');
+        status.textContent = `// Match ID: ${data.match_id || data.id || '—'}`;
+        status.style.color = 'var(--accent)';
+        updateStats(1, 0, 0, 0);
+      } else {
+        throw new Error(data.error || data.message || 'Failed');
+      }
+    } catch(e) {
+      toast('// ' + e.message, true);
+      status.textContent = '// Error: ' + e.message;
+      status.style.color = 'var(--accent3)';
+    }
+    btn.disabled = false;
+    btn.textContent = '[ POST MATCH TO ARENA ]';
+  }
+
+  /* ── RESET FORM ── */
+  function resetForm() {
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-notes').value = '';
+    document.getElementById('f-timer').value = '10';
+    document.getElementById('f-vc').value = '100';
+    document.getElementById('f-fee').value = '0';
+    document.getElementById('create-status').textContent = '';
+    document.querySelectorAll('.mode-opt').forEach(o => o.classList.remove('active'));
+    document.querySelector('.mode-opt').classList.add('active');
+    selectedMode = 'aih';
+    toast('// Form reset.');
+  }
+
+  /* ── LOAD MATCHES ── */
+  async function loadMatches() {
+    const container = document.getElementById('matches-list');
+    container.innerHTML = '<div class="empty">// Loading matches...</div>';
+    try {
+      const res = await fetchAuth(`${API}/arena/matches?admin=1`);
+      const data = await res.json();
+      const matches = data.matches || data || [];
+      if (!matches.length) {
+        container.innerHTML = '<div class="empty">// No matches found.</div>';
+        return;
+      }
+      container.innerHTML = matches.map(m => buildMatchCard(m)).join('');
+      updateStats(
+        matches.filter(m=>m.status==='live').length,
+        matches.filter(m=>m.status==='waiting').length,
+        matches.filter(m=>m.status==='ended').length,
+        0
+      );
+    } catch(e) {
+      container.innerHTML = `<div class="empty">// Failed to load: ${e.message}</div>`;
+    }
+  }
+
+  function buildMatchCard(m) {
+    const modeLabel = { hvh:'HUMAN VS HUMAN', aih:'AI VS HUMAN', aia:'AI VS AI' }[m.mode] || m.mode;
+    const modeClass = m.mode || 'aih';
+    const statusDot = m.status === 'live' ? 'live' : m.status === 'waiting' ? 'waiting' : 'ended';
+    const id = m.match_id || m.id || '—';
+    return `
+    <div class="match-item">
+      <div class="match-top">
+        <div>
+          <span class="match-mode ${modeClass}">${modeLabel}</span>
+          <span class="match-id" style="margin-left:10px;">#${id}</span>
+        </div>
+        <div class="match-status">
+          <span class="status-dot ${statusDot}"></span>
+          ${(m.status||'unknown').toUpperCase()}
+        </div>
+      </div>
+      <div class="match-info">
+        <div class="match-info-item">
+          <span class="lbl">Target</span>
+          <span class="val">${m.target||'—'}</span>
+        </div>
+        <div class="match-info-item">
+          <span class="lbl">Difficulty</span>
+          <span class="val">${(m.difficulty||'—').toUpperCase()}</span>
+        </div>
+        <div class="match-info-item">
+          <span class="lbl">Timer</span>
+          <span class="val">${m.timer_minutes||'—'} MIN</span>
+        </div>
+        <div class="match-info-item">
+          <span class="lbl">VC Reward</span>
+          <span class="val" style="color:var(--accent);">${m.vc_reward||0} VC</span>
+        </div>
+      </div>
+      <div class="match-actions">
+        <button class="btn-sm" onclick="copyMatchId('${id}')">COPY ID</button>
+        <button class="btn-sm" onclick="openEndModal('${id}')">END MATCH</button>
+        <button class="btn-sm end" onclick="deleteMatch('${id}')">DELETE</button>
+      </div>
+    </div>`;
+  }
+
+  function copyMatchId(id) {
+    navigator.clipboard.writeText(id).then(() => toast('// Match ID copied!'));
+  }
+
+  function openEndModal(matchId) {
+    document.getElementById('end-match-id').value = matchId;
+    document.getElementById('end-modal').classList.add('active');
+  }
+
+  async function endMatch() {
+    const matchId = document.getElementById('end-match-id').value;
+    const winner = document.getElementById('end-winner').value;
+    try {
+      const res = await fetchAuth(`${API}/arena/matches/${matchId}/end`, {
+        method: 'POST',
+        body: JSON.stringify({ winner })
+      });
+      if (res.ok) {
+        toast('// Match ended. VC awarded.');
+        closeModal('end-modal');
+        loadMatches();
+      } else {
+        const d = await res.json();
+        throw new Error(d.error || 'Failed');
+      }
+    } catch(e) {
+      toast('// ' + e.message, true);
+    }
+  }
+
+  async function deleteMatch(matchId) {
+    if (!confirm('Delete this match?')) return;
+    try {
+      const res = await fetchAuth(`${API}/arena/matches/${matchId}`, { method:'DELETE' });
+      if (res.ok) { toast('// Match deleted.'); loadMatches(); }
+      else throw new Error('Delete failed');
+    } catch(e) {
+      toast('// ' + e.message, true);
+    }
+  }
+
+  /* ── LOAD PLAYERS ── */
+  let allPlayers = [];
+  async function loadPlayers() {
+    const tbody = document.getElementById('players-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;font-family:\'Share Tech Mono\',monospace;font-size:0.75rem;color:var(--text-dim);">// Loading...</td></tr>';
+    try {
+      const res = await fetchAuth(`${API}/arena/players`);
+      const data = await res.json();
+      allPlayers = data.players || data || [];
+      renderPlayers(allPlayers);
+      document.getElementById('s-players').textContent = allPlayers.length;
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--text-dim);">// Failed: ${e.message}</td></tr>`;
+    }
+  }
+
+  function renderPlayers(players) {
+    const tbody = document.getElementById('players-tbody');
+    if (!players.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;font-family:\'Share Tech Mono\',monospace;font-size:0.75rem;color:var(--text-dim);">// No players found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = players.map(p => `
+      <tr>
+        <td class="player-name-cell">${p.username||'—'}</td>
+        <td><span class="rank-cell">${p.rank||'GHOST'}</span></td>
+        <td style="color:var(--accent);">${p.wins||0}</td>
+        <td style="color:var(--accent3);">${p.losses||0}</td>
+        <td style="color:#f0c040;">${(p.vc_earned||0).toLocaleString()}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-sm" onclick="openVCModal('${p.username}')">+ VC</button>
+            <button class="btn-sm end" onclick="banPlayer('${p.username}')">BAN</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  function filterPlayers(q) {
+    const filtered = allPlayers.filter(p =>
+      (p.username||'').toLowerCase().includes(q.toLowerCase())
+    );
+    renderPlayers(filtered);
+  }
+
+  function openVCModal(username) {
+    document.getElementById('vc-player').value = username;
+    document.getElementById('vc-modal').classList.add('active');
+  }
+
+  async function awardVC() {
+    const player = document.getElementById('vc-player').value;
+    const amount = parseInt(document.getElementById('vc-amount').value);
+    const reason = document.getElementById('vc-reason').value.trim() || 'Admin grant';
+    try {
+      const res = await fetchAuth(`${API}/vc/grant`, {
+        method: 'POST',
+        body: JSON.stringify({ username: player, amount, reason })
+      });
+      if (res.ok) {
+        toast(`// +${amount} VC awarded to ${player}`);
+        closeModal('vc-modal');
+      } else {
+        const d = await res.json();
+        throw new Error(d.error || 'Failed');
+      }
+    } catch(e) {
+      toast('// ' + e.message, true);
+    }
+  }
+
+  async function banPlayer(username) {
+    if (!confirm(`Ban ${username} from arena?`)) return;
+    try {
+      const res = await fetchAuth(`${API}/arena/players/${username}/ban`, { method:'POST' });
+      if (res.ok) { toast(`// ${username} banned.`); loadPlayers(); }
+      else throw new Error('Ban failed');
+    } catch(e) {
+      toast('// ' + e.message, true);
+    }
+  }
+
+  /* ── STATS ── */
+  function updateStats(live, waiting, ended, players) {
+    if (live !== null) document.getElementById('s-live').textContent = live;
+    if (waiting !== null) document.getElementById('s-waiting').textContent = waiting;
+    if (ended !== null) document.getElementById('s-ended').textContent = ended;
+    if (players !== null && players > 0) document.getElementById('s-players').textContent = players;
+  }
+
+  /* ── INIT ── */
+  // Try load stats on boot
+  (async () => {
+    try {
+      const res = await fetchAuth(`${API}/arena/stats`);
+      if (res.ok) {
+        const d = await res.json();
+        updateStats(d.live||0, d.waiting||0, d.ended_today||0, d.active_players||0);
+      }
+    } catch(e) {}
+  })();
+</script>
+</body>
+</html>
