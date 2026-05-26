@@ -271,13 +271,15 @@ function renderRunner() {
     initSecurityMode();
   } else if (rt === 'ai') {
     initAIMode();
+  } else if (rt === 'iframe' || tool.html_content) {
+    // New flow: all iframe tools (scripts, apps, kits) use html_content
+    initAppMode();
   } else if (type === 'scripts' && tool.script_code) {
+    // Legacy: old scripts with raw script_code field
     initCopyMode();
   } else if (rt === 'download' || type === 'templates') {
     initDownloadMode();
-  } else if ((type === 'apps' || type === 'kits') && tool.html_content) {
-    initAppMode();
-  } else if (type === 'apps' || tool.content_url) {
+  } else if (type === 'apps' || type === 'kits' || tool.content_url) {
     initAppMode();
   } else {
     initFallback();
