@@ -2273,31 +2273,8 @@ function launchOwnedTool(t) {
   const rt   = (t.tool_run_type || '').toLowerCase();
   const type = (t.type || '').toLowerCase();
 
-  // Security / Automation → tool-runner
-  if (rt === 'security' || rt === 'automation') {
-    location.href = `tool-runner.html?tool_id=${t.id}`; return;
-  }
-  // AI tools → tool-runner (AI mode)
-  if (rt === 'ai') {
-    location.href = `tool-runner.html?tool_id=${t.id}`; return;
-  }
-  // Scripts with embedded code → tool-runner (copy mode)
-  if (type === 'scripts' && t.script_code) {
-    location.href = `tool-runner.html?tool_id=${t.id}`; return;
-  }
-  // Scripts without embedded code → download via tool-runner
-  if (type === 'scripts' || type === 'templates' || rt === 'download') {
-    location.href = `tool-runner.html?tool_id=${t.id}`; return;
-  }
-  // Apps/Kits with html_content → tool-runner (iframe mode)
-  if ((type === 'apps' || type === 'kits') && t.html_content) {
-    location.href = `tool-runner.html?tool_id=${t.id}`; return;
-  }
-  // Apps with external URL
-  if (type === 'apps' || t.content_url) {
-    location.href = `tool-runner.html?tool_id=${t.id}`; return;
-  }
-  // Fallback
+  // All tools route to tool-runner — it handles iframe, ai, copy, download modes
+  // iframe run_type covers scripts, apps, kits posted with URL/HTML in new flow
   location.href = `tool-runner.html?tool_id=${t.id}`;
 }
 
