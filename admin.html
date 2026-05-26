@@ -311,159 +311,53 @@
     <div class="section-panel" id="panel-mkt-post">
       <div class="s-title">// POST TO MARKETPLACE</div>
 
-      <!-- STEP 1: PICK TYPE -->
-      <div id="post-step-1">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:14px;">// SELECT PRODUCT TYPE</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-          <div class="post-type-card" onclick="selectPostType('script')" id="ptype-script">
-            <div style="font-size:1.4rem;margin-bottom:6px;">⌨</div>
-            <div class="post-type-name">SCRIPT</div>
-            <div class="post-type-desc">Raw code — runs on Termux (Python, Bash, JS)</div>
-          </div>
-          <div class="post-type-card" onclick="selectPostType('webapp')" id="ptype-webapp">
-            <div style="font-size:1.4rem;margin-bottom:6px;">◈</div>
-            <div class="post-type-name">WEB APP</div>
-            <div class="post-type-desc">Paste HTML — runs inside Vault iframe</div>
-          </div>
-          <div class="post-type-card" onclick="selectPostType('kit')" id="ptype-kit">
-            <div style="font-size:1.4rem;margin-bottom:6px;">📦</div>
-            <div class="post-type-name">TOOL KIT</div>
-            <div class="post-type-desc">Bundled security tools as a web app</div>
-          </div>
-          <div class="post-type-card" onclick="selectPostType('automation')" id="ptype-automation">
-            <div style="font-size:1.4rem;margin-bottom:6px;">⚡</div>
-            <div class="post-type-name">AUTOMATION</div>
-            <div class="post-type-desc">AI-powered bot (email, PDF, hashtags...)</div>
-          </div>
-        </div>
+      <div class="status-msg" id="post-status"></div>
+
+      <!-- THUMBNAIL UPLOAD -->
+      <label>THUMBNAIL <span style="color:var(--text-dim);font-size:0.7rem;">— upload image directly</span></label>
+      <img id="p-thumb-preview" src="" alt="Thumbnail Preview" style="display:none;width:100%;max-height:160px;object-fit:cover;border:1px solid var(--border);margin-bottom:10px;">
+      <div id="p-thumb-upload-area" onclick="document.getElementById('p-thumb-file').click()" style="border:1px dashed var(--border);background:var(--bg2);padding:18px;text-align:center;cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';">
+        <input type="file" id="p-thumb-file" accept="image/*" style="display:none;" onchange="handlePostThumb(event)">
+        <div id="p-thumb-icon" style="font-size:1.4rem;margin-bottom:4px;">🖼</div>
+        <div id="p-thumb-hint" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;">TAP TO UPLOAD THUMBNAIL</div>
+        <div id="p-thumb-change" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);margin-top:4px;display:none;">[ CHANGE IMAGE ]</div>
       </div>
 
-      <!-- STEP 2: FORM (changes based on type) -->
-      <div id="post-step-2" style="display:none;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-          <button onclick="resetPostForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';this.style.color='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)';">← BACK</button>
-          <div id="post-type-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent3);border:1px solid var(--accent3);padding:3px 10px;letter-spacing:2px;"></div>
-        </div>
+      <label>TITLE</label>
+      <input type="text" id="p-title" placeholder="Product name...">
 
-        <div class="status-msg" id="post-status"></div>
+      <label>DESCRIPTION</label>
+      <textarea id="p-desc" rows="3" placeholder="What does it do? Who is it for?"></textarea>
 
-        <!-- THUMBNAIL UPLOAD -->
-        <label>THUMBNAIL <span style="color:var(--text-dim);font-size:0.7rem;">— upload image directly</span></label>
-        <img id="p-thumb-preview" src="" alt="Thumbnail Preview" style="display:none;width:100%;max-height:160px;object-fit:cover;border:1px solid var(--border);margin-bottom:10px;">
-        <div id="p-thumb-upload-area" onclick="document.getElementById('p-thumb-file').click()" style="border:1px dashed var(--border);background:var(--bg2);padding:18px;text-align:center;cursor:pointer;margin-bottom:14px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';">
-          <input type="file" id="p-thumb-file" accept="image/*" style="display:none;" onchange="handlePostThumb(event)">
-          <div id="p-thumb-icon" style="font-size:1.4rem;margin-bottom:4px;">🖼</div>
-          <div id="p-thumb-hint" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:1px;">TAP TO UPLOAD THUMBNAIL</div>
-          <div id="p-thumb-change" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--accent3);margin-top:4px;display:none;">[ CHANGE IMAGE ]</div>
-        </div>
+      <label>PRICE (VC) <span style="color:var(--text-dim);font-size:0.7rem;">— minimum 1 VC</span></label>
+      <input type="number" id="p-vc-price" placeholder="1" min="1" step="1" value="1">
 
-        <!-- COMMON FIELDS -->
-        <label>TITLE</label>
-        <input type="text" id="p-title" placeholder="Product name...">
+      <label>CATEGORY</label>
+      <select id="p-category">
+        <option value="apps">APPS</option>
+        <option value="scripts">SCRIPTS</option>
+        <option value="automation">AUTOMATION</option>
+        <option value="kits">KITS</option>
+        <option value="ai">AI TOOLS</option>
+        <option value="templates">TEMPLATES</option>
+      </select>
 
-        <label>DESCRIPTION</label>
-        <textarea id="p-desc" rows="3" placeholder="What does it do? Who is it for?"></textarea>
+      <div class="divider-line"></div>
+      <label>TOOL URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Pages, Netlify, Vercel, etc.</span></label>
+      <input type="url" id="p-tool-url" placeholder="https://yourname.github.io/tool" style="font-family:'Share Tech Mono',monospace;font-size:0.8rem;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:16px;">// Tool will load inside a sandboxed iframe — members can't access the source.</div>
 
-        <label>PRICE (VC) <span style="color:var(--text-dim);font-size:0.7rem;">— minimum 1 VC</span></label>
-        <input type="number" id="p-vc-price" placeholder="1" min="1" step="1" value="1">
-
-        <!-- SCRIPT FIELDS -->
-        <div id="post-fields-script" style="display:none;">
-          <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// SCRIPT — HOSTED URL</div>
-          <label>LANGUAGE</label>
-          <select id="p-script-filetype">
-            <option value=".py">Python (.py)</option>
-            <option value=".sh">Bash (.sh)</option>
-            <option value=".js">JavaScript (.js)</option>
-            <option value=".txt">Plain Text (.txt)</option>
-          </select>
-          <label>SCRIPT URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Raw, Netlify, Pastebin, etc.</span></label>
-          <input type="url" id="p-script-url" placeholder="https://raw.githubusercontent.com/you/repo/main/script.py" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">// Members get a [ COPY CODE ] button — fetches & copies straight into Termux.</div>
-          <label>OR PASTE CODE DIRECTLY <span style="color:var(--text-dim);font-size:0.7rem;">— leave URL blank if using this</span></label>
-          <textarea id="p-script-html" rows="8" placeholder="<!-- Wrap your script in a simple HTML copy-tool page -->" style="background:#020c0f;color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// Tip: Use a URL for large scripts. Paste HTML for small/simple ones.</div>
-        </div>
-
-        <!-- WEB APP FIELDS -->
-        <div id="post-fields-webapp" style="display:none;">
-          <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// WEB APP — URL OR HTML</div>
-          <label>HOSTED URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Pages, Netlify, Vercel, etc. (leave blank to paste HTML)</span></label>
-          <input type="url" id="p-webapp-url" placeholder="https://yourapp.netlify.app" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;" oninput="toggleWebappInputMode()">
-          <label style="margin-top:8px;">OR PASTE HTML <span style="color:var(--text-dim);font-size:0.7rem;">— leave URL blank</span></label>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
-            <button onclick="previewPostWebApp()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-left:auto;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
-          </div>
-          <textarea id="p-webapp-html" rows="10" oninput="resetPostPreview('webapp')" placeholder="<!DOCTYPE html>
-<html>
-<head>...</head>
-<body>
-  <!-- Your tool UI here -->
-</body>
-</html>" style="background:#020c0f;color:#ffaa00;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
-          <div id="post-preview-empty-webapp" style="display:none;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);text-align:center;padding:16px;border:1px dashed var(--border);">// Paste HTML above then tap PREVIEW to test inside vault.</div>
-          <iframe id="post-iframe-webapp" style="display:none;width:100%;height:220px;border:1px solid var(--accent2);background:#fff;" sandbox="allow-scripts allow-forms"></iframe>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;margin-top:8px;">// App runs in a sandboxed iframe. Members can't see source code.</div>
-        </div>
-
-        <!-- KIT FIELDS -->
-        <div id="post-fields-kit" style="display:none;">
-          <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// TOOL KIT — URL OR HTML</div>
-          <label>HOSTED URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Pages, Netlify, Vercel, etc. (leave blank to paste HTML)</span></label>
-          <input type="url" id="p-kit-url" placeholder="https://yourkit.netlify.app" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;">
-          <label style="margin-top:8px;">OR PASTE HTML <span style="color:var(--text-dim);font-size:0.7rem;">— leave URL blank</span></label>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
-            <button onclick="previewPostKit()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-left:auto;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
-          </div>
-          <textarea id="p-kit-html" rows="10" oninput="resetPostPreview('kit')" placeholder="<!DOCTYPE html>
-<html>
-<!-- Bundled kit tools HTML here -->
-</html>" style="background:#020c0f;color:#ffaa00;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
-          <div id="post-preview-empty-kit" style="display:none;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);text-align:center;padding:16px;border:1px dashed var(--border);">// Paste kit HTML above then tap PREVIEW.</div>
-          <iframe id="post-iframe-kit" style="display:none;width:100%;height:220px;border:1px solid var(--accent2);background:#fff;" sandbox="allow-scripts allow-forms"></iframe>
-          <div style="height:10px;"></div>
-          <label>WHAT'S INCLUDED <span style="color:var(--text-dim);font-size:0.7rem;">— list the tools inside</span></label>
-          <div id="kit-post-items-list"></div>
-          <button class="btn-kit-add" onclick="addKitPostItem()">[ + ADD ITEM ]</button>
-          <div style="height:12px;"></div>
-        </div>
-
-        <!-- AUTOMATION FIELDS -->
-        <div id="post-fields-automation" style="display:none;">
-          <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// AUTOMATION BOT CONFIG</div>
-          <label>BOT TYPE</label>
-          <select id="p-auto-subtype">
-            <option value="email">Email Sender</option>
-            <option value="pdf">PDF Writer</option>
-            <option value="hashtags">Hashtag Generator</option>
-            <option value="trending">Trending Bot</option>
-            <option value="custom">Custom Bot</option>
-          </select>
-          <label>USER INPUT FIELDS <span style="color:var(--text-dim);font-size:0.7rem;">— what the member fills in</span></label>
-          <div id="p-auto-inputs-list"></div>
-          <button class="btn-kit-add" onclick="addAutoPostInput()">[ + ADD INPUT FIELD ]</button>
-          <label>AI SYSTEM PROMPT <span style="color:var(--text-dim);font-size:0.7rem;">— instructions for the AI bot</span></label>
-          <textarea id="p-auto-prompt" rows="6" placeholder="You are a TikTok hashtag expert. The user will give you a niche or topic. Generate 20 trending, relevant hashtags optimized for maximum reach..."></textarea>
-        </div>
-
-        <div class="divider-line"></div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-          <div class="toggle-track" id="toggle-post-featured" onclick="togglePostField('featured')"><div class="toggle-knob"></div></div>
-          <span class="toggle-lbl">MARK AS FEATURED</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-          <div class="toggle-track" id="toggle-post-new" onclick="togglePostField('new')"><div class="toggle-knob"></div></div>
-          <span class="toggle-lbl">SHOW "NEW" BADGE</span>
-        </div>
-
-        <button class="btn-modal-submit" id="btn-post-submit" onclick="submitPost()">[ POST TO MARKETPLACE ]</button>
+      <div class="divider-line"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div class="toggle-track" id="toggle-post-featured" onclick="togglePostField('featured')"><div class="toggle-knob"></div></div>
+        <span class="toggle-lbl">MARK AS FEATURED</span>
       </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <div class="toggle-track" id="toggle-post-new" onclick="togglePostField('new')"><div class="toggle-knob"></div></div>
+        <span class="toggle-lbl">SHOW "NEW" BADGE</span>
+      </div>
+
+      <button class="btn-modal-submit" id="btn-post-submit" onclick="submitPost()">[ POST TO MARKETPLACE ]</button>
     </div>
 
     <div class="section-panel" id="panel-mkt-queue">
@@ -1363,40 +1257,25 @@ async function editCourse(id){const res=await apiFetch(`${API}/courses/${id}`);i
 async function deleteCourse(id,btn){if(!confirm('Permanently delete this course?'))return;btn.disabled=true;btn.textContent='...';try{const res=await apiFetch(`${API}/admin/courses/${id}/delete`,{method:'POST'});if(!res)return;if(res.ok){document.getElementById('course-'+id).remove();toast('// Course deleted.','var(--accent3)');}else{const d=await res.json();toast(`// ${d.message||'Delete failed.'}`,'var(--accent3)');btn.disabled=false;btn.textContent='[ DELETE ]';}}catch(e){toast('// Network error.','var(--accent3)');btn.disabled=false;btn.textContent='[ DELETE ]';}}
 
 // ── QUICK POST FLOW ──────────────────────────────────────────────────
-let currentPostType = null;
 let postToggles = { featured: false, new: false };
-let kitPostItems = [];
-let autoPostInputs = [];
 let postThumbBase64 = null;
 
-function selectPostType(type) {
-  currentPostType = type;
-  document.querySelectorAll('.post-type-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('ptype-' + type).classList.add('selected');
-  const labels = { script:'SCRIPT', webapp:'WEB APP', kit:'TOOL KIT', automation:'AUTOMATION' };
-  document.getElementById('post-type-badge').textContent = '// ' + labels[type];
-  ['script','webapp','kit','automation'].forEach(t => {
-    document.getElementById('post-fields-' + t).style.display = t === type ? 'block' : 'none';
-  });
-  document.getElementById('post-step-1').style.display = 'none';
-  document.getElementById('post-step-2').style.display = 'block';
-  document.getElementById('post-status').style.display = 'none';
-  // Init automation with one input by default
-  if (type === 'automation' && autoPostInputs.length === 0) addAutoPostInput();
+function togglePostField(name) {
+  postToggles[name] = !postToggles[name];
+  document.getElementById('toggle-post-' + name).classList.toggle('on', postToggles[name]);
 }
 
+
 function resetPostForm() {
-  currentPostType = null;
-  kitPostItems = []; autoPostInputs = []; postThumbBase64 = null;
+  postThumbBase64 = null;
   postToggles = { featured: false, new: false };
-  ['p-title','p-desc','p-script-url','p-script-html','p-webapp-url','p-webapp-html','p-kit-url','p-kit-html','p-auto-prompt'].forEach(id => {
+  ['p-title','p-desc','p-tool-url'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
-  document.getElementById('p-vc-price').value = 0;
+  document.getElementById('p-vc-price').value = 1;
+  document.getElementById('p-category').value = 'apps';
   document.getElementById('toggle-post-featured').classList.remove('on');
   document.getElementById('toggle-post-new').classList.remove('on');
-  document.getElementById('kit-post-items-list').innerHTML = '';
-  document.getElementById('p-auto-inputs-list').innerHTML = '';
   // Reset thumbnail
   document.getElementById('p-thumb-preview').style.display = 'none';
   document.getElementById('p-thumb-preview').src = '';
@@ -1405,22 +1284,7 @@ function resetPostForm() {
   document.getElementById('p-thumb-hint').style.display = '';
   document.getElementById('p-thumb-change').style.display = 'none';
   document.getElementById('p-thumb-file').value = '';
-  // Reset previews
-  ['webapp','kit'].forEach(t => {
-    const iframe = document.getElementById('post-iframe-' + t);
-    const empty = document.getElementById('post-preview-empty-' + t);
-    if (iframe) iframe.style.display = 'none';
-    if (empty) empty.style.display = 'none';
-  });
-  document.querySelectorAll('.post-type-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('post-step-1').style.display = 'block';
-  document.getElementById('post-step-2').style.display = 'none';
-  updatePostLineCount();
-}
-
-function togglePostField(name) {
-  postToggles[name] = !postToggles[name];
-  document.getElementById('toggle-post-' + name).classList.toggle('on', postToggles[name]);
+  document.getElementById('post-status').style.display = 'none';
 }
 
 // Thumbnail upload
@@ -1452,77 +1316,7 @@ function handlePostThumb(e) {
   reader.readAsDataURL(file);
 }
 
-// Script code helpers
-function updatePostCodeLang() {
-  const lang = document.getElementById('p-script-filetype').value;
-  const labels = { '.py':'Python', '.sh':'Bash', '.js':'JavaScript', '.txt':'Text' };
-  document.getElementById('p-code-lang-badge').textContent = labels[lang] || 'Code';
-}
-function updatePostLineCount() {
-  const code = ''; // script code removed — using URL-based iframe flow
-  const lines = code ? code.split('\n').length : 0;
-  const el = document.getElementById('p-code-line-count');
-  if (el) el.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
-}
-function clearPostCode() { /* removed — no raw code paste */ }
-
-// Web App / Kit preview
-function previewPostWebApp() {
-  const html = document.getElementById('p-webapp-html').value.trim();
-  showPostPreview('webapp', html);
-}
-function previewPostKit() {
-  const html = document.getElementById('p-kit-html').value.trim();
-  showPostPreview('kit', html);
-}
-function showPostPreview(type, html) {
-  const iframe = document.getElementById('post-iframe-' + type);
-  const empty = document.getElementById('post-preview-empty-' + type);
-  if (!html) { empty.style.display = 'block'; iframe.style.display = 'none'; return; }
-  empty.style.display = 'none'; iframe.style.display = 'block';
-  const doc = iframe.contentDocument || iframe.contentWindow.document;
-  doc.open(); doc.write(html); doc.close();
-}
-function resetPostPreview(type) {
-  document.getElementById('post-iframe-' + type).style.display = 'none';
-  document.getElementById('post-preview-empty-' + type).style.display = 'none';
-}
-
-// Kit items
-function addKitPostItem() { kitPostItems.push(''); renderKitPostItems(); }
-function renderKitPostItems() {
-  document.getElementById('kit-post-items-list').innerHTML = kitPostItems.map((v, i) =>
-    `<div class="kit-item-row">
-      <input type="text" value="${esc(v)}" placeholder="Tool ${i+1} name..." oninput="kitPostItems[${i}]=this.value">
-      <button class="btn-reject" style="padding:6px 10px;font-size:0.65rem;white-space:nowrap;" onclick="kitPostItems.splice(${i},1);renderKitPostItems()">✕</button>
-    </div>`
-  ).join('');
-}
-
-// Automation inputs
-function addAutoPostInput() {
-  autoPostInputs.push({ label: '', placeholder: '' });
-  renderAutoPostInputs();
-}
-function renderAutoPostInputs() {
-  document.getElementById('p-auto-inputs-list').innerHTML = autoPostInputs.map((inp, i) =>
-    `<div style="border:1px solid var(--border);padding:10px;margin-bottom:8px;background:var(--bg2);">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">INPUT FIELD ${i+1}</div>
-      <input type="text" value="${esc(inp.label)}" placeholder="Field label (e.g. Enter your niche...)" oninput="autoPostInputs[${i}].label=this.value" style="margin-bottom:6px;">
-      <input type="text" value="${esc(inp.placeholder)}" placeholder="Placeholder text (optional)" oninput="autoPostInputs[${i}].placeholder=this.value" style="margin-bottom:${autoPostInputs.length>1?'6px':'0'};">
-      ${autoPostInputs.length > 1 ? `<button class="btn-reject" style="padding:4px 10px;font-size:0.62rem;" onclick="autoPostInputs.splice(${i},1);renderAutoPostInputs()">[ REMOVE ]</button>` : ''}
-    </div>`
-  ).join('');
-}
-
-function toggleWebappInputMode() {
-  const url = document.getElementById('p-webapp-url').value.trim();
-  const htmlArea = document.getElementById('p-webapp-html');
-  if (url) { htmlArea.style.opacity = '0.4'; htmlArea.placeholder = '// URL provided — HTML not needed'; }
-  else { htmlArea.style.opacity = '1'; htmlArea.placeholder = '<!DOCTYPE html>\n<html>\n<head>...</head>\n<body>\n  <!-- Your tool UI here -->\n</body>\n</html>'; }
-}
-
-// Build iframe HTML wrapper for a hosted URL
+// Build iframe HTML wrapper for a hosted URL (used by edit modal)
 function buildIframeWrapper(url, title) {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#000;font-family:'Share Tech Mono',monospace;}iframe{width:100%;height:100vh;border:none;}</style></head><body><iframe src="${url}" allowfullscreen sandbox="allow-scripts allow-forms allow-same-origin allow-popups"></iframe></body></html>`;
 }
@@ -1535,53 +1329,28 @@ function buildScriptWrapper(url, lang, title) {
 }
 
 async function submitPost() {
-  const btn = document.getElementById('btn-post-submit');
-  const msg = document.getElementById('post-status');
+  const btn   = document.getElementById('btn-post-submit');
+  const msg   = document.getElementById('post-status');
   const title = document.getElementById('p-title').value.trim();
   const desc  = document.getElementById('p-desc').value.trim();
   const price = parseInt(document.getElementById('p-vc-price').value) || 1;
+  const url   = document.getElementById('p-tool-url').value.trim();
+  const type  = document.getElementById('p-category').value;
 
   if (!title) { showStatus(msg, '// TITLE IS REQUIRED.', true); return; }
   if (!desc)  { showStatus(msg, '// DESCRIPTION IS REQUIRED.', true); return; }
   if (price < 1) { showStatus(msg, '// MINIMUM PRICE IS 1 VC.', true); return; }
+  if (!url)   { showStatus(msg, '// TOOL URL IS REQUIRED.', true); return; }
 
-  let payload = {
+  const payload = {
     title, description: desc, vc_price: price, price: 0,
+    type, tool_run_type: 'iframe', delivery: 'vault labs',
+    html_content: buildIframeWrapper(url, title),
     thumbnail_url: postThumbBase64 || null,
     is_featured: postToggles.featured,
     is_new: postToggles.new,
+    is_kit: false,
   };
-
-  if (currentPostType === 'script') {
-    const url   = document.getElementById('p-script-url').value.trim();
-    const html  = document.getElementById('p-script-html').value.trim();
-    const ftype = document.getElementById('p-script-filetype').value;
-    if (!url && !html) { showStatus(msg, '// SCRIPT URL OR HTML IS REQUIRED.', true); return; }
-    const finalHtml = url ? buildScriptWrapper(url, ftype, title) : html;
-    payload = { ...payload, type: 'scripts', tool_run_type: 'iframe', delivery: 'vault labs', html_content: finalHtml, file_type: ftype, is_kit: false };
-
-  } else if (currentPostType === 'webapp') {
-    const url  = document.getElementById('p-webapp-url').value.trim();
-    const html = document.getElementById('p-webapp-html').value.trim();
-    if (!url && !html) { showStatus(msg, '// WEB APP URL OR HTML IS REQUIRED.', true); return; }
-    const finalHtml = url ? buildIframeWrapper(url, title) : html;
-    payload = { ...payload, type: 'apps', tool_run_type: 'iframe', delivery: 'vault labs', html_content: finalHtml, is_kit: false };
-
-  } else if (currentPostType === 'kit') {
-    const url   = document.getElementById('p-kit-url').value.trim();
-    const html  = document.getElementById('p-kit-html').value.trim();
-    const items = kitPostItems.filter(Boolean);
-    if (!url && !html) { showStatus(msg, '// KIT URL OR HTML IS REQUIRED.', true); return; }
-    const finalHtml = url ? buildIframeWrapper(url, title) : html;
-    payload = { ...payload, type: 'kits', tool_run_type: 'iframe', delivery: 'vault labs', html_content: finalHtml, is_kit: true, kit_items: items };
-
-  } else if (currentPostType === 'automation') {
-    const prompt = document.getElementById('p-auto-prompt').value.trim();
-    const subtype = document.getElementById('p-auto-subtype').value;
-    const inputs = autoPostInputs.filter(i => i.label);
-    if (!prompt) { showStatus(msg, '// AI SYSTEM PROMPT IS REQUIRED.', true); return; }
-    payload = { ...payload, type: 'automation', tool_run_type: 'ai', delivery: 'ai', system_prompt: prompt, input_label: inputs[0]?.label || 'Enter your input...', input_fields: inputs, subtype, is_kit: false };
-  }
 
   btn.disabled = true; btn.textContent = '[ POSTING... ]';
   try {
