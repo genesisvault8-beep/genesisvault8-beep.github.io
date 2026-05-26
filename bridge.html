@@ -855,11 +855,11 @@ main {
   <div class="stats-bar">
     <div class="stat-box">
       <div class="stat-num" id="statActive">—</div>
-      <div class="stat-label">ACTIVE NODES</div>
+      <div class="stat-label">TOOLS READY</div>
     </div>
     <div class="stat-box">
       <div class="stat-num" id="statJobs">—</div>
-      <div class="stat-label">JOBS TODAY</div>
+      <div class="stat-label">JOBS RUN</div>
     </div>
     <div class="stat-box">
       <div class="stat-num" id="statVC">—</div>
@@ -1048,31 +1048,37 @@ async function loadUserData() {
 
 async function loadBridgeStatus() {
   try {
-    // Get network stats
-    const statsRes = await fetch(`${AI_API}/bridge/status`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    const statsData = await statsRes.json();
-    document.getElementById("statActive").textContent = statsData.active_nodes ?? "0";
-    document.getElementById("statJobs").textContent   = statsData.jobs_today  ?? "0";
-
-    // Get user's bridge token status
+    // Get user's bridge token + node status
     const tokenRes = await fetch(`${AI_API}/bridge/my-token`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
     const tokenData = await tokenRes.json();
 
     if (tokenData.has_token && tokenData.bridge_token) {
-      // Build real install command with bt param
-      const cmd = `curl -s "${AI_API}/bridge/install?bt=${tokenData.bridge_token}" | python3`;
+      const cmd = `curl -s "${AI_API}/bridge/install?bt=${tokenData.bridge_token}" -o bridge.py && python3 bridge.py`;
       document.getElementById("installCmd").textContent = cmd;
       showActiveBridge({ tier: tokenData.tier || "ghost", bridge_token: tokenData.bridge_token });
+
+      // Load bridge node stats (tools ready, jobs run)
+      try {
+        const nodeRes = await fetch(`${AI_API}/bridge/node-status`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const nodeData = await nodeRes.json();
+        document.getElementById("statActive").textContent = nodeData.tools_ready ?? "—";
+        document.getElementById("statJobs").textContent   = nodeData.jobs_run    ?? "0";
+      } catch(e) {
+        document.getElementById("statActive").textContent = "—";
+        document.getElementById("statJobs").textContent   = "0";
+      }
     } else {
       showNoBridge();
+      document.getElementById("statActive").textContent = "0";
+      document.getElementById("statJobs").textContent   = "0";
     }
   } catch(e) {
-    document.getElementById("statActive").textContent = "0";
-    document.getElementById("statJobs").textContent   = "0";
+    document.getElementById("statActive").textContent = "—";
+    document.getElementById("statJobs").textContent   = "—";
     showNoBridge();
   }
 }
@@ -1088,7 +1094,7 @@ async function generateBridgeToken() {
     });
     const data = await res.json();
     if (data.success && data.bridge_token) {
-      const cmd = `curl -s "${AI_API}/bridge/install?bt=${data.bridge_token}" | python3`;
+      const cmd = `curl -s "${AI_API}/bridge/install?bt=${data.bridge_token}" -o bridge.py && python3 bridge.py`;
       document.getElementById("installCmd").textContent = cmd;
       showActiveBridge({ tier: "ghost", bridge_token: data.bridge_token });
       showToast("✓ Bridge token generated!");
@@ -1129,8 +1135,8 @@ function showActiveBridge(bridge) {
 
   // Real install command with bridge token
   const cmd = bridge.bridge_token
-    ? `curl -s "${AI_API}/bridge/install?bt=${bridge.bridge_token}" | python3`
-    : `curl -s "${AI_API}/bridge/install?bt=YOUR_TOKEN" | python3`;
+    ? `curl -s "${AI_API}/bridge/install?bt=${bridge.bridge_token}" -o bridge.py && python3 bridge.py`
+    : `curl -s "${AI_API}/bridge/install?bt=YOUR_TOKEN" -o bridge.py && python3 bridge.py`;
   document.getElementById("installCmd").textContent = cmd;
 }
 
