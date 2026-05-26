@@ -417,7 +417,7 @@ function renderTools() {
 
   c.innerHTML = filtered.map(t => {
     const isKit  = (t.type||'').toLowerCase() === 'kits' || t.is_kit;
-    const isFree = (t.vc_price||0) === 0 && (t.price||0) === 0;
+    const isFree = false; // All tools require VC
     return isKit ? renderKit(t) : renderTool(t);
   }).join('');
 }
@@ -476,7 +476,7 @@ function renderKit(t) {
     <p class="tool-desc">${esc(t.description||'')}</p>
     ${items ? `<div class="kit-contents">${items}</div>` : ''}
     <div class="tool-footer">
-      <span class="tool-price" style="${(t.vc_price||0)>0?'color:#f5c400;':''}">${(t.vc_price||0) > 0 ? '⬡ '+t.vc_price+' VC' : 'FREE'}</span>
+      <span class="tool-price" style="color:#f5c400;">⬡ ${(t.vc_price||1)+' VC'}</span>
       ${footerBtn}
     </div>
   </div>`;
@@ -507,7 +507,7 @@ async function loadOwned() {
       <div class="owned-tool-row">
         <div>
           <div class="owned-tool-name">${esc(t.title)}</div>
-          <div class="owned-tool-type">${esc((t.type||'tool').toUpperCase())} · ${(t.vc_price||0)>0?'⬡ '+t.vc_price+' VC':'FREE'}</div>
+          <div class="owned-tool-type">${esc((t.type||'tool').toUpperCase())} · ⬡ ${t.vc_price||1} VC</div>
         </div>
         <button class="btn-access" onclick="openAccess(${JSON.stringify(t)})">[ ACCESS ]</button>
       </div>`).join('');
@@ -637,17 +637,17 @@ function openAccess(t) {
     document.getElementById(id).style.display = 'none';
   });
 
-  // SCRIPT — show raw code with copy button
-  if (type === 'scripts' && activeTool.script_code) {
-    document.getElementById('access-code-block').textContent = activeTool.script_code;
-    document.getElementById('access-script-wrap').style.display = 'block';
-
-  // WEB APP or KIT with embedded HTML — render in iframe
-  } else if ((type === 'apps' || type === 'kits') && activeTool.html_content) {
+  // ALL IFRAME TOOLS (scripts, apps, kits posted as html_content)
+  if (activeTool.html_content && runType === 'iframe') {
     const iframe = document.getElementById('access-iframe');
     const doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open(); doc.write(activeTool.html_content); doc.close();
     document.getElementById('access-iframe-wrap').style.display = 'block';
+
+  // LEGACY SCRIPT — show raw code with copy button (old script_code field)
+  } else if (type === 'scripts' && activeTool.script_code) {
+    document.getElementById('access-code-block').textContent = activeTool.script_code;
+    document.getElementById('access-script-wrap').style.display = 'block';
 
   // AUTOMATION / AI / OTHER — show info + launch button
   } else {
