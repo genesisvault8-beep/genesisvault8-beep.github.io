@@ -627,7 +627,6 @@
       <option value="automation">AUTOMATION (Python / Bash)</option>
       <option value="ai">AI TOOL (Groq LLM)</option>
       <option value="download">DOWNLOAD / EXTERNAL LINK</option>
-      <option value="copy">SCRIPT — COPY & RUN ON TERMUX</option>
       <option value="iframe">WEB APP / KIT — HTML IFRAME</option>
     </select>
 
@@ -652,10 +651,10 @@
       <label>CONTENT URL (for apps in Vault Labs)</label><input type="text" id="t-contenturl" placeholder="https://yourusername.github.io/repo/tool.html">
     </div>
 
-    <!-- COPY MODE: Script code editor -->
+    <!-- SCRIPT URL MODE (replaces old copy/paste code) -->
     <div id="copy-fields" style="display:none;">
       <div class="divider-line"></div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// TERMUX SCRIPT — PASTE CODE</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// SCRIPT — HOSTED URL</div>
       <label>LANGUAGE</label>
       <select id="t-script-lang">
         <option value=".py">Python (.py)</option>
@@ -663,13 +662,9 @@
         <option value=".js">JavaScript (.js)</option>
         <option value=".txt">Text (.txt)</option>
       </select>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span id="t-code-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;border:1px solid var(--accent2);color:var(--accent2);">Python</span>
-        <span id="t-code-lines" style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--text-dim);">0 lines</span>
-        <button onclick="document.getElementById('t-script-code').value='';updateEditLineCount();" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;cursor:pointer;margin-left:auto;" onmouseover="this.style.color='var(--accent3)';" onmouseout="this.style.color='var(--text-dim)';">[ CLEAR ]</button>
-      </div>
-      <textarea id="t-script-code" rows="12" oninput="updateEditLineCount()" placeholder="# Paste your script code here..." style="background:#020c0f;color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;margin-bottom:8px;"></textarea>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);margin-bottom:12px;">// Members get a [ COPY CODE ] button — paste straight into Termux.</div>
+      <label>SCRIPT URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Raw, Netlify, Pastebin, etc.</span></label>
+      <input type="url" id="t-script-url" placeholder="https://raw.githubusercontent.com/you/repo/main/script.py" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">// Members get a [ COPY CODE ] button — fetches & copies straight into Termux.</div>
     </div>
 
     <!-- IFRAME MODE: HTML paste + preview -->
@@ -1005,7 +1000,7 @@ function openEditTool(id) {
 
   // Detect run type — support new copy/iframe modes
   let rt = t.tool_run_type || (t.download_url?'download':'security');
-  if (t.script_code && !rt) rt = 'copy';
+  if (t.html_content && !rt) rt = 'iframe'; // all tools use iframe now
   if (t.html_content && !rt) rt = 'iframe';
   document.getElementById('t-run-type').value=rt; onRunTypeChange();
 
@@ -1020,8 +1015,8 @@ function openEditTool(id) {
   const cu=document.getElementById('t-contenturl'); if(cu)cu.value=t.content_url||'';
   const dv=document.getElementById('t-delivery'); if(dv)dv.value=t.delivery||'download';
 
-  // Load script_code
-  const sc=document.getElementById('t-script-code'); if(sc){sc.value=t.script_code||'';updateEditLineCount();}
+  // Load script URL (new iframe-based scripts)
+  const su=document.getElementById('t-script-url'); if(su)su.value=t.script_url||'';
   const sl=document.getElementById('t-script-lang'); if(sl)sl.value=t.file_type||'.py';
 
   // Load html_content
@@ -1098,7 +1093,7 @@ async function submitTool() {
     type:document.getElementById('t-cat').value,
     vc_price:parseInt(document.getElementById('t-price').value)||0,
     price:0,
-    tool_run_type:rt,
+    tool_run_type:rt==='copy'?'iframe':rt, // copy mode now uses iframe
     thumbnail_url: editThumbBase64 || null,
     params_schema:ps,
     is_kit:toggleStates['kit'],
@@ -1109,21 +1104,29 @@ async function submitTool() {
     command_template:rt==='security'?gv('t-cmd'):null,
     language:rt==='automation'?gv('t-language'):null,
     script_content:rt==='automation'?document.getElementById('t-script').value:null,
-    delivery:rt==='download'?gv('t-delivery'):(rt==='copy'?'copy':rt==='iframe'?'iframe':null),
-    file_type:rt==='download'?gv('t-filetype'):(rt==='copy'?gv('t-script-lang'):null),
+    delivery:rt==='download'?gv('t-delivery'):'vault labs',
+    file_type:(rt==='download'||rt==='copy')?gv(rt==='copy'?'t-script-lang':'t-filetype'):null,
     download_url:rt==='download'?gv('t-fileurl'):null,
     content_url:rt==='download'?gv('t-contenturl'):null,
     system_prompt:rt==='ai'?document.getElementById('t-system-prompt').value.trim():null,
     input_label:rt==='ai'?gv('t-input-label'):null,
-    // New fields
-    script_code:rt==='copy'?document.getElementById('t-script-code').value:null,
-    html_content:rt==='iframe'?document.getElementById('t-html-content').value:null,
+    // Iframe tools — html_content or script URL wrapped in html
+    html_content: (rt==='iframe'||rt==='copy') ? (()=>{
+      if(rt==='copy'){
+        const url=gv('t-script-url');
+        const lang=gv('t-script-lang');
+        const langLabel={'\.py':'Python','\.sh':'Bash','\.js':'JavaScript','\.txt':'Text'}[lang]||'Script';
+        if(!url) return null;
+        return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#010d10;color:#00f5c4;font-family:'Share Tech Mono',monospace;padding:20px;}h2{font-size:1rem;letter-spacing:3px;margin-bottom:8px;color:white;}p{font-size:0.7rem;color:#556;margin-bottom:16px;letter-spacing:1px;}pre{background:#020c0f;border:1px solid #0f3040;padding:14px;font-size:0.75rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:#00f5c4;min-height:80px;margin-bottom:16px;border-radius:2px;}button{background:#00f5c4;color:#000;border:none;padding:12px 24px;font-family:'Share Tech Mono',monospace;font-size:0.85rem;letter-spacing:2px;cursor:pointer;width:100%;font-weight:bold;}.tag{font-size:0.6rem;color:#00f5c4;border:1px solid #00f5c4;padding:2px 8px;letter-spacing:2px;display:inline-block;margin-bottom:12px;}</style></head><body><div class="tag">${langLabel}</div><h2>${payload.title.toUpperCase()}</h2><p>// Copy the script below and run it in Termux</p><pre id="code">// Loading...</pre><button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>{this.textContent='[ COPIED! ]';setTimeout(()=>this.textContent='[ COPY CODE ]',2000)})">[ COPY CODE ]</button><script>fetch('${url}').then(r=>r.text()).then(t=>document.getElementById('code').textContent=t).catch(()=>document.getElementById('code').textContent='// Failed to load.');<\/script></body></html>`;
+      }
+      return document.getElementById('t-html-content').value||null;
+    })() : null,
   };
 
   if(!payload.title){showStatus(msg,'// Title required.',true);return;}
   if(rt==='ai'&&!payload.system_prompt){showStatus(msg,'// System prompt required for AI tools.',true);return;}
-  if(rt==='copy'&&!payload.script_code){showStatus(msg,'// Script code is required.',true);return;}
-  if(rt==='iframe'&&!payload.html_content){showStatus(msg,'// HTML content is required.',true);return;}
+  if((rt==='iframe')&&!payload.html_content){showStatus(msg,'// HTML content is required.',true);return;}
+  if(rt==='copy'&&!gv('t-script-url')){showStatus(msg,'// Script URL is required.',true);return;}
 
   btn.disabled=true; btn.textContent='[ SAVING... ]';
   try {
@@ -1138,7 +1141,7 @@ async function submitTool() {
 
 function clearToolForm() {
   editThumbBase64=null;
-  ['t-title','t-desc','t-filetype','t-fileurl','t-contenturl','t-cmd','t-script','t-params-schema','t-system-prompt','t-input-label','t-script-code','t-html-content'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['t-title','t-desc','t-filetype','t-fileurl','t-contenturl','t-cmd','t-script','t-params-schema','t-system-prompt','t-input-label','t-script-url','t-html-content'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const rt=document.getElementById('t-run-type'); if(rt){rt.value='security';onRunTypeChange();}
   document.getElementById('t-price').value=0; document.getElementById('t-cat').value='automation';
   // Reset thumbnail
@@ -1182,7 +1185,7 @@ function handleEditThumb(e) {
 }
 
 function updateEditLineCount() {
-  const code=document.getElementById('t-script-code')?document.getElementById('t-script-code').value:'';
+  const code=''; // script code removed — using URL-based iframe flow
   const lines=code?code.split('\n').length:0;
   const el=document.getElementById('t-code-lines'); if(el)el.textContent=lines+' line'+(lines!==1?'s':'');
 }
@@ -1456,12 +1459,12 @@ function updatePostCodeLang() {
   document.getElementById('p-code-lang-badge').textContent = labels[lang] || 'Code';
 }
 function updatePostLineCount() {
-  const code = document.getElementById('p-script-code') ? document.getElementById('p-script-code').value : '';
+  const code = ''; // script code removed — using URL-based iframe flow
   const lines = code ? code.split('\n').length : 0;
   const el = document.getElementById('p-code-line-count');
   if (el) el.textContent = lines + ' line' + (lines !== 1 ? 's' : '');
 }
-function clearPostCode() { document.getElementById('p-script-code').value = ''; updatePostLineCount(); }
+function clearPostCode() { /* removed — no raw code paste */ }
 
 // Web App / Kit preview
 function previewPostWebApp() {
