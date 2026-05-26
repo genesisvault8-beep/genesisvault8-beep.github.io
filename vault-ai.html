@@ -452,44 +452,7 @@ async function send(msg, silent = false) {
     btn.disabled = false;
     return;
   }
-  if (msg.toLowerCase().startsWith('nmap ')) {
-    const target = msg.slice(5).trim();
-    print(`[LOG]: DISPATCHING NMAP JOB → ${target.toUpperCase()}...`, 'logc');
-    try {
-      const _t = localStorage.getItem("gv_token");
-      const res = await fetch(`${BACKEND_URL}/api/jobs/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_t}` },
-        body: JSON.stringify({ target: target, command: 'nmap' })
-      });
-      const data = await res.json();
-      const jobId = data.job[0].id;
-      const waitLine = print(`[LOG]: JOB #${jobId} QUEUED. AWAITING BRIDGE...`, 'sys');
-      let result = null;
-      for (let i = 0; i < 24; i++) {
-        await sleep(5000);
-        const poll = await fetch(`${BACKEND_URL}/api/jobs/result/${jobId}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem("gv_token")}` } });
-        const pollData = await poll.json();
-        if (pollData.result) { result = pollData.result; break; }
-        else { waitLine.textContent = `[LOG]: JOB #${jobId} QUEUED. BRIDGE PROCESSING... (${(i+1)*5}s elapsed)`; }
-      }
-      if (result) {
-        const el = document.createElement('div');
-        el.className = 'line ai';
-        el.innerHTML = `<span style="color:var(--green);opacity:.7">[NMAP]:</span> `;
-        out.appendChild(el);
-        await typewrite(el, result, 3);
-      } else {
-        print('[ERR]: JOB TIMEOUT. IS BRIDGE RUNNING?', 'err');
-      }
-    } catch(e) {
-      print('[ERR]: FAILED TO DISPATCH JOB.', 'err');
-    }
-    busy = false;
-    btn.disabled = false;
-    return;
-  }
-  // scan commands now handled by Cipher directly via /api/vault-ai
+  // All tool commands go through CIPHER → tool_call → bridge.py on device
   
   await sleep(80);
   const analyzing = print('[LOG]: ANALYZING... ROUTING TO INFINITY ENGINE...', 'logc');
@@ -534,10 +497,13 @@ async function send(msg, silent = false) {
 
       // Handle tool_call from CIPHER
       if (data.tool_call && isBridgeOn) {
-        await dispatchBridgeJob(data.tool_call.tool, data.tool_call.args || "");
+        // New architecture: just show dispatch message.
+        // bridge.py on Termux watches for this and runs the tool locally.
+        dispatchBridgeJob(data.tool_call.tool, data.tool_call.args || "");
       } else if (data.tool_call && !isBridgeOn) {
         print('[BRIDGE]: CIPHER wants to run a tool but your bridge is not connected.', 'err');
         print('[BRIDGE]: Type "bridge connect" or visit bridge.html to connect.', 'logc');
+        print(`[BRIDGE]: Tool: ${data.tool_call.tool} ${data.tool_call.args || ''}`, 'logc');
       }
     } else {
       print('[ERR]: UNEXPECTED RESPONSE.', 'err');
@@ -710,8 +676,10 @@ function showModalStatus(msg, err) {
   el.style.display = 'block';
 }
 
-// ── BRIDGE SYSTEM (HTTP POLLING) ─────────────────────────────
-let bridgePollTimer = null;
+// ── BRIDGE SYSTEM ─────────────────────────────────────────────
+// New architecture: bridge.py runs on user's Termux.
+// CIPHER sends tool_call → bridge executes locally → sends output back.
+// Frontend just shows status. No job queue. No polling.
 
 async function connectBridge() {
   if (document.getElementById('bridge-dot').classList.contains('connected')) {
@@ -719,13 +687,11 @@ async function connectBridge() {
   }
   setBridgeStatus('connecting');
   print('[BRIDGE]: VERIFYING BRIDGE CONNECTION...', 'sys');
-
   try {
     const res = await fetch(`${BACKEND_URL}/bridge/my-token`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
     });
     const data = await res.json();
-
     if (data.has_token) {
       setBridgeStatus('connected');
       print('[BRIDGE]: ✓ BRIDGE LINKED. CIPHER CAN NOW RUN TOOLS ON YOUR DEVICE.', 'sys');
@@ -753,84 +719,24 @@ function setBridgeStatus(state) {
   label.textContent = state === 'connected' ? 'BRIDGE ON' : state === 'connecting' ? 'CONNECTING...' : 'BRIDGE OFF';
 }
 
-// Dispatch a tool job and poll for result
-async function dispatchBridgeJob(tool, args) {
-  const jobLine = print(`[BRIDGE]: ▶ DISPATCHING ${tool.toUpperCase()} ${args}...`, 'sys');
-  try {
-    const res = await fetch(`${BACKEND_URL}/bridge/dispatch`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('gv_token')}`
-      },
-      body: JSON.stringify({ tool, args })
-    });
-    const data = await res.json();
-
-    if (!data.success) {
-      jobLine.textContent = `[BRIDGE]: ✗ DISPATCH FAILED — ${data.error || 'Unknown error'}`;
-      return;
-    }
-
-    const job_id = data.job_id;
-    jobLine.textContent = `[BRIDGE]: ▶ JOB ${job_id.slice(0,8)} SENT — WAITING FOR TERMUX...`;
-
-    // Poll for result (max 90 seconds)
-    const maxAttempts = 30;
-    for (let i = 0; i < maxAttempts; i++) {
-      await sleep(3000);
-      try {
-        const pr = await fetch(`${BACKEND_URL}/bridge/job/${job_id}`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('gv_token')}` }
-        });
-        const pd = await pr.json();
-        const job = pd.job;
-
-        if (!job) continue;
-
-        if (job.status === 'completed' || job.status === 'done') {
-          jobLine.textContent = `[BRIDGE]: ✓ ${tool.toUpperCase()} COMPLETED`;
-          // Show output
-          const outEl = document.createElement('div');
-          outEl.className = 'line';
-          outEl.style.cssText = 'font-family:var(--font);font-size:11px;color:#4a7a6a;white-space:pre-wrap;padding:6px 0;border-left:2px solid #0d3d2e;padding-left:8px;margin:4px 0;';
-          outEl.textContent = job.output || job.result || '[No output]';
-          out.appendChild(outEl);
-          scrollBottom();
-
-          // Feed output back to CIPHER for analysis
-          await sleep(500);
-          const analysisMsg = `Here is the ${tool} output from my device. Please analyze it:
-
-${(job.output || job.result || '').slice(0, 3000)}`;
-          await send(analysisMsg, true); // true = silent (no user print)
-          return;
-
-        } else if (job.status === 'failed') {
-          jobLine.textContent = `[BRIDGE]: ✗ ${tool.toUpperCase()} FAILED — ${job.error || 'Unknown error'}`;
-          return;
-        }
-
-        // Still pending
-        jobLine.textContent = `[BRIDGE]: ⟳ WAITING FOR TERMUX... (${(i+1)*3}s)`;
-      } catch(e) {}
-    }
-
-    jobLine.textContent = `[BRIDGE]: ✗ TIMEOUT — Is bridge.py running in Termux?`;
-  } catch(e) {
-    print(`[BRIDGE]: ✗ ERROR — ${e.message}`, 'err');
-  }
+// Called when CIPHER returns a tool_call in its response.
+// We just show the dispatch message — bridge.py on Termux handles the actual execution.
+// When bridge finishes, it sends output to /bridge/output → CIPHER analyzes → CIPHER response
+// appears in the next message the user sees (bridge.py feeds it back through /api/vault-ai).
+function dispatchBridgeJob(tool, args) {
+  print(`[BRIDGE]: ▶ DISPATCHING ${tool.toUpperCase()} ${args ? args : ''}...`, 'sys');
+  print(`[BRIDGE]: Executing on your device — results will appear when bridge responds.`, 'logc');
 }
 
+// "run <cmd>" from terminal — just inform user
 function sendBridgeCommand(cmd) {
-  const parts = cmd.trim().split(' ');
-  const tool  = parts[0];
-  const args  = parts.slice(1).join(' ');
   if (!document.getElementById('bridge-dot').classList.contains('connected')) {
     print('[ERR]: BRIDGE NOT CONNECTED. Type "bridge connect" first.', 'err');
     return;
   }
-  dispatchBridgeJob(tool, args);
+  print(`[BRIDGE]: ▶ COMMAND SENT TO CIPHER: ${cmd}`, 'sys');
+  // Send as natural language to CIPHER so it can dispatch the right tool_call
+  send(`run on my bridge: ${cmd}`, false);
 }
 
 
