@@ -695,7 +695,13 @@ async function connectBridge() {
     if (data.has_token) {
       setBridgeStatus('connected');
       print('[BRIDGE]: ✓ BRIDGE LINKED. CIPHER CAN NOW RUN TOOLS ON YOUR DEVICE.', 'sys');
-      print('[BRIDGE]: Make sure bridge.py is running in Termux.', 'logc');
+      // Show the correct install command if bridge.py not yet running
+      if (data.install_command) {
+        print('[BRIDGE]: If bridge.py is not running yet, run this in Termux:', 'logc');
+        print(data.install_command, 'sys');
+      } else {
+        print('[BRIDGE]: Make sure bridge.py is running in Termux.', 'logc');
+      }
     } else {
       setBridgeStatus('off');
       print('[BRIDGE]: No bridge token found. Visit bridge.html to generate one.', 'err');
