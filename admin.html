@@ -364,34 +364,35 @@
         <label>DESCRIPTION</label>
         <textarea id="p-desc" rows="3" placeholder="What does it do? Who is it for?"></textarea>
 
-        <label>PRICE (VC) <span style="color:var(--text-dim);font-size:0.7rem;">— set 0 for FREE</span></label>
-        <input type="number" id="p-vc-price" placeholder="0" min="0" step="1" value="0">
+        <label>PRICE (VC) <span style="color:var(--text-dim);font-size:0.7rem;">— minimum 1 VC</span></label>
+        <input type="number" id="p-vc-price" placeholder="1" min="1" step="1" value="1">
 
         <!-- SCRIPT FIELDS -->
         <div id="post-fields-script" style="display:none;">
           <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// SCRIPT — PASTE RAW CODE</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// SCRIPT — HOSTED URL</div>
           <label>LANGUAGE</label>
-          <select id="p-script-filetype" onchange="updatePostCodeLang()">
+          <select id="p-script-filetype">
             <option value=".py">Python (.py)</option>
             <option value=".sh">Bash (.sh)</option>
             <option value=".js">JavaScript (.js)</option>
             <option value=".txt">Plain Text (.txt)</option>
           </select>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span id="p-code-lang-badge" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent2);color:var(--accent2);">Python</span>
-            <span id="p-code-line-count" style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--text-dim);">0 lines</span>
-            <button onclick="clearPostCode()" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:1px;cursor:pointer;margin-left:auto;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent3)';this.style.color='var(--accent3)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)';">[ CLEAR ]</button>
-          </div>
-          <textarea id="p-script-code" rows="10" oninput="updatePostLineCount()" placeholder="# Paste your Python / Bash / JS code here...
-# Members will copy this and run it directly on Termux" style="background:#020c0f;color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// Members get a [ COPY CODE ] button — they paste it straight into Termux.</div>
+          <label>SCRIPT URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Raw, Netlify, Pastebin, etc.</span></label>
+          <input type="url" id="p-script-url" placeholder="https://raw.githubusercontent.com/you/repo/main/script.py" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;">// Members get a [ COPY CODE ] button — fetches & copies straight into Termux.</div>
+          <label>OR PASTE CODE DIRECTLY <span style="color:var(--text-dim);font-size:0.7rem;">— leave URL blank if using this</span></label>
+          <textarea id="p-script-html" rows="8" placeholder="<!-- Wrap your script in a simple HTML copy-tool page -->" style="background:#020c0f;color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.78rem;line-height:1.7;border:1px solid var(--border);padding:12px;width:100%;resize:vertical;outline:none;transition:border-color 0.2s;"></textarea>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-bottom:12px;">// Tip: Use a URL for large scripts. Paste HTML for small/simple ones.</div>
         </div>
 
         <!-- WEB APP FIELDS -->
         <div id="post-fields-webapp" style="display:none;">
           <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// WEB APP — PASTE HTML</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// WEB APP — URL OR HTML</div>
+          <label>HOSTED URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Pages, Netlify, Vercel, etc. (leave blank to paste HTML)</span></label>
+          <input type="url" id="p-webapp-url" placeholder="https://yourapp.netlify.app" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;" oninput="toggleWebappInputMode()">
+          <label style="margin-top:8px;">OR PASTE HTML <span style="color:var(--text-dim);font-size:0.7rem;">— leave URL blank</span></label>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
             <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
             <button onclick="previewPostWebApp()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-left:auto;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
@@ -411,7 +412,10 @@
         <!-- KIT FIELDS -->
         <div id="post-fields-kit" style="display:none;">
           <div class="divider-line"></div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// TOOL KIT — PASTE HTML</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;">// TOOL KIT — URL OR HTML</div>
+          <label>HOSTED URL <span style="color:var(--text-dim);font-size:0.7rem;">— GitHub Pages, Netlify, Vercel, etc. (leave blank to paste HTML)</span></label>
+          <input type="url" id="p-kit-url" placeholder="https://yourkit.netlify.app" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;">
+          <label style="margin-top:8px;">OR PASTE HTML <span style="color:var(--text-dim);font-size:0.7rem;">— leave URL blank</span></label>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
             <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:2px 8px;letter-spacing:1px;border:1px solid var(--accent3);color:var(--accent3);">HTML</span>
             <button onclick="previewPostKit()" style="background:none;border:1px solid var(--accent2);color:var(--accent2);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-left:auto;" onmouseover="this.style.background='var(--accent2)';this.style.color='var(--bg)';" onmouseout="this.style.background='none';this.style.color='var(--accent2)';">[ PREVIEW ]</button>
@@ -1382,7 +1386,7 @@ function resetPostForm() {
   currentPostType = null;
   kitPostItems = []; autoPostInputs = []; postThumbBase64 = null;
   postToggles = { featured: false, new: false };
-  ['p-title','p-desc','p-script-code','p-webapp-html','p-kit-html','p-auto-prompt'].forEach(id => {
+  ['p-title','p-desc','p-script-url','p-script-html','p-webapp-url','p-webapp-html','p-kit-url','p-kit-html','p-auto-prompt'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('p-vc-price').value = 0;
@@ -1508,15 +1512,35 @@ function renderAutoPostInputs() {
   ).join('');
 }
 
+function toggleWebappInputMode() {
+  const url = document.getElementById('p-webapp-url').value.trim();
+  const htmlArea = document.getElementById('p-webapp-html');
+  if (url) { htmlArea.style.opacity = '0.4'; htmlArea.placeholder = '// URL provided — HTML not needed'; }
+  else { htmlArea.style.opacity = '1'; htmlArea.placeholder = '<!DOCTYPE html>\n<html>\n<head>...</head>\n<body>\n  <!-- Your tool UI here -->\n</body>\n</html>'; }
+}
+
+// Build iframe HTML wrapper for a hosted URL
+function buildIframeWrapper(url, title) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#000;font-family:'Share Tech Mono',monospace;}iframe{width:100%;height:100vh;border:none;}</style></head><body><iframe src="${url}" allowfullscreen sandbox="allow-scripts allow-forms allow-same-origin allow-popups"></iframe></body></html>`;
+}
+
+// Build script copy-tool HTML wrapper for a hosted raw URL
+function buildScriptWrapper(url, lang, title) {
+  const ext = lang || '.py';
+  const langLabel = ext === '.py' ? 'Python' : ext === '.sh' ? 'Bash' : ext === '.js' ? 'JavaScript' : 'Script';
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#010d10;color:#00f5c4;font-family:'Share Tech Mono',monospace;padding:20px;}h2{font-size:1rem;letter-spacing:3px;margin-bottom:8px;color:white;}p{font-size:0.7rem;color:#556;margin-bottom:16px;letter-spacing:1px;}pre{background:#020c0f;border:1px solid #0f3040;padding:14px;font-size:0.75rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:#00f5c4;min-height:80px;margin-bottom:16px;border-radius:2px;}button{background:#00f5c4;color:#000;border:none;padding:12px 24px;font-family:'Share Tech Mono',monospace;font-size:0.85rem;letter-spacing:2px;cursor:pointer;width:100%;font-weight:bold;transition:all 0.2s;}.copied{background:#fff;}.tag{font-size:0.6rem;color:#00f5c4;border:1px solid #00f5c4;padding:2px 8px;letter-spacing:2px;display:inline-block;margin-bottom:12px;}</style></head><body><div class="tag">${langLabel}</div><h2>${title.toUpperCase()}</h2><p>// Copy the script below and run it in Termux</p><pre id="code">// Loading script...</pre><button id="btn" onclick="copyCode()">[ COPY CODE ]</button><script>const url='${url}';fetch(url).then(r=>r.text()).then(t=>{document.getElementById('code').textContent=t;}).catch(()=>{document.getElementById('code').textContent='// Failed to load script. Check the URL.';});function copyCode(){const t=document.getElementById('code').textContent;navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('btn');b.textContent='[ COPIED! ]';b.className='copied';setTimeout(()=>{b.textContent='[ COPY CODE ]';b.className='';},2000);}).catch(()=>{alert('Copy failed. Select text manually.');});}<\/script></body></html>`;
+}
+
 async function submitPost() {
   const btn = document.getElementById('btn-post-submit');
   const msg = document.getElementById('post-status');
   const title = document.getElementById('p-title').value.trim();
   const desc  = document.getElementById('p-desc').value.trim();
-  const price = parseInt(document.getElementById('p-vc-price').value) || 0;
+  const price = parseInt(document.getElementById('p-vc-price').value) || 1;
 
   if (!title) { showStatus(msg, '// TITLE IS REQUIRED.', true); return; }
   if (!desc)  { showStatus(msg, '// DESCRIPTION IS REQUIRED.', true); return; }
+  if (price < 1) { showStatus(msg, '// MINIMUM PRICE IS 1 VC.', true); return; }
 
   let payload = {
     title, description: desc, vc_price: price, price: 0,
@@ -1526,22 +1550,27 @@ async function submitPost() {
   };
 
   if (currentPostType === 'script') {
-    const code = document.getElementById('p-script-code').value.trim();
+    const url   = document.getElementById('p-script-url').value.trim();
+    const html  = document.getElementById('p-script-html').value.trim();
     const ftype = document.getElementById('p-script-filetype').value;
-    if (!code) { showStatus(msg, '// SCRIPT CODE IS REQUIRED.', true); return; }
-    payload = { ...payload, type: 'scripts', tool_run_type: 'copy', delivery: 'copy', file_type: ftype, script_code: code, is_kit: false };
+    if (!url && !html) { showStatus(msg, '// SCRIPT URL OR HTML IS REQUIRED.', true); return; }
+    const finalHtml = url ? buildScriptWrapper(url, ftype, title) : html;
+    payload = { ...payload, type: 'scripts', tool_run_type: 'iframe', delivery: 'vault labs', html_content: finalHtml, file_type: ftype, is_kit: false };
 
   } else if (currentPostType === 'webapp') {
+    const url  = document.getElementById('p-webapp-url').value.trim();
     const html = document.getElementById('p-webapp-html').value.trim();
-    if (!html) { showStatus(msg, '// WEB APP HTML IS REQUIRED.', true); return; }
-    payload = { ...payload, type: 'apps', tool_run_type: 'iframe', delivery: 'vault labs', html_content: html, is_kit: false };
+    if (!url && !html) { showStatus(msg, '// WEB APP URL OR HTML IS REQUIRED.', true); return; }
+    const finalHtml = url ? buildIframeWrapper(url, title) : html;
+    payload = { ...payload, type: 'apps', tool_run_type: 'iframe', delivery: 'vault labs', html_content: finalHtml, is_kit: false };
 
   } else if (currentPostType === 'kit') {
-    const html = document.getElementById('p-kit-html').value.trim();
+    const url   = document.getElementById('p-kit-url').value.trim();
+    const html  = document.getElementById('p-kit-html').value.trim();
     const items = kitPostItems.filter(Boolean);
-    if (!html) { showStatus(msg, '// KIT HTML IS REQUIRED.', true); return; }
-    if (!items.length) { showStatus(msg, '// ADD AT LEAST ONE KIT ITEM.', true); return; }
-    payload = { ...payload, type: 'kits', tool_run_type: 'iframe', delivery: 'vault labs', html_content: html, is_kit: true, kit_items: items };
+    if (!url && !html) { showStatus(msg, '// KIT URL OR HTML IS REQUIRED.', true); return; }
+    const finalHtml = url ? buildIframeWrapper(url, title) : html;
+    payload = { ...payload, type: 'kits', tool_run_type: 'iframe', delivery: 'vault labs', html_content: finalHtml, is_kit: true, kit_items: items };
 
   } else if (currentPostType === 'automation') {
     const prompt = document.getElementById('p-auto-prompt').value.trim();
