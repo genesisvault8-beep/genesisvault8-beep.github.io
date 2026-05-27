@@ -1907,7 +1907,7 @@ async function loadMarketplace() {
         <p>${esc((t.description||'').substring(0,100))}${(t.description||'').length>100?'...':''}</p>
         <div class="market-footer">
           <span style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent);">✓ OWNED</span>
-          <button class="buy-btn" onclick="location.href=(this.getAttribute('data-rt')==='iframe'||this.getAttribute('data-rt')==='copy'||this.getAttribute('data-cat')==='apps'||this.getAttribute('data-html')==='1')?'market.html?access='+this.getAttribute('data-id'):'tool-runner.html?tool_id='+this.getAttribute('data-id')" data-id="${t.id}" data-rt="${t.tool_run_type||''}" data-cat="${t.type||''}" data-html="${t.html_content?'1':''}">[ LAUNCH ]</button>
+          <button class="buy-btn" onclick="location.href='tool-runner.html?tool_id='+this.getAttribute('data-id')" data-id="${t.id}">[ LAUNCH ]</button>
         </div>
       </div>`).join('');
   } catch(e) {
