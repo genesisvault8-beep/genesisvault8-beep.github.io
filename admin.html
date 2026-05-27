@@ -255,6 +255,137 @@
   .refresh-btn{position:relative;overflow:hidden;}
   .refresh-btn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent3);transform:scaleY(0);transform-origin:bottom;transition:transform 0.2s ease;}
   .refresh-btn:hover::before{transform:scaleY(1);}
+
+  /* ── TOOL VIEWER (Vault Labs style) ── */
+  #tool-viewer-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    z-index:500;
+    overflow-y:auto;
+    padding:76px 16px 40px;
+    animation:fadeIn 0.3s ease;
+  }
+  #tool-viewer-overlay.active { display:block; }
+  .tvo-inner { max-width:700px; margin:0 auto; }
+
+  .tvo-header {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:16px; padding-bottom:12px;
+    border-bottom:1px solid var(--accent3);
+    flex-wrap:wrap;
+  }
+  .tvo-back {
+    background:none; border:1px solid var(--accent3);
+    color:var(--accent3); padding:5px 12px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px;
+    transition:all 0.2s; white-space:nowrap;
+  }
+  .tvo-back:hover { background:var(--accent3); color:white; }
+  .tvo-title {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.85rem; color:var(--accent3);
+    letter-spacing:2px; flex:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .tvo-badge {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; padding:2px 8px; letter-spacing:1px;
+    border:1px solid var(--accent2); color:var(--accent2);
+  }
+  .tvo-admin-bar {
+    background:rgba(255,0,60,0.06);
+    border:1px solid var(--accent3);
+    border-left:3px solid var(--accent3);
+    padding:10px 14px; margin-bottom:14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; color:var(--accent3);
+    letter-spacing:1px; display:flex;
+    align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .tvo-admin-bar span { color:var(--text-dim); }
+  .tvo-desc-box {
+    background:var(--bg3); border:1px solid var(--border);
+    border-left:3px solid var(--accent3);
+    padding:12px 14px; margin-bottom:12px;
+    font-size:0.82rem; line-height:1.6; color:var(--text);
+  }
+  .tvo-desc-box strong {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; color:var(--accent3);
+    letter-spacing:2px; display:block; margin-bottom:6px;
+  }
+  .tvo-target {
+    background:var(--bg2); border:1px solid var(--border);
+    margin-bottom:12px; overflow:hidden;
+  }
+  .tvo-target-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--text-dim);
+    letter-spacing:2px; padding:8px 14px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:8px;
+  }
+  .tvo-target-label::before {
+    content:''; width:6px; height:6px; border-radius:50%;
+    background:var(--accent3); animation:pulse-red 1.5s infinite;
+  }
+  #tvo-frame {
+    width:100%; height:460px; border:none;
+    background:white; display:block;
+  }
+  .tvo-code-wrap { margin-bottom:12px; }
+  .tvo-code-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--accent2);
+    letter-spacing:2px; margin-bottom:8px;
+  }
+  #tvo-code-block {
+    background:#020c0f; border:1px solid var(--border);
+    color:var(--accent); font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; padding:14px; overflow-x:auto;
+    white-space:pre-wrap; word-break:break-all;
+    max-height:320px; overflow-y:auto; line-height:1.7;
+    margin-bottom:8px;
+  }
+  .tvo-launch-wrap { margin-bottom:12px; }
+  .tvo-info-box {
+    background:var(--bg3); border:1px solid var(--border);
+    border-left:3px solid var(--accent2);
+    padding:14px 16px; margin-bottom:14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.72rem; line-height:1.9; color:var(--text-dim);
+  }
+  .tvo-action-btn {
+    width:100%; padding:13px;
+    background:none; border:1px solid var(--accent);
+    color:var(--accent); font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; letter-spacing:3px; cursor:pointer;
+    transition:all 0.3s; margin-bottom:12px;
+  }
+  .tvo-action-btn:hover { background:var(--accent); color:var(--bg); }
+  .tvo-edit-row {
+    display:flex; gap:8px; margin-top:4px;
+  }
+  .tvo-edit-row button {
+    flex:1; padding:11px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.7rem; letter-spacing:2px; cursor:pointer;
+    transition:all 0.2s;
+  }
+  .tvo-btn-edit {
+    background:none; border:1px solid var(--accent2);
+    color:var(--accent2);
+  }
+  .tvo-btn-edit:hover { background:var(--accent2); color:var(--bg); }
+  .tvo-btn-delete {
+    background:none; border:1px solid var(--accent3);
+    color:var(--accent3);
+  }
+  .tvo-btn-delete:hover { background:var(--accent3); color:white; }
 </style>
 </head>
 <body>
@@ -445,6 +576,53 @@
   </div>
 
 </main>
+
+<!-- ══ TOOL VIEWER OVERLAY (Vault Labs style) ══ -->
+<div id="tool-viewer-overlay">
+  <div class="tvo-inner">
+
+    <div class="tvo-header">
+      <button class="tvo-back" onclick="closeTvo()">← BACK TO LISTINGS</button>
+      <div class="tvo-title" id="tvo-title">// TOOL PREVIEW</div>
+      <span class="tvo-badge" id="tvo-badge">TOOL</span>
+    </div>
+
+    <!-- Admin notice bar -->
+    <div class="tvo-admin-bar">
+      <span>⚠ ADMIN PREVIEW MODE — <span>Members see this exact view when they access this tool</span></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-sm" id="tvo-btn-edit" onclick="tvoEditCurrent()">[ EDIT TOOL ]</button>
+        <button class="btn-sm btn-sm-red" id="tvo-btn-delete" onclick="tvoDeleteCurrent()">[ DELETE ]</button>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="tvo-desc-box">
+      <strong>// DESCRIPTION</strong>
+      <span id="tvo-desc"></span>
+    </div>
+
+    <!-- iframe live view -->
+    <div class="tvo-target" id="tvo-target-wrap">
+      <div class="tvo-target-label">LIVE ENVIRONMENT · SANDBOXED</div>
+      <iframe id="tvo-frame" sandbox="allow-scripts allow-forms allow-same-origin allow-modals"></iframe>
+    </div>
+
+    <!-- Script copy panel -->
+    <div class="tvo-code-wrap" id="tvo-code-wrap" style="display:none;">
+      <div class="tvo-code-label">// COPY &amp; RUN ON TERMUX</div>
+      <pre id="tvo-code-block"></pre>
+      <button class="tvo-action-btn" id="tvo-btn-copy" onclick="tvoCopyCode()">[ COPY CODE ]</button>
+    </div>
+
+    <!-- Launch panel (automation / AI / download) -->
+    <div class="tvo-launch-wrap" id="tvo-launch-wrap" style="display:none;">
+      <div class="tvo-info-box" id="tvo-info-text">// Loading...</div>
+      <button class="tvo-action-btn" id="tvo-btn-launch" onclick="tvoLaunch()">[ LAUNCH ]</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
@@ -865,6 +1043,7 @@ function renderToolsMgr() {
       <div class="tool-mgr-info"><div class="tool-mgr-name">${esc(t.title)}</div><div class="tool-mgr-meta">${esc((t.type||'tool').toUpperCase())} · ${t.vc_price>0?'⬡'+t.vc_price+' VC':'FREE'}${t.is_kit?' · KIT':''}</div></div>
       <div class="tool-mgr-actions">
         <div class="toggle-switch" onclick="toggleToolActive('${t.id}',this)"><div class="toggle-track ${t.is_active!==false?'on':''}" id="toggle-active-${t.id}"><div class="toggle-knob"></div></div><span class="toggle-lbl">${t.is_active!==false?'ACTIVE':'INACTIVE'}</span></div>
+        <button class="btn-sm" onclick="openTvo('${t.id}')">[ PREVIEW ]</button>
         <button class="btn-sm" onclick="openEditTool('${t.id}')">[ EDIT ]</button>
         <button class="btn-sm btn-sm-red" onclick="openDeleteTool('${t.id}','${esc(t.title)}')">[ DELETE ]</button>
       </div>
@@ -1371,6 +1550,100 @@ async function submitPost() {
     showStatus(msg, '// Network error.', true);
     btn.disabled = false; btn.textContent = '[ POST TO MARKETPLACE ]';
   }
+}
+
+// ── TOOL VIEWER OVERLAY (Vault Labs style) ────────────────────────────
+let tvoActiveTool = null;
+
+function openTvo(id) {
+  const t = allTools.find(x => String(x.id) === String(id));
+  if (!t) { toast('// Tool not found.', true); return; }
+  tvoActiveTool = t;
+
+  const type    = (t.type || '').toLowerCase();
+  const runType = (t.tool_run_type || '').toLowerCase();
+
+  document.getElementById('tvo-title').textContent = `// ${t.title}`;
+  document.getElementById('tvo-badge').textContent  = (type || 'tool').toUpperCase();
+  document.getElementById('tvo-desc').textContent   = t.description || '';
+
+  // Reset panels
+  document.getElementById('tvo-target-wrap').style.display  = 'none';
+  document.getElementById('tvo-code-wrap').style.display    = 'none';
+  document.getElementById('tvo-launch-wrap').style.display  = 'none';
+  document.getElementById('tvo-frame').src = 'about:blank';
+
+  if (t.html_content && runType === 'iframe') {
+    // Write HTML directly into sandboxed iframe
+    const iframe = document.getElementById('tvo-frame');
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(t.html_content); doc.close();
+    document.getElementById('tvo-target-wrap').style.display = 'block';
+
+  } else if (type === 'scripts' && t.script_code) {
+    document.getElementById('tvo-code-block').textContent = t.script_code;
+    document.getElementById('tvo-code-wrap').style.display = 'block';
+
+  } else {
+    const deliveryMap = {
+      apps:       '// This app runs inside Vault Labs.\n// Members tap launch to open it.',
+      automation: '// This automation runs in Vault Labs.\n// Members configure inputs and execute.',
+      scripts:    '// This script is available for download.\n// Members run it locally or in Vault Labs terminal.',
+      templates:  '// This template is available for download.',
+      kits:       '// This starter kit is ready for members to access.',
+      ai:         '// This AI tool runs in the AI Terminal.\n// Members launch it pre-loaded.',
+    };
+    document.getElementById('tvo-info-text').innerHTML = (deliveryMap[type] || '// Members access this tool below.').replace(/\n/g,'<br>');
+    const launchLabel = (type === 'scripts' || type === 'templates' || runType === 'download')
+      ? '[ DOWNLOAD ]'
+      : type === 'ai' ? '[ OPEN IN TERMINAL ]'
+      : (runType === 'automation' || runType === 'security') ? '[ RUN TOOL ]'
+      : '[ LAUNCH IN VAULT LABS ]';
+    document.getElementById('tvo-btn-launch').textContent = launchLabel;
+    document.getElementById('tvo-launch-wrap').style.display = 'block';
+  }
+
+  document.getElementById('tool-viewer-overlay').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function closeTvo() {
+  document.getElementById('tvo-frame').src = 'about:blank';
+  document.getElementById('tool-viewer-overlay').classList.remove('active');
+  tvoActiveTool = null;
+}
+
+function tvoCopyCode() {
+  const code = document.getElementById('tvo-code-block').textContent;
+  const btn  = document.getElementById('tvo-btn-copy');
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
+  });
+}
+
+function tvoLaunch() {
+  toast('// This is admin preview — launch is for members only.', true);
+}
+
+function tvoEditCurrent() {
+  if (!tvoActiveTool) return;
+  closeTvo();
+  openEditTool(tvoActiveTool.id);
+}
+
+function tvoDeleteCurrent() {
+  if (!tvoActiveTool) return;
+  const id = tvoActiveTool.id;
+  const title = tvoActiveTool.title;
+  closeTvo();
+  openDeleteTool(id, title);
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────
