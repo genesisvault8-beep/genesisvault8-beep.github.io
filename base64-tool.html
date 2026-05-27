@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64 Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #020608;
+    --bg2:     #060d10;
+    --bg3:     #0a1520;
+    --accent:  #00f5c4;
+    --accent2: #00a8ff;
+    --accent3: #ff003c;
+    --text:    #c8e6f0;
+    --dim:     #4a7a8a;
+    --border:  #0f2a35;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family:'Rajdhani',sans-serif;
+    min-height:100vh; padding:20px;
+    position:relative; overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,245,196,0.025) 1px,transparent 1px);
+    background-size:32px 32px; pointer-events:none; z-index:0;
+  }
+
+  .wrap { position:relative; z-index:1; max-width:640px; margin:0 auto; }
+
+  /* HEADER */
+  .header { margin-bottom:24px; animation:slideDown 0.5s ease; }
+  .header-tag {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--accent);
+    letter-spacing:3px; margin-bottom:6px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .header-tag::before {
+    content:''; width:20px; height:1px; background:var(--accent);
+  }
+  .header h1 {
+    font-size:1.8rem; font-weight:700; letter-spacing:4px;
+    color:white; line-height:1;
+  }
+  .header h1 span { color:var(--accent); }
+  .header-sub {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; color:var(--dim);
+    letter-spacing:2px; margin-top:6px;
+  }
+
+  /* MODE TOGGLE */
+  .mode-bar {
+    display:flex; gap:0; margin-bottom:18px;
+    border:1px solid var(--border);
+    animation:fadeUp 0.5s ease 0.1s both;
+  }
+  .mode-btn {
+    flex:1; padding:10px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.7rem; letter-spacing:3px;
+    background:none; border:none; color:var(--dim);
+    cursor:pointer; transition:all 0.2s; position:relative;
+    overflow:hidden;
+  }
+  .mode-btn::after {
+    content:''; position:absolute; bottom:0; left:0; right:0;
+    height:2px; background:var(--accent);
+    transform:scaleX(0); transition:transform 0.2s;
+  }
+  .mode-btn.active { color:var(--accent); background:rgba(0,245,196,0.05); }
+  .mode-btn.active::after { transform:scaleX(1); }
+  .mode-btn:hover:not(.active) { color:var(--text); }
+
+  /* PANELS */
+  .panel {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:18px; margin-bottom:14px;
+    animation:fadeUp 0.4s ease both;
+  }
+  .panel-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--dim);
+    letter-spacing:2px; margin-bottom:8px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .panel-label span { color:var(--accent2); }
+
+  textarea {
+    width:100%; background:var(--bg3);
+    border:1px solid var(--border); color:var(--text);
+    padding:12px 14px; font-family:'Share Tech Mono',monospace;
+    font-size:0.8rem; line-height:1.7; outline:none;
+    resize:vertical; min-height:110px;
+    transition:border-color 0.2s; letter-spacing:0.5px;
+  }
+  textarea:focus { border-color:var(--accent); }
+  textarea::placeholder { color:var(--dim); }
+  textarea.output-area { color:var(--accent); cursor:text; }
+  textarea.error-area  { color:var(--accent3); border-color:var(--accent3); }
+
+  /* ACTION ROW */
+  .action-row {
+    display:flex; gap:10px; margin-bottom:14px;
+    animation:fadeUp 0.4s ease 0.2s both;
+  }
+  .btn-main {
+    flex:1; padding:13px;
+    background:var(--accent); color:var(--bg);
+    border:none; font-family:'Rajdhani',sans-serif;
+    font-weight:700; font-size:0.95rem; letter-spacing:3px;
+    cursor:pointer; transition:all 0.2s;
+    clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+    position:relative; overflow:hidden;
+  }
+  .btn-main::before {
+    content:''; position:absolute; inset:0;
+    background:white; transform:translateX(-100%);
+    transition:transform 0.3s ease; z-index:0;
+  }
+  .btn-main:hover::before { transform:translateX(0); }
+  .btn-main span { position:relative; z-index:1; }
+  .btn-main:hover span { color:var(--bg); }
+  .btn-secondary {
+    padding:13px 18px;
+    background:none; border:1px solid var(--border);
+    color:var(--dim); font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; letter-spacing:2px; cursor:pointer;
+    transition:all 0.2s; white-space:nowrap;
+  }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* COPY BUTTON */
+  .copy-btn {
+    background:none; border:1px solid var(--border);
+    color:var(--dim); padding:3px 10px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.58rem; letter-spacing:1px;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .copy-btn.copied { border-color:var(--accent); color:var(--accent); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display:flex; gap:16px; flex-wrap:wrap;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.62rem; color:var(--dim);
+    padding:10px 14px; background:var(--bg3);
+    border:1px solid var(--border);
+    margin-bottom:14px;
+    animation:fadeUp 0.4s ease 0.3s both;
+  }
+  .stat { display:flex; gap:6px; }
+  .stat-val { color:var(--accent2); }
+
+  /* BATCH MODE */
+  .batch-result {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:12px 14px; margin-top:10px;
+    font-family:'Share Tech Mono',monospace; font-size:0.72rem;
+    line-height:2; max-height:200px; overflow-y:auto;
+  }
+  .batch-row { display:flex; gap:10px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding:4px 0; }
+  .batch-row:last-child { border-bottom:none; }
+  .batch-in  { color:var(--dim); flex:1; min-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .batch-out { color:var(--accent); flex:2; word-break:break-all; }
+
+  /* INFO BOX */
+  .info-box {
+    background:var(--bg3); border:1px solid var(--border);
+    border-left:3px solid var(--accent2);
+    padding:12px 14px; margin-bottom:14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; line-height:1.9; color:var(--dim);
+    animation:fadeUp 0.4s ease 0.4s both;
+  }
+  .info-box strong { color:var(--accent); }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:24px; left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--bg2); border:1px solid var(--accent);
+    color:var(--accent); padding:8px 20px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.72rem; letter-spacing:1px;
+    opacity:0; pointer-events:none; z-index:99;
+    transition:all 0.3s; white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @keyframes slideDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp    { from { opacity:0; transform:translateY(10px);  } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-tag">// ENCODING UTILITY</div>
+    <h1>BASE<span>64</span></h1>
+    <div class="header-sub">ENCODE · DECODE · BATCH PROCESS</div>
+  </div>
+
+  <!-- MODE TOGGLE -->
+  <div class="mode-bar">
+    <button class="mode-btn active" id="btn-mode-encode" onclick="setMode('encode')">ENCODE</button>
+    <button class="mode-btn"        id="btn-mode-decode" onclick="setMode('decode')">DECODE</button>
+    <button class="mode-btn"        id="btn-mode-batch"  onclick="setMode('batch')" >BATCH</button>
+  </div>
+
+  <!-- ENCODE MODE -->
+  <div id="mode-encode">
+    <div class="panel" style="animation-delay:0.15s">
+      <div class="panel-label">// INPUT — PLAIN TEXT</div>
+      <textarea id="enc-input" placeholder="// Paste your text here to encode..." oninput="liveEncode()"></textarea>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-main" onclick="doEncode()"><span>[ ENCODE → ]</span></button>
+      <button class="btn-secondary" onclick="clearAll('enc')">CLEAR</button>
+    </div>
+
+    <div class="panel" style="animation-delay:0.25s">
+      <div class="panel-label">
+        // OUTPUT — BASE64
+        <button class="copy-btn" id="enc-copy" onclick="copyText('enc-output','enc-copy')">[ COPY ]</button>
+      </div>
+      <textarea id="enc-output" class="output-area" readonly placeholder="// Encoded output will appear here..."></textarea>
+    </div>
+
+    <div class="stats-bar" id="enc-stats">
+      <div class="stat">INPUT: <span class="stat-val" id="enc-in-len">0</span> chars</div>
+      <div class="stat">OUTPUT: <span class="stat-val" id="enc-out-len">0</span> chars</div>
+      <div class="stat">RATIO: <span class="stat-val" id="enc-ratio">—</span></div>
+      <div class="stat">VALID UTF-8: <span class="stat-val" id="enc-valid">—</span></div>
+    </div>
+  </div>
+
+  <!-- DECODE MODE -->
+  <div id="mode-decode" style="display:none">
+    <div class="panel" style="animation-delay:0.15s">
+      <div class="panel-label">// INPUT — BASE64 STRING</div>
+      <textarea id="dec-input" placeholder="// Paste your Base64 string here to decode..." oninput="liveDecode()"></textarea>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-main" onclick="doDecode()"><span>[ ← DECODE ]</span></button>
+      <button class="btn-secondary" onclick="clearAll('dec')">CLEAR</button>
+    </div>
+
+    <div class="panel" style="animation-delay:0.25s">
+      <div class="panel-label">
+        // OUTPUT — PLAIN TEXT
+        <button class="copy-btn" id="dec-copy" onclick="copyText('dec-output','dec-copy')">[ COPY ]</button>
+      </div>
+      <textarea id="dec-output" class="output-area" readonly placeholder="// Decoded output will appear here..."></textarea>
+    </div>
+
+    <div class="stats-bar" id="dec-stats">
+      <div class="stat">INPUT: <span class="stat-val" id="dec-in-len">0</span> chars</div>
+      <div class="stat">OUTPUT: <span class="stat-val" id="dec-out-len">0</span> chars</div>
+      <div class="stat">VALID B64: <span class="stat-val" id="dec-valid">—</span></div>
+    </div>
+  </div>
+
+  <!-- BATCH MODE -->
+  <div id="mode-batch" style="display:none">
+    <div class="info-box">
+      <strong>// BATCH MODE</strong> — one item per line<br>
+      Enter multiple values, choose ENCODE or DECODE, hit RUN.
+    </div>
+
+    <div class="panel" style="animation-delay:0.15s">
+      <div class="panel-label">// INPUT — ONE VALUE PER LINE</div>
+      <textarea id="batch-input" placeholder="// hello world&#10;// Genesis Vault&#10;// SGVsbG8gV29ybGQ=" style="min-height:140px;"></textarea>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-main" onclick="runBatch('encode')"><span>[ ENCODE ALL ]</span></button>
+      <button class="btn-main" onclick="runBatch('decode')" style="background:var(--accent2);clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);"><span>[ DECODE ALL ]</span></button>
+    </div>
+
+    <div id="batch-output" style="display:none">
+      <div class="panel-label" style="margin-bottom:8px;">
+        // RESULTS
+        <button class="copy-btn" id="batch-copy" onclick="copyBatch()">[ COPY ALL ]</button>
+      </div>
+      <div class="batch-result" id="batch-rows"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentMode = 'encode';
+
+function setMode(m) {
+  currentMode = m;
+  ['encode','decode','batch'].forEach(x => {
+    document.getElementById('mode-' + x).style.display = x === m ? 'block' : 'none';
+    document.getElementById('btn-mode-' + x).classList.toggle('active', x === m);
+  });
+}
+
+/* ── ENCODE ── */
+function doEncode() {
+  const input = document.getElementById('enc-input').value;
+  if (!input) return;
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(input)));
+    document.getElementById('enc-output').value = encoded;
+    document.getElementById('enc-output').className = 'output-area';
+    updateEncStats(input, encoded);
+    toast('✓ Encoded');
+  } catch(e) {
+    document.getElementById('enc-output').value = '// Error: ' + e.message;
+    document.getElementById('enc-output').className = 'output-area error-area';
+  }
+}
+
+function liveEncode() {
+  const input = document.getElementById('enc-input').value;
+  if (!input) {
+    document.getElementById('enc-output').value = '';
+    resetEncStats(); return;
+  }
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(input)));
+    document.getElementById('enc-output').value = encoded;
+    document.getElementById('enc-output').className = 'output-area';
+    updateEncStats(input, encoded);
+  } catch(e) {
+    document.getElementById('enc-output').value = '';
+    resetEncStats();
+  }
+}
+
+function updateEncStats(input, output) {
+  document.getElementById('enc-in-len').textContent  = input.length;
+  document.getElementById('enc-out-len').textContent = output.length;
+  const ratio = ((output.length / input.length) * 100).toFixed(0);
+  document.getElementById('enc-ratio').textContent   = ratio + '%';
+  document.getElementById('enc-valid').textContent   = '✓ YES';
+}
+
+function resetEncStats() {
+  ['enc-in-len','enc-out-len'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('enc-ratio').textContent = '—';
+  document.getElementById('enc-valid').textContent = '—';
+}
+
+/* ── DECODE ── */
+function doDecode() {
+  const input = document.getElementById('dec-input').value.trim();
+  if (!input) return;
+  try {
+    const decoded = decodeURIComponent(escape(atob(input)));
+    document.getElementById('dec-output').value = decoded;
+    document.getElementById('dec-output').className = 'output-area';
+    updateDecStats(input, decoded, true);
+    toast('✓ Decoded');
+  } catch(e) {
+    document.getElementById('dec-output').value = '// Invalid Base64 — ' + e.message;
+    document.getElementById('dec-output').className = 'output-area error-area';
+    updateDecStats(input, '', false);
+  }
+}
+
+function liveDecode() {
+  const input = document.getElementById('dec-input').value.trim();
+  if (!input) {
+    document.getElementById('dec-output').value = '';
+    resetDecStats(); return;
+  }
+  const valid = isValidB64(input);
+  document.getElementById('dec-valid').textContent = valid ? '✓ YES' : '✗ NO';
+  document.getElementById('dec-in-len').textContent = input.length;
+  if (valid) {
+    try {
+      const decoded = decodeURIComponent(escape(atob(input)));
+      document.getElementById('dec-output').value = decoded;
+      document.getElementById('dec-output').className = 'output-area';
+      document.getElementById('dec-out-len').textContent = decoded.length;
+    } catch(e) {}
+  }
+}
+
+function updateDecStats(input, output, valid) {
+  document.getElementById('dec-in-len').textContent  = input.length;
+  document.getElementById('dec-out-len').textContent = output.length;
+  document.getElementById('dec-valid').textContent   = valid ? '✓ YES' : '✗ NO';
+}
+
+function resetDecStats() {
+  ['dec-in-len','dec-out-len'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('dec-valid').textContent = '—';
+}
+
+function isValidB64(str) {
+  try { return btoa(atob(str)) === str.replace(/\s/g,'') || true; }
+  catch(e) { return false; }
+}
+
+/* ── BATCH ── */
+let batchResults = [];
+
+function runBatch(op) {
+  const lines = document.getElementById('batch-input').value
+    .split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) { toast('// No input lines found.'); return; }
+
+  batchResults = lines.map(line => {
+    try {
+      const out = op === 'encode'
+        ? btoa(unescape(encodeURIComponent(line)))
+        : decodeURIComponent(escape(atob(line)));
+      return { in: line, out, ok: true };
+    } catch(e) {
+      return { in: line, out: '// ERROR: ' + e.message, ok: false };
+    }
+  });
+
+  const rows = document.getElementById('batch-rows');
+  rows.innerHTML = batchResults.map(r => `
+    <div class="batch-row">
+      <span class="batch-in">${esc(r.in)}</span>
+      <span class="batch-out" style="${r.ok ? '' : 'color:var(--accent3);'}">${esc(r.out)}</span>
+    </div>`).join('');
+
+  document.getElementById('batch-output').style.display = 'block';
+  toast(`✓ ${op === 'encode' ? 'Encoded' : 'Decoded'} ${lines.length} lines`);
+}
+
+function copyBatch() {
+  const text = batchResults.map(r => r.out).join('\n');
+  doCopy(text, 'batch-copy');
+}
+
+/* ── UTILS ── */
+function clearAll(prefix) {
+  document.getElementById(prefix + '-input').value  = '';
+  document.getElementById(prefix + '-output').value = '';
+  document.getElementById(prefix + '-output').className = 'output-area';
+  if (prefix === 'enc') resetEncStats();
+  if (prefix === 'dec') resetDecStats();
+}
+
+function copyText(targetId, btnId) {
+  const text = document.getElementById(targetId).value;
+  if (!text) return;
+  doCopy(text, btnId);
+}
+
+function doCopy(text, btnId) {
+  const btn = document.getElementById(btnId);
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '[ COPIED ✓ ]';
+    btn.classList.add('copied');
+    toast('// Copied to clipboard');
+    setTimeout(() => { btn.textContent = '[ COPY ]'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY ]', 2000);
+    toast('// Copied to clipboard');
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
