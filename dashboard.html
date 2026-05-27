@@ -1907,7 +1907,7 @@ async function loadMarketplace() {
         <p>${esc((t.description||'').substring(0,100))}${(t.description||'').length>100?'...':''}</p>
         <div class="market-footer">
           <span style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent);">✓ OWNED</span>
-          <button class="buy-btn" onclick="location.href='tool-runner.html?tool_id=${t.id}'">[ LAUNCH ]</button>
+          <button class="buy-btn" onclick="(t.tool_run_type==='iframe'||t.tool_run_type==='copy'||t.type==='apps'||t.html_content)?location.href='market.html?access='+t.id:location.href='tool-runner.html?tool_id='+t.id">[ LAUNCH ]</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -2305,8 +2305,12 @@ function launchOwnedTool(t) {
   const rt   = (t.tool_run_type || '').toLowerCase();
   const type = (t.type || '').toLowerCase();
 
-  // All tools route to tool-runner — it handles iframe, ai, copy, download modes
-  // iframe run_type covers scripts, apps, kits posted with URL/HTML in new flow
+  // iframe/web app tools → open in marketplace viewer
+  if (rt === 'iframe' || rt === 'copy' || type === 'apps' || t.html_content) {
+    location.href = `market.html?access=${t.id}`;
+    return;
+  }
+  // everything else → tool-runner (security, automation, ai, download)
   location.href = `tool-runner.html?tool_id=${t.id}`;
 }
 
