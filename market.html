@@ -17,9 +17,10 @@
     --text-dim: #4a7a8a;
     --border:   #0f2a35;
     --glow:     0 0 20px rgba(0,245,196,0.2);
+    --glow2:    0 0 30px rgba(0,245,196,0.3);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; }
+  body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; overflow-x:hidden; }
   body::before {
     content:''; position:fixed; inset:0;
     background-image:
@@ -28,7 +29,7 @@
     background-size:40px 40px; pointer-events:none; z-index:0;
   }
 
-  /* NAV */
+  /* ── NAV ── */
   nav {
     position:fixed; top:0; left:0; right:0;
     background:rgba(2,6,8,0.95); border-bottom:1px solid var(--border);
@@ -46,24 +47,24 @@
   .back-btn { background:none; border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; font-family:'Share Tech Mono',monospace; font-size:0.7rem; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
   .back-btn:hover { border-color:var(--accent); color:var(--accent); }
 
-  /* LAYOUT */
+  /* ── LAYOUT ── */
   main { padding-top:76px; padding-bottom:40px; min-height:100vh; position:relative; z-index:1; }
   .container { padding:20px; max-width:700px; margin:0 auto; }
 
-  /* PAGE HEADER */
+  /* ── PAGE HEADER ── */
   .page-header { margin-bottom:20px; animation:fadeIn 0.4s ease; }
   .page-header .breadcrumb { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:8px; }
   .page-header h1 { font-size:1.6rem; font-weight:700; color:white; letter-spacing:3px; }
   .page-header h1 span { color:var(--accent); }
   .page-header .sub { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-dim); letter-spacing:1px; margin-top:5px; }
 
-  /* FILTER TABS */
+  /* ── FILTER TABS ── */
   .cat-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:20px; overflow-x:auto; }
   .cat-tab { padding:8px 16px; font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:2px; color:var(--text-dim); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all 0.2s; }
   .cat-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
   .cat-tab:hover  { color:var(--text); }
 
-  /* SORT + SEARCH ROW */
+  /* ── SORT + SEARCH ROW ── */
   .toolbar { display:flex; gap:10px; margin-bottom:16px; align-items:center; }
   .search-input { flex:1; background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:9px 14px; font-family:'Share Tech Mono',monospace; font-size:0.8rem; outline:none; transition:border-color 0.2s; }
   .search-input:focus { border-color:var(--accent); }
@@ -71,67 +72,12 @@
   .sort-select { background:var(--bg2); border:1px solid var(--border); color:var(--text-dim); padding:9px 12px; font-family:'Share Tech Mono',monospace; font-size:0.7rem; outline:none; cursor:pointer; }
   .sort-select:focus { border-color:var(--accent); }
 
-  /* OWNED SECTION */
+  /* ── OWNED SECTION ── */
   .owned-banner { background:var(--bg2); border:1px solid var(--accent2); border-left:3px solid var(--accent2); padding:14px 18px; margin-bottom:20px; cursor:pointer; transition:border-color 0.2s; display:flex; align-items:center; justify-content:space-between; }
   .owned-banner:hover { border-color:var(--accent); }
   .owned-banner-left .lbl { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--accent2); letter-spacing:2px; margin-bottom:3px; }
   .owned-banner-left .val { font-size:1rem; font-weight:700; color:white; letter-spacing:1px; }
   .owned-banner-right { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-dim); }
-
-  /* SECTION TITLE */
-  .section-title { font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
-
-  /* TOOL CARD */
-  .tool-card { background:var(--bg2); border:1px solid var(--border); padding:18px; margin-bottom:12px; animation:fadeIn 0.4s ease; transition:border-color 0.2s; position:relative; overflow:hidden; }
-  .tool-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,var(--accent),transparent); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
-  .tool-card:hover { border-color:rgba(0,245,196,0.3); }
-  .tool-card:hover::after { transform:scaleX(1); }
-
-  .tool-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:10px; }
-  .tool-card-top h3 { font-size:1rem; font-weight:700; letter-spacing:2px; color:white; flex:1; }
-  .tool-badges { display:flex; gap:6px; flex-wrap:wrap; flex-shrink:0; }
-  .badge { font-family:'Share Tech Mono',monospace; font-size:0.6rem; padding:2px 8px; letter-spacing:1px; border:1px solid; }
-  .badge-cat  { color:var(--accent2); border-color:var(--accent2); }
-  .badge-free { color:var(--accent);  border-color:var(--accent); }
-  .badge-new  { color:var(--accent3); border-color:var(--accent3); }
-  .badge-kit  { color:#ffaa00; border-color:#ffaa00; }
-
-  .tool-desc { font-size:0.82rem; color:var(--text-dim); line-height:1.6; margin-bottom:12px; }
-
-  .tool-meta { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
-  .tool-meta-item { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text-dim); }
-  .tool-meta-item span { color:var(--accent2); }
-
-  .tool-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
-  .tool-price { font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--accent); letter-spacing:1px; font-weight:700; }
-  .tool-price.free { color:var(--accent); }
-
-  .btn-buy { background:var(--accent); color:var(--bg); border:none; padding:10px 22px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); }
-  .btn-buy:hover { background:white; }
-  .btn-owned { background:none; border:1px solid var(--accent); color:var(--accent); padding:10px 22px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
-  .btn-owned:hover { background:rgba(0,245,196,0.08); }
-  .btn-free { background:rgba(0,245,196,0.1); color:var(--accent); border:1px solid var(--accent); padding:10px 22px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
-  .btn-free:hover { background:var(--accent); color:var(--bg); }
-
-  /* KIT CARD */
-  .kit-card { background:var(--bg2); border:1px solid #ffaa00; border-left:3px solid #ffaa00; padding:18px; margin-bottom:12px; animation:fadeIn 0.4s ease; position:relative; overflow:hidden; }
-  .kit-card::before { content:'// BUNDLE'; position:absolute; top:10px; right:14px; font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:#ffaa00; letter-spacing:2px; }
-  .kit-contents { margin:10px 0; }
-  .kit-item { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); padding:3px 0; }
-  .kit-item::before { content:'+ '; color:var(--accent); }
-
-  /* PROMO CODE */
-  .promo-row { display:flex; gap:8px; margin-bottom:20px; }
-  .promo-input { flex:1; background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:10px 14px; font-family:'Share Tech Mono',monospace; font-size:0.8rem; outline:none; transition:border-color 0.2s; letter-spacing:2px; text-transform:uppercase; }
-  .promo-input:focus { border-color:var(--accent); }
-  .promo-input::placeholder { color:var(--text-dim); text-transform:none; letter-spacing:0; }
-  .promo-btn { background:none; border:1px solid var(--accent); color:var(--accent); padding:10px 16px; font-family:'Share Tech Mono',monospace; font-size:0.7rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-  .promo-btn:hover { background:rgba(0,245,196,0.08); }
-  .promo-status { font-family:'Share Tech Mono',monospace; font-size:0.72rem; margin-bottom:12px; padding:8px 12px; display:none; }
-  .promo-status.ok  { border:1px solid var(--accent); color:var(--accent); background:rgba(0,245,196,0.05); }
-  .promo-status.err { border:1px solid var(--accent3); color:var(--accent3); background:rgba(255,0,60,0.05); }
-
-  /* OWNED TOOLS SECTION */
   .owned-section { display:none; }
   .owned-section.open { display:block; }
   .owned-tool-row { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--bg2); border:1px solid var(--border); margin-bottom:8px; gap:10px; transition:border-color 0.2s; }
@@ -141,207 +87,472 @@
   .btn-access { background:var(--accent); color:var(--bg); border:none; padding:7px 16px; font-family:'Share Tech Mono',monospace; font-size:0.7rem; letter-spacing:1px; cursor:pointer; font-weight:700; white-space:nowrap; transition:all 0.2s; }
   .btn-access:hover { background:white; }
 
-  /* MODAL */
+  /* ── SECTION TITLE ── */
+  .section-title { font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+
+  /* ── TOOL CARD ── */
+  .tool-card { background:var(--bg2); border:1px solid var(--border); padding:18px; margin-bottom:12px; animation:fadeIn 0.4s ease; transition:border-color 0.2s; position:relative; overflow:hidden; }
+  .tool-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,var(--accent),transparent); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
+  .tool-card:hover { border-color:rgba(0,245,196,0.3); }
+  .tool-card:hover::after { transform:scaleX(1); }
+  .tool-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:10px; }
+  .tool-card-top h3 { font-size:1rem; font-weight:700; letter-spacing:2px; color:white; flex:1; }
+  .tool-badges { display:flex; gap:6px; flex-wrap:wrap; flex-shrink:0; }
+  .badge { font-family:'Share Tech Mono',monospace; font-size:0.6rem; padding:2px 8px; letter-spacing:1px; border:1px solid; }
+  .badge-cat  { color:var(--accent2); border-color:var(--accent2); }
+  .badge-free { color:var(--accent);  border-color:var(--accent); }
+  .badge-new  { color:var(--accent3); border-color:var(--accent3); }
+  .badge-kit  { color:#ffaa00; border-color:#ffaa00; }
+  .tool-desc { font-size:0.82rem; color:var(--text-dim); line-height:1.6; margin-bottom:12px; }
+  .tool-meta { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+  .tool-meta-item { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text-dim); }
+  .tool-meta-item span { color:var(--accent2); }
+  .tool-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .tool-price { font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--accent); letter-spacing:1px; font-weight:700; }
+  .btn-buy { background:var(--accent); color:var(--bg); border:none; padding:10px 22px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%); }
+  .btn-buy:hover { background:white; }
+  .btn-owned { background:none; border:1px solid var(--accent); color:var(--accent); padding:10px 22px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
+  .btn-owned:hover { background:rgba(0,245,196,0.08); }
+  .btn-free { background:rgba(0,245,196,0.1); color:var(--accent); border:1px solid var(--accent); padding:10px 22px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
+  .btn-free:hover { background:var(--accent); color:var(--bg); }
+  .tool-thumbnail { width:100%; height:160px; overflow:hidden; background:var(--bg3); border-bottom:1px solid var(--border); }
+  .tool-thumbnail img { width:100%; height:100%; object-fit:cover; opacity:0.85; transition:opacity 0.2s; }
+  .tool-card:hover .tool-thumbnail img { opacity:1; }
+
+  /* ── KIT CARD ── */
+  .kit-card { background:var(--bg2); border:1px solid #ffaa00; border-left:3px solid #ffaa00; padding:18px; margin-bottom:12px; animation:fadeIn 0.4s ease; position:relative; overflow:hidden; }
+  .kit-card::before { content:'// BUNDLE'; position:absolute; top:10px; right:14px; font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:#ffaa00; letter-spacing:2px; }
+  .kit-contents { margin:10px 0; }
+  .kit-item { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text-dim); padding:3px 0; }
+  .kit-item::before { content:'+ '; color:var(--accent); }
+  .kit-thumbnail { width:100%; height:140px; overflow:hidden; background:var(--bg3); border-bottom:1px solid var(--border); margin-bottom:0; }
+  .kit-thumbnail img { width:100%; height:100%; object-fit:cover; opacity:0.85; }
+
+  /* ── MODAL (buy/free only) ── */
   .modal { display:none; position:fixed; inset:0; background:rgba(2,6,8,0.97); z-index:200; padding:20px; overflow-y:auto; flex-direction:column; }
   .modal.active { display:flex; }
+  .modal-inner { max-width:480px; width:100%; margin:auto; }
   .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border); }
   .modal-header h3 { font-size:1rem; letter-spacing:3px; color:var(--accent); font-family:'Share Tech Mono',monospace; }
   .close-btn { background:none; border:1px solid var(--border); color:var(--text-dim); width:32px; height:32px; cursor:pointer; font-size:1rem; transition:all 0.2s; }
   .close-btn:hover { border-color:var(--accent3); color:var(--accent3); }
-
   .modal label { display:block; font-size:0.68rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:6px; font-family:'Share Tech Mono',monospace; }
   .modal input, .modal textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:11px 14px; font-family:'Share Tech Mono',monospace; font-size:0.85rem; outline:none; transition:border-color 0.2s; margin-bottom:14px; }
   .modal input:focus, .modal textarea:focus { border-color:var(--accent); }
   .modal input::placeholder, .modal textarea::placeholder { color:var(--text-dim); }
-
   .info-box { background:var(--bg3); border:1px solid var(--border); border-left:3px solid var(--accent2); padding:14px 16px; margin-bottom:16px; font-family:'Share Tech Mono',monospace; font-size:0.72rem; line-height:1.9; color:var(--text-dim); }
   .info-box span { color:var(--accent); }
-
   .tool-preview-box { background:var(--bg2); border:1px solid var(--border); padding:16px; margin-bottom:16px; }
   .tool-preview-name  { font-weight:700; font-size:1rem; letter-spacing:2px; color:white; margin-bottom:4px; }
   .tool-preview-price { font-family:'Share Tech Mono',monospace; font-size:0.9rem; color:var(--accent); }
-  .tool-preview-orig  { font-family:'Share Tech Mono',monospace; font-size:0.75rem; color:var(--text-dim); text-decoration:line-through; margin-left:8px; }
-  .tool-preview-disc  { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--accent3); margin-top:3px; }
-
   .btn-submit { width:100%; padding:14px; background:var(--accent); color:var(--bg); border:none; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1rem; letter-spacing:3px; cursor:pointer; transition:all 0.2s; clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); }
   .btn-submit:hover { background:white; }
   .btn-submit:disabled { opacity:0.5; cursor:not-allowed; }
-
   .status-msg { padding:10px 14px; font-family:'Share Tech Mono',monospace; font-size:0.75rem; letter-spacing:1px; margin-bottom:12px; display:none; }
   .status-msg.ok  { border:1px solid var(--accent);  color:var(--accent);  background:rgba(0,245,196,0.05); }
   .status-msg.err { border:1px solid var(--accent3); color:var(--accent3); background:rgba(255,0,60,0.05); }
 
+  /* ── TOOL VIEWER (Vault Labs style) ── */
+  #tool-viewer {
+    display:none;
+    animation:fadeIn 0.3s ease;
+    padding-top:76px;
+    padding-bottom:24px;
+    padding-left:16px;
+    padding-right:16px;
+    position:relative;
+    z-index:1;
+    max-width:700px;
+    margin:0 auto;
+  }
+
+  .viewer-header {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:16px; padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  .viewer-back {
+    background:none; border:1px solid var(--border);
+    color:var(--text-dim); padding:5px 12px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px;
+    transition:all 0.2s; white-space:nowrap;
+  }
+  .viewer-back:hover { border-color:var(--accent3); color:var(--accent3); }
+  .viewer-title {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.85rem; color:var(--accent);
+    letter-spacing:2px; flex:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .viewer-type-badge {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; padding:2px 8px; letter-spacing:1px;
+    border:1px solid var(--accent2); color:var(--accent2);
+  }
+
+  /* Objective / description strip */
+  .viewer-desc-box {
+    background:var(--bg3); border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    padding:12px 14px; margin-bottom:12px;
+    font-size:0.82rem; line-height:1.6; color:var(--text);
+  }
+  .viewer-desc-box strong {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; color:var(--accent);
+    letter-spacing:2px; display:block; margin-bottom:6px;
+  }
+
+  /* Live target frame */
+  .viewer-target {
+    background:var(--bg2); border:1px solid var(--border);
+    margin-bottom:12px; overflow:hidden;
+  }
+  .viewer-target-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--text-dim);
+    letter-spacing:2px; padding:8px 14px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:8px;
+  }
+  .viewer-target-label::before {
+    content:''; width:6px; height:6px; border-radius:50%;
+    background:var(--accent); animation:pulse 2s infinite;
+  }
+  #tool-frame {
+    width:100%; height:420px; border:none;
+    background:white; display:block;
+  }
+
+  /* Script / code panel */
+  .viewer-code-wrap { margin-bottom:12px; }
+  .viewer-code-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--accent2);
+    letter-spacing:2px; margin-bottom:8px;
+  }
+  #viewer-code-block {
+    background:#020c0f; border:1px solid var(--border);
+    color:var(--accent); font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; padding:14px; overflow-x:auto;
+    white-space:pre-wrap; word-break:break-all;
+    max-height:320px; overflow-y:auto; line-height:1.7;
+    margin-bottom:8px;
+  }
+
+  /* Launch panel */
+  .viewer-launch-wrap { margin-bottom:12px; }
+  .viewer-info-box {
+    background:var(--bg3); border:1px solid var(--border);
+    border-left:3px solid var(--accent2);
+    padding:14px 16px; margin-bottom:14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.72rem; line-height:1.9; color:var(--text-dim);
+  }
+
+  /* Tools row (Notes + AI) */
+  .viewer-tools-panel {
+    background:var(--bg2); border:1px solid var(--border);
+    margin-bottom:12px;
+  }
+  .viewer-tools-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--text-dim);
+    letter-spacing:2px; padding:8px 14px;
+    border-bottom:1px solid var(--border);
+  }
+  .viewer-tools-row {
+    display:flex; gap:8px; padding:12px 14px; flex-wrap:wrap;
+  }
+  .tool-btn {
+    background:none; border:1px solid var(--border);
+    color:var(--text-dim); padding:6px 14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px;
+    transition:all 0.2s;
+  }
+  .tool-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+  .tool-btn.active { border-color:var(--accent); color:var(--accent); }
+
+  /* Notes panel */
+  .notes-panel {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:14px; margin-bottom:12px;
+    display:none; animation:fadeIn 0.3s;
+  }
+  .notes-panel.open { display:block; }
+  .notes-panel textarea {
+    width:100%; background:var(--bg);
+    border:1px solid var(--border); color:var(--text);
+    padding:10px; font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; resize:vertical; min-height:100px;
+    outline:none; line-height:1.6;
+  }
+  .notes-panel textarea:focus { border-color:var(--accent); }
+  .notes-save-status {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    color:var(--text-dim); letter-spacing:1px; margin-top:6px;
+    transition:color 0.3s;
+  }
+  .notes-save-status.saved { color:var(--accent); }
+
+  /* AI panel */
+  .ai-panel {
+    background:var(--bg3); border:1px solid var(--border);
+    margin-bottom:12px; display:none; animation:fadeIn 0.3s;
+  }
+  .ai-panel.open { display:block; }
+  .ai-messages {
+    padding:12px 14px; min-height:80px; max-height:200px;
+    overflow-y:auto;
+  }
+  .ai-msg {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.72rem; margin-bottom:8px;
+    line-height:1.6; animation:fadeIn 0.3s;
+  }
+  .ai-msg.user { color:var(--accent2); }
+  .ai-msg.user::before { content:'YOU > '; color:var(--text-dim); }
+  .ai-msg.bot { color:var(--text); }
+  .ai-msg.bot::before { content:'AI  > '; color:var(--accent); }
+  .ai-input-row { display:flex; border-top:1px solid var(--border); }
+  .ai-input-row input {
+    flex:1; background:transparent; border:none;
+    color:var(--text); padding:10px 14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; outline:none;
+  }
+  .ai-input-row input::placeholder { color:var(--text-dim); }
+  .ai-send {
+    background:var(--accent); border:none; color:var(--bg);
+    padding:0 16px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px;
+    transition:all 0.2s;
+  }
+  .ai-send:hover { background:white; }
+
+  /* Action button (launch/copy/download) */
+  .viewer-action-btn {
+    width:100%; padding:14px;
+    background:none; border:1px solid var(--accent);
+    color:var(--accent); font-family:'Share Tech Mono',monospace;
+    font-size:0.8rem; letter-spacing:3px; cursor:pointer;
+    transition:all 0.3s; margin-bottom:20px;
+  }
+  .viewer-action-btn:hover {
+    background:var(--accent); color:var(--bg);
+    box-shadow:var(--glow2);
+  }
+  .viewer-action-btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* ── MISC ── */
   .loading { text-align:center; padding:40px; color:var(--text-dim); font-family:'Share Tech Mono',monospace; font-size:0.8rem; letter-spacing:2px; }
   .empty   { text-align:center; padding:40px; color:var(--text-dim); font-family:'Share Tech Mono',monospace; font-size:0.8rem; }
   .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:8px; }
 
-  @keyframes spin   { to { transform:rotate(360deg); } }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-
-  .tool-thumbnail { width:100%; height:160px; overflow:hidden; background:var(--bg3); border-bottom:1px solid var(--border); }
-  .tool-thumbnail img { width:100%; height:100%; object-fit:cover; opacity:0.85; transition:opacity 0.2s; }
-  .tool-card:hover .tool-thumbnail img { opacity:1; }
-  .kit-thumbnail { width:100%; height:140px; overflow:hidden; background:var(--bg3); border-bottom:1px solid var(--border); margin-bottom:0; }
-  .kit-thumbnail img { width:100%; height:100%; object-fit:cover; opacity:0.85; }
+  @keyframes spin    { to { transform:rotate(360deg); } }
+  @keyframes fadeIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.3} }
 </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-logo" data-text="GENESISVAULT"><span class="g">GENESIS</span><span class="v">VAULT</span></div>
-  <button class="back-btn" onclick="location.href='dashboard.html'">← DASHBOARD</button>
+  <button class="back-btn" id="nav-back-btn" onclick="location.href='dashboard.html'">← DASHBOARD</button>
 </nav>
 
 <main>
-<div class="container">
 
-  <!-- HEADER -->
-  <div class="page-header">
-    <p class="breadcrumb">// DASHBOARD / MARKETPLACE</p>
-    <h1>VAULT <span>STORE</span></h1>
-    <p class="sub">Scripts. Apps. Automation. Kits. — All run inside Genesis Vault.</p>
-  </div>
+  <!-- ══ LOBBY ══ -->
+  <div id="lobby">
+  <div class="container">
 
-  <!-- OWNED BANNER -->
-  <div class="owned-banner" onclick="toggleOwned()" id="owned-banner">
-    <div class="owned-banner-left">
-      <div class="lbl">// YOUR TOOLS</div>
-      <div class="val" id="owned-count-label">Loading...</div>
+    <!-- HEADER -->
+    <div class="page-header">
+      <p class="breadcrumb">// DASHBOARD / MARKETPLACE</p>
+      <h1>VAULT <span>STORE</span></h1>
+      <p class="sub">Scripts. Apps. Automation. Kits. — All run inside Genesis Vault.</p>
     </div>
-    <div class="owned-banner-right" id="owned-toggle-label">[ VIEW → ]</div>
-  </div>
 
-  <!-- OWNED TOOLS SECTION -->
-  <div class="owned-section" id="owned-section">
-    <div id="owned-list"><div class="loading"><span class="spinner"></span>Loading your tools...</div></div>
-    <div style="height:16px;"></div>
-  </div>
-
-  <!-- VC BALANCE BANNER -->
-  <div style="background:var(--bg2);border:1px solid #f5c400;border-left:3px solid #f5c400;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
-    <div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:2px;">// YOUR VC BALANCE</div>
-      <div id="vc-balance-label" style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:#f5c400;font-weight:700;">⬡ — VC</div>
+    <!-- OWNED BANNER -->
+    <div class="owned-banner" onclick="toggleOwned()" id="owned-banner">
+      <div class="owned-banner-left">
+        <div class="lbl">// YOUR TOOLS</div>
+        <div class="val" id="owned-count-label">Loading...</div>
+      </div>
+      <div class="owned-banner-right" id="owned-toggle-label">[ VIEW → ]</div>
     </div>
-    <a href="buy-vc.html" style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:#f5c400;border:1px solid #f5c400;padding:7px 14px;text-decoration:none;letter-spacing:1px;transition:all 0.2s;">[ BUY VC ]</a>
+
+    <!-- OWNED TOOLS SECTION -->
+    <div class="owned-section" id="owned-section">
+      <div id="owned-list"><div class="loading"><span class="spinner"></span>Loading your tools...</div></div>
+      <div style="height:16px;"></div>
+    </div>
+
+    <!-- VC BALANCE BANNER -->
+    <div style="background:var(--bg2);border:1px solid #f5c400;border-left:3px solid #f5c400;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:2px;">// YOUR VC BALANCE</div>
+        <div id="vc-balance-label" style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:#f5c400;font-weight:700;">⬡ — VC</div>
+      </div>
+      <a href="buy-vc.html" style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:#f5c400;border:1px solid #f5c400;padding:7px 14px;text-decoration:none;letter-spacing:1px;transition:all 0.2s;">[ BUY VC ]</a>
+    </div>
+
+    <!-- CATEGORY TABS -->
+    <div class="cat-tabs">
+      <div class="cat-tab active" onclick="setCategory('',this)">ALL</div>
+      <div class="cat-tab" onclick="setCategory('automation',this)">AUTOMATION</div>
+      <div class="cat-tab" onclick="setCategory('ai',this)">AI TOOLS</div>
+      <div class="cat-tab" onclick="setCategory('apps',this)">APPS</div>
+      <div class="cat-tab" onclick="setCategory('scripts',this)">SCRIPTS</div>
+      <div class="cat-tab" onclick="setCategory('templates',this)">TEMPLATES</div>
+      <div class="cat-tab" onclick="setCategory('kits',this)">KITS</div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input class="search-input" type="text" id="search-input" placeholder="// search tools..." oninput="renderTools()">
+      <select class="sort-select" id="sort-select" onchange="renderTools()">
+        <option value="newest">NEWEST</option>
+        <option value="price-asc">PRICE ↑</option>
+        <option value="price-desc">PRICE ↓</option>
+        <option value="free">FREE FIRST</option>
+      </select>
+    </div>
+
+    <!-- TOOLS LIST -->
+    <div id="tools-container"><div class="loading"><span class="spinner"></span>Loading store...</div></div>
+
   </div>
+  </div><!-- /lobby -->
 
-  <!-- CATEGORY TABS -->
-  <div class="cat-tabs">
-    <div class="cat-tab active" onclick="setCategory('',this)">ALL</div>
-    <div class="cat-tab" onclick="setCategory('automation',this)">AUTOMATION</div>
-    <div class="cat-tab" onclick="setCategory('ai',this)">AI TOOLS</div>
-    <div class="cat-tab" onclick="setCategory('apps',this)">APPS</div>
-    <div class="cat-tab" onclick="setCategory('scripts',this)">SCRIPTS</div>
-    <div class="cat-tab" onclick="setCategory('templates',this)">TEMPLATES</div>
-    <div class="cat-tab" onclick="setCategory('kits',this)">KITS</div>
-  </div>
+  <!-- ══ TOOL VIEWER (Vault Labs style) ══ -->
+  <div id="tool-viewer">
 
-  <!-- TOOLBAR -->
-  <div class="toolbar">
-    <input class="search-input" type="text" id="search-input" placeholder="// search tools..." oninput="renderTools()">
-    <select class="sort-select" id="sort-select" onchange="renderTools()">
-      <option value="newest">NEWEST</option>
-      <option value="price-asc">PRICE ↑</option>
-      <option value="price-desc">PRICE ↓</option>
-      <option value="free">FREE FIRST</option>
-    </select>
-  </div>
+    <div class="viewer-header">
+      <button class="viewer-back" onclick="closeTool()">← BACK TO STORE</button>
+      <div class="viewer-title" id="viewer-title">// TOOL</div>
+      <span class="viewer-type-badge" id="viewer-type-badge">TOOL</span>
+    </div>
 
-  <!-- TOOLS LIST -->
-  <div id="tools-container"><div class="loading"><span class="spinner"></span>Loading store...</div></div>
+    <!-- Description strip -->
+    <div class="viewer-desc-box">
+      <strong>// DESCRIPTION</strong>
+      <span id="viewer-desc"></span>
+    </div>
 
-</div>
+    <!-- iframe target (for html_content / iframe run type) -->
+    <div class="viewer-target" id="viewer-target-wrap">
+      <div class="viewer-target-label">LIVE ENVIRONMENT</div>
+      <iframe id="tool-frame" sandbox="allow-scripts allow-forms allow-same-origin allow-modals"></iframe>
+    </div>
+
+    <!-- Script copy panel -->
+    <div class="viewer-code-wrap" id="viewer-code-wrap" style="display:none;">
+      <div class="viewer-code-label">// COPY &amp; RUN ON TERMUX</div>
+      <pre id="viewer-code-block"></pre>
+      <button class="viewer-action-btn" id="btn-copy-code" onclick="copyToolCode()">[ COPY CODE ]</button>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:-14px;margin-bottom:16px;">// Paste into Termux and run with Python / Bash / Node</div>
+    </div>
+
+    <!-- Launch panel (automation / AI / download) -->
+    <div class="viewer-launch-wrap" id="viewer-launch-wrap" style="display:none;">
+      <div class="viewer-info-box" id="viewer-info-text">// Loading...</div>
+      <button class="viewer-action-btn" id="btn-viewer-launch" onclick="launchTool()">[ LAUNCH ]</button>
+    </div>
+
+    <!-- Tools panel (Notes + AI) -->
+    <div class="viewer-tools-panel">
+      <div class="viewer-tools-label">// TOOLS</div>
+      <div class="viewer-tools-row">
+        <button class="tool-btn" id="btn-notes" onclick="toggleViewerPanel('notes')">[ NOTES ]</button>
+        <button class="tool-btn" id="btn-ai"    onclick="toggleViewerPanel('ai')"   >[ ASK AI ]</button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="notes-panel" id="panel-notes">
+      <textarea id="notes-input" placeholder="// Write your notes here...&#10;// What did you find? What did you try?" oninput="saveViewerNotes()"></textarea>
+      <div class="notes-save-status" id="notes-save-status">// Notes auto-saved per tool</div>
+    </div>
+
+    <!-- AI -->
+    <div class="ai-panel" id="panel-ai">
+      <div class="ai-messages" id="ai-messages">
+        <div class="ai-msg bot" style="color:var(--text-dim)">Ask me anything about this tool. I can explain how to use it, what it does, or help you troubleshoot.</div>
+      </div>
+      <div class="ai-input-row">
+        <input type="text" id="ai-input" placeholder="Ask the AI for help..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button class="ai-send" onclick="sendAI()">SEND</button>
+      </div>
+    </div>
+
+  </div><!-- /tool-viewer -->
+
 </main>
 
-<!-- PURCHASE MODAL (VC) -->
+<!-- ══ PURCHASE MODAL (VC) ══ -->
 <div class="modal" id="modal-buy">
-  <div class="modal-header">
-    <h3>// Purchase Tool</h3>
-    <button class="close-btn" onclick="closeModal('modal-buy')">✕</button>
-  </div>
-
-  <div class="tool-preview-box">
-    <div class="tool-preview-name"  id="buy-name">—</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:#f5c400;margin-top:6px;" id="buy-price-display">—</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);margin-top:4px;" id="buy-balance-display"></div>
-  </div>
-
-  <div class="info-box">
-    // VC is deducted <span>instantly</span> — no waiting for admin<br>
-    // Tool unlocks immediately after purchase<br>
-    // Need VC? <a href="buy-vc.html" style="color:#f5c400;text-decoration:none;">[ BUY VC ]</a>
-  </div>
-
-  <div class="status-msg" id="buy-status"></div>
-  <button class="btn-submit" id="btn-buy-submit" onclick="submitPayment()">[ BUY WITH VC ]</button>
-</div>
-
-<!-- FREE UNLOCK MODAL -->
-<div class="modal" id="modal-free">
-  <div class="modal-header">
-    <h3>// Unlock Free Tool</h3>
-    <button class="close-btn" onclick="closeModal('modal-free')">✕</button>
-  </div>
-  <div class="tool-preview-box">
-    <div class="tool-preview-name" id="free-name">—</div>
-    <div class="tool-preview-price" style="color:var(--accent);">FREE</div>
-  </div>
-  <div class="info-box">// This tool is free. Tap below to add it to your library instantly.</div>
-  <div class="status-msg" id="free-status"></div>
-  <button class="btn-submit" id="btn-free-submit" onclick="submitFree()">[ UNLOCK NOW ]</button>
-</div>
-
-<!-- ACCESS MODAL -->
-<div class="modal" id="modal-access">
-  <div class="modal-header">
-    <h3>// Access Tool</h3>
-    <button class="close-btn" onclick="closeModal('modal-access')">✕</button>
-  </div>
-  <div class="tool-preview-box">
-    <div class="tool-preview-name" id="access-name">—</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent2);margin-top:4px;" id="access-type">—</div>
-  </div>
-
-  <!-- SCRIPT: copy code view -->
-  <div id="access-script-wrap" style="display:none;">
-    <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// COPY & RUN ON TERMUX</div>
-    <div style="position:relative;">
-      <pre id="access-code-block" style="background:#020c0f;border:1px solid var(--border);color:#00f5c4;font-family:'Share Tech Mono',monospace;font-size:0.75rem;padding:14px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:320px;overflow-y:auto;line-height:1.7;margin-bottom:8px;"></pre>
-      <button onclick="copyToolCode()" id="btn-copy-code" style="width:100%;padding:12px;background:var(--accent);color:var(--bg);border:none;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);">[ COPY CODE ]</button>
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h3>// Purchase Tool</h3>
+      <button class="close-btn" onclick="closeModal('modal-buy')">✕</button>
     </div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:8px;">// Paste into Termux and run with Python / Bash / Node</div>
+    <div class="tool-preview-box">
+      <div class="tool-preview-name"  id="buy-name">—</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:#f5c400;margin-top:6px;" id="buy-price-display">—</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);margin-top:4px;" id="buy-balance-display"></div>
+    </div>
+    <div class="info-box">
+      // VC is deducted <span>instantly</span> — no waiting for admin<br>
+      // Tool unlocks immediately after purchase<br>
+      // Need VC? <a href="buy-vc.html" style="color:#f5c400;text-decoration:none;">[ BUY VC ]</a>
+    </div>
+    <div class="status-msg" id="buy-status"></div>
+    <button class="btn-submit" id="btn-buy-submit" onclick="submitPayment()">[ BUY WITH VC ]</button>
   </div>
+</div>
 
-  <!-- WEB APP / KIT: iframe view -->
-  <div id="access-iframe-wrap" style="display:none;">
-    <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--accent2);letter-spacing:2px;margin-bottom:8px;">// RUNNING INSIDE VAULT LABS</div>
-    <iframe id="access-iframe" sandbox="allow-scripts allow-forms allow-modals" style="width:100%;height:420px;border:1px solid var(--accent2);background:#fff;display:block;"></iframe>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:1px;margin-top:8px;">// Sandboxed environment — source code is protected</div>
-  </div>
-
-  <!-- AUTOMATION / AI / OTHER: info + launch -->
-  <div id="access-launch-wrap" style="display:none;">
-    <div class="info-box" id="access-info">// Loading access info...</div>
-    <button class="btn-submit" id="btn-access-go" onclick="launchTool()">[ LAUNCH IN VAULT LABS ]</button>
+<!-- ══ FREE UNLOCK MODAL ══ -->
+<div class="modal" id="modal-free">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h3>// Unlock Free Tool</h3>
+      <button class="close-btn" onclick="closeModal('modal-free')">✕</button>
+    </div>
+    <div class="tool-preview-box">
+      <div class="tool-preview-name" id="free-name">—</div>
+      <div class="tool-preview-price" style="color:var(--accent);">FREE</div>
+    </div>
+    <div class="info-box">// This tool is free. Tap below to add it to your library instantly.</div>
+    <div class="status-msg" id="free-status"></div>
+    <button class="btn-submit" id="btn-free-submit" onclick="submitFree()">[ UNLOCK NOW ]</button>
   </div>
 </div>
 
 <script>
 const API        = 'https://genesis-vault-backend.onrender.com/api';
 const BRIDGE_API = 'https://genesis-bridge-backend.onrender.com';
+const AI_URL     = 'https://genesis-ai-backend.onrender.com';
+
 let token = localStorage.getItem('gv_token');
 if (!token) location.href = 'login.html';
 
-let allTools      = [];
+let allTools       = [];
 let activeCategory = '';
-let activeTool    = null;
-let vcBalance     = 0;
-let ownedOpen     = false;
+let activeTool     = null;
+let vcBalance      = 0;
+let ownedOpen      = false;
+let notesSaveTimer = null;
+let USER_ID        = null;
+let USERNAME       = 'ghost';
+let USER_RANK      = 'Ghost';
 
 function h() { return { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` }; }
 
-// ── AUTH-AWARE FETCH — redirects to login on 401 ──────────────────────
 async function fetchWithAuth(url, options = {}) {
   options.headers = { ...h(), ...(options.headers || {}) };
   const res = await fetch(url, options);
@@ -355,7 +566,6 @@ async function fetchWithAuth(url, options = {}) {
 
 /* ── BOOT ── */
 async function boot() {
-  // Load VC balance
   try {
     const r = await fetchWithAuth(`${API}/vc/balance`);
     const d = await r.json();
@@ -365,7 +575,17 @@ async function boot() {
   }
   document.getElementById('vc-balance-label').textContent = `⬡ ${vcBalance.toLocaleString()} VC`;
 
-  // Check URL params for auto-open
+  // Load user info for AI
+  try {
+    const r = await fetchWithAuth(`${API}/auth/me`);
+    const d = await r.json();
+    if (d.status === 'success' && d.user) {
+      USER_ID   = d.user.id;
+      USERNAME  = d.user.username;
+      USER_RANK = d.user.rank || 'Ghost';
+    }
+  } catch(e) {}
+
   const params = new URLSearchParams(location.search);
   if (params.get('cat')) {
     const tab = document.querySelector(`.cat-tab[onclick*="${params.get('cat')}"]`);
@@ -400,24 +620,20 @@ function renderTools() {
   const c      = document.getElementById('tools-container');
 
   let filtered = allTools.filter(t => {
-    const matchCat  = !activeCategory || (t.type||'').toLowerCase() === activeCategory;
+    const matchCat    = !activeCategory || (t.type||'').toLowerCase() === activeCategory;
     const matchSearch = !search || t.title.toLowerCase().includes(search) || (t.description||'').toLowerCase().includes(search);
     return matchCat && matchSearch;
   });
 
-  // Sort
   if (sort === 'price-asc')  filtered.sort((a,b) => a.price - b.price);
   if (sort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
   if (sort === 'free')       filtered.sort((a,b) => a.price - b.price);
   if (sort === 'newest')     filtered.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
 
-  if (!filtered.length) {
-    c.innerHTML = '<div class="empty">// No tools found in this category yet.</div>'; return;
-  }
+  if (!filtered.length) { c.innerHTML = '<div class="empty">// No tools found in this category yet.</div>'; return; }
 
   c.innerHTML = filtered.map(t => {
-    const isKit  = (t.type||'').toLowerCase() === 'kits' || t.is_kit;
-    const isFree = false; // All tools require VC
+    const isKit = (t.type||'').toLowerCase() === 'kits' || t.is_kit;
     return isKit ? renderKit(t) : renderTool(t);
   }).join('');
 }
@@ -426,18 +642,15 @@ function renderTool(t) {
   const vcPrice = t.vc_price > 0 ? t.vc_price : 0;
   const isFree  = vcPrice === 0;
   const isNew   = t.created_at && (Date.now() - new Date(t.created_at)) < 7*86400000;
-
-  const badges = [
+  const badges  = [
     `<span class="badge badge-cat">${esc((t.type||'TOOL').toUpperCase())}</span>`,
     isFree ? `<span class="badge badge-free">FREE</span>` : '',
     isNew  ? `<span class="badge badge-new">NEW</span>`  : '',
   ].join('');
-
   const meta = [
-    t.delivery ? `<span class="tool-meta-item">DELIVERY: <span>${esc(t.delivery.toUpperCase())}</span></span>` : '',
+    t.delivery  ? `<span class="tool-meta-item">DELIVERY: <span>${esc(t.delivery.toUpperCase())}</span></span>` : '',
     t.file_type ? `<span class="tool-meta-item">FORMAT: <span>${esc(t.file_type.toUpperCase())}</span></span>` : '',
   ].filter(Boolean).join('');
-
   const footerBtn = t.owned
     ? `<button class="btn-owned" onclick="openAccessById(${t.id})">[ ACCESS TOOL ]</button>`
     : isFree
@@ -490,30 +703,18 @@ async function loadOwned() {
     const res  = await fetchWithAuth(`${API}/marketplace?owned=true`, { headers:h() });
     const data = await res.json();
     const owned = (data.tools||[]).filter(t => t.owned);
-
-    // Update allTools owned state
-    owned.forEach(o => {
-      const t = allTools.find(x => x.id === o.id);
-      if (t) t.owned = true;
-    });
-
+    owned.forEach(o => { const t = allTools.find(x => x.id === o.id); if (t) t.owned = true; });
     label.textContent = owned.length > 0 ? `${owned.length} tool${owned.length>1?'s':''} in your library` : 'No tools yet';
-
-    if (!owned.length) {
-      list.innerHTML = '<div class="empty" style="padding:16px 0;">// Purchase tools to see them here.</div>';
-      return;
-    }
+    if (!owned.length) { list.innerHTML = '<div class="empty" style="padding:16px 0;">// Purchase tools to see them here.</div>'; return; }
     list.innerHTML = owned.map(t => `
       <div class="owned-tool-row">
         <div>
           <div class="owned-tool-name">${esc(t.title)}</div>
           <div class="owned-tool-type">${esc((t.type||'tool').toUpperCase())} · ⬡ ${t.vc_price||1} VC</div>
         </div>
-        <button class="btn-access" onclick="openAccess(${JSON.stringify(t)})">[ ACCESS ]</button>
+        <button class="btn-access" onclick="openAccess(${JSON.stringify(t).replace(/"/g,'&quot;')})">[ ACCESS ]</button>
       </div>`).join('');
-  } catch(e) {
-    label.textContent = 'Could not load';
-  }
+  } catch(e) { label.textContent = 'Could not load'; }
 }
 
 function toggleOwned() {
@@ -525,22 +726,20 @@ function toggleOwned() {
 /* ── BUY FLOW ── */
 function handleToolClick(id, isFree) {
   const t = allTools.find(x => String(x.id) === String(id));
-  if (!t) { console.error('Tool not found:', id); return; }
+  if (!t) return;
   if (t.owned) { openAccessById(id); return; }
-  if (isFree) openFree(t);
-  else openBuy(t);
+  if (isFree) openFree(t); else openBuy(t);
 }
 
 function openBuy(t) {
   activeTool = t;
-  const vcPrice = t.vc_price || 0;
-  document.getElementById('buy-name').textContent    = t.title;
-  document.getElementById('buy-price-display').textContent = `⬡ ${vcPrice} VC`;
+  document.getElementById('buy-name').textContent         = t.title;
+  document.getElementById('buy-price-display').textContent = `⬡ ${t.vc_price||0} VC`;
   document.getElementById('buy-balance-display').textContent = `// Your balance: ⬡ ${vcBalance.toLocaleString()} VC`;
-  document.getElementById('buy-status').style.display = 'none';
+  document.getElementById('buy-status').style.display     = 'none';
   const btn = document.getElementById('btn-buy-submit');
-  btn.disabled = vcBalance < vcPrice;
-  btn.textContent = vcBalance < vcPrice ? '[ INSUFFICIENT VC ]' : '[ BUY WITH VC ]';
+  btn.disabled    = vcBalance < (t.vc_price||0);
+  btn.textContent = vcBalance < (t.vc_price||0) ? '[ INSUFFICIENT VC ]' : '[ BUY WITH VC ]';
   openModal('modal-buy');
 }
 
@@ -550,9 +749,7 @@ async function submitPayment() {
   if (!activeTool) return;
   btn.disabled = true; btn.textContent = '[ BUYING... ]';
   try {
-    const res  = await fetchWithAuth(`${API}/tools/${activeTool.id}/purchase-vc`, {
-      method:'POST', headers:h(), body: JSON.stringify({})
-    });
+    const res  = await fetchWithAuth(`${API}/tools/${activeTool.id}/purchase-vc`, { method:'POST', headers:h(), body: JSON.stringify({}) });
     const data = await res.json();
     if (data.status === 'success') {
       vcBalance = data.new_balance ?? vcBalance;
@@ -561,10 +758,7 @@ async function submitPayment() {
       document.getElementById('vc-balance-label').textContent = `⬡ ${vcBalance.toLocaleString()} VC`;
       const t = allTools.find(x => x.id === activeTool.id);
       if (t) t.owned = true;
-      setTimeout(async () => {
-        await loadOwned();
-        renderTools();
-      }, 1200);
+      setTimeout(async () => { closeModal('modal-buy'); await loadOwned(); renderTools(); openAccess(activeTool); }, 1400);
     } else if (data.message === 'INSUFFICIENT_VC') {
       showStatus(msg, `// Not enough VC. Need ${data.required} VC, have ${data.balance} VC.`, true);
       btn.disabled = false; btn.textContent = '[ BUY WITH VC ]';
@@ -581,9 +775,9 @@ async function submitPayment() {
 /* ── FREE FLOW ── */
 function openFree(t) {
   activeTool = t;
-  document.getElementById('free-name').textContent = t.title;
-  document.getElementById('free-status').style.display = 'none';
-  document.getElementById('btn-free-submit').disabled  = false;
+  document.getElementById('free-name').textContent        = t.title;
+  document.getElementById('free-status').style.display   = 'none';
+  document.getElementById('btn-free-submit').disabled    = false;
   document.getElementById('btn-free-submit').textContent = '[ UNLOCK NOW ]';
   openModal('modal-free');
 }
@@ -593,26 +787,22 @@ async function submitFree() {
   const msg = document.getElementById('free-status');
   btn.disabled = true; btn.textContent = '[ UNLOCKING... ]';
   try {
-    const res  = await fetchWithAuth(`${API}/payments/submit`, {
-      method:'POST', headers:h(),
-      body: JSON.stringify({ tool_id: activeTool.id, binance_tx_id: 'FREE' })
-    });
+    const res  = await fetchWithAuth(`${API}/payments/submit`, { method:'POST', headers:h(), body: JSON.stringify({ tool_id: activeTool.id, binance_tx_id: 'FREE' }) });
     const data = await res.json();
     if (data.status === 'success') {
-      showStatus(msg,'✓ Unlocked! Find it in Your Tools.',false);
+      showStatus(msg,'✓ Unlocked! Opening tool...', false);
       btn.textContent = '[ UNLOCKED ]';
       activeTool.owned = true;
       const t = allTools.find(x => x.id === activeTool.id);
       if (t) t.owned = true;
-      // Refresh VC balance in case of any server-side reward/change
       try {
         const vr = await fetchWithAuth(`${API}/vc/balance`);
         const vd = await vr.json();
         vcBalance = vd.balance ?? vcBalance;
         document.getElementById('vc-balance-label').textContent = `⬡ ${vcBalance.toLocaleString()} VC`;
       } catch(e) {}
-      renderTools();
-      loadOwned();
+      renderTools(); loadOwned();
+      setTimeout(() => { closeModal('modal-free'); openAccess(activeTool); }, 1200);
     } else {
       showStatus(msg, data.message||'// Failed.',true);
       btn.disabled = false; btn.textContent = '[ UNLOCK NOW ]';
@@ -623,34 +813,55 @@ async function submitFree() {
   }
 }
 
-/* ── ACCESS FLOW ── */
+/* ── ACCESS / TOOL VIEWER (Vault Labs style) ── */
 function openAccess(t) {
   activeTool = typeof t === 'string' ? JSON.parse(t) : t;
-  document.getElementById('access-name').textContent = activeTool.title;
-  document.getElementById('access-type').textContent = `// ${(activeTool.type||'tool').toUpperCase()} · OWNED`;
 
   const type    = (activeTool.type||'').toLowerCase();
   const runType = (activeTool.tool_run_type||'').toLowerCase();
 
-  // Hide all access panels first
-  ['access-script-wrap','access-iframe-wrap','access-launch-wrap'].forEach(id => {
-    document.getElementById(id).style.display = 'none';
+  // Populate viewer header
+  document.getElementById('viewer-title').textContent      = `// ${activeTool.title}`;
+  document.getElementById('viewer-type-badge').textContent = (type || 'tool').toUpperCase();
+  document.getElementById('viewer-desc').textContent       = activeTool.description || '';
+
+  // Reset panels
+  ['notes','ai'].forEach(p => {
+    document.getElementById(`panel-${p}`).classList.remove('open');
+    document.getElementById(`btn-${p}`).classList.remove('active');
   });
 
-  // ALL IFRAME TOOLS (scripts, apps, kits posted as html_content)
+  // Load saved notes for this tool
+  const savedNotes = localStorage.getItem(`gv_tool_notes_${activeTool.id}`) || '';
+  document.getElementById('notes-input').value = savedNotes;
+  document.getElementById('notes-save-status').textContent = savedNotes ? '// Notes loaded from last session' : '// Notes auto-saved per tool';
+  document.getElementById('notes-save-status').classList.remove('saved');
+
+  // Reset AI
+  document.getElementById('ai-messages').innerHTML =
+    `<div class="ai-msg bot" style="color:var(--text-dim)">Ask me anything about the <strong style="color:var(--accent)">${esc(activeTool.title)}</strong> tool. I can explain how to use it or help you troubleshoot.</div>`;
+
+  // Hide all content panels
+  document.getElementById('viewer-target-wrap').style.display  = 'none';
+  document.getElementById('viewer-code-wrap').style.display    = 'none';
+  document.getElementById('viewer-launch-wrap').style.display  = 'none';
+  document.getElementById('tool-frame').src = 'about:blank';
+
+  // Decide which panel to show
   if (activeTool.html_content && runType === 'iframe') {
-    const iframe = document.getElementById('access-iframe');
+    // ── IFRAME TOOL — write HTML directly into frame ──
+    const iframe = document.getElementById('tool-frame');
     const doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open(); doc.write(activeTool.html_content); doc.close();
-    document.getElementById('access-iframe-wrap').style.display = 'block';
+    document.getElementById('viewer-target-wrap').style.display = 'block';
 
-  // LEGACY SCRIPT — show raw code with copy button (old script_code field)
   } else if (type === 'scripts' && activeTool.script_code) {
-    document.getElementById('access-code-block').textContent = activeTool.script_code;
-    document.getElementById('access-script-wrap').style.display = 'block';
+    // ── LEGACY SCRIPT — show raw code ──
+    document.getElementById('viewer-code-block').textContent = activeTool.script_code;
+    document.getElementById('viewer-code-wrap').style.display = 'block';
 
-  // AUTOMATION / AI / OTHER — show info + launch button
   } else {
+    // ── AUTOMATION / AI / DOWNLOAD / OTHER — info + launch button ──
     const deliveryMap = {
       apps:       '// This app runs directly inside Vault Labs.\n// Tap launch to open it in a sandboxed environment.',
       automation: '// This automation runs in Vault Labs.\n// Configure inputs and execute from the lab interface.',
@@ -659,8 +870,7 @@ function openAccess(t) {
       kits:       '// Your starter kit is ready.\n// Access all included items below.',
       ai:         '// This AI tool runs in the AI Terminal.\n// Launching will open the terminal with this tool pre-loaded.',
     };
-    document.getElementById('access-info').innerHTML = (deliveryMap[type] || '// Access your tool below.').replace(/\n/g,'<br>');
-
+    document.getElementById('viewer-info-text').innerHTML = (deliveryMap[type] || '// Access your tool below.').replace(/\n/g,'<br>');
     const launchLabel = (type === 'scripts' || type === 'templates' || runType === 'download')
       ? '[ DOWNLOAD ]'
       : type === 'ai'
@@ -668,27 +878,16 @@ function openAccess(t) {
       : (runType === 'automation' || runType === 'security')
       ? '[ RUN TOOL ]'
       : '[ LAUNCH IN VAULT LABS ]';
-    document.getElementById('btn-access-go').textContent = launchLabel;
-    document.getElementById('access-launch-wrap').style.display = 'block';
+    document.getElementById('btn-viewer-launch').textContent = launchLabel;
+    document.getElementById('viewer-launch-wrap').style.display = 'block';
   }
 
-  openModal('modal-access');
-}
-
-function copyToolCode() {
-  const code = document.getElementById('access-code-block').textContent;
-  const btn  = document.getElementById('btn-copy-code');
-  navigator.clipboard.writeText(code).then(() => {
-    btn.textContent = '[ COPIED ✓ ]';
-    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
-  }).catch(() => {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = code; document.body.appendChild(ta);
-    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-    btn.textContent = '[ COPIED ✓ ]';
-    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
-  });
+  // Swap views
+  document.getElementById('lobby').style.display       = 'none';
+  document.getElementById('tool-viewer').style.display = 'block';
+  document.getElementById('nav-back-btn').textContent  = '← BACK TO STORE';
+  document.getElementById('nav-back-btn').onclick      = closeTool;
+  window.scrollTo(0, 0);
 }
 
 function openAccessById(id) {
@@ -697,41 +896,51 @@ function openAccessById(id) {
   else toast('// Loading tool... please try again.');
 }
 
+function closeTool() {
+  activeTool = null;
+  document.getElementById('tool-frame').src = 'about:blank';
+  document.getElementById('tool-viewer').style.display = 'none';
+  document.getElementById('lobby').style.display       = 'block';
+  document.getElementById('nav-back-btn').textContent  = '← DASHBOARD';
+  document.getElementById('nav-back-btn').onclick      = () => location.href = 'dashboard.html';
+  window.scrollTo(0, 0);
+}
+
+/* ── TOOL ACTIONS ── */
+function copyToolCode() {
+  const code = document.getElementById('viewer-code-block').textContent;
+  const btn  = document.getElementById('btn-copy-code');
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '[ COPIED ✓ ]';
+    setTimeout(() => btn.textContent = '[ COPY CODE ]', 2000);
+  });
+}
+
 function launchTool() {
   if (!activeTool) return;
   const type    = (activeTool.type||'').toLowerCase();
   const runType = (activeTool.tool_run_type||'').toLowerCase();
-
-  if (runType === 'automation' || runType === 'security') {
-    location.href = `tool-runner.html?tool_id=${activeTool.id}`;
-    return;
-  }
-  if (type === 'ai') {
-    location.href = `vault-ai.html?tool=${activeTool.id}`;
-    return;
-  }
-  if (type === 'scripts' || type === 'templates' || runType === 'download') {
-    secureDownload(activeTool.id, activeTool.title);
-    return;
-  }
-  if (activeTool.script_content || activeTool.command_template) {
-    location.href = `tool-runner.html?tool_id=${activeTool.id}`;
-  } else {
-    location.href = `vault-labs.html?tool=${activeTool.id}`;
-  }
+  if (runType === 'automation' || runType === 'security') { location.href = `tool-runner.html?tool_id=${activeTool.id}`; return; }
+  if (type === 'ai') { location.href = `vault-ai.html?tool=${activeTool.id}`; return; }
+  if (type === 'scripts' || type === 'templates' || runType === 'download') { secureDownload(activeTool.id, activeTool.title); return; }
+  if (activeTool.script_content || activeTool.command_template) { location.href = `tool-runner.html?tool_id=${activeTool.id}`; }
+  else { location.href = `vault-labs.html?tool=${activeTool.id}`; }
 }
 
-/* ── SECURE DOWNLOAD (via Genesis Bridge → Backblaze B2) ── */
 async function secureDownload(toolId, title) {
-  const btn = document.getElementById('btn-access-go');
-  btn.disabled = true;
-  btn.textContent = '[ GENERATING LINK... ]';
+  const btn = document.getElementById('btn-viewer-launch');
+  btn.disabled = true; btn.textContent = '[ GENERATING LINK... ]';
   try {
     const res  = await fetchWithAuth(`${BRIDGE_API}/bridge/download/${toolId}`, { method:'POST' });
     const data = await res.json();
     if (data.download_url) {
       toast(`✓ Download ready — link expires in 60 seconds`);
-      // Open the signed URL immediately
       window.open(data.download_url, '_blank');
       btn.textContent = '[ DOWNLOAD ]';
     } else {
@@ -743,6 +952,76 @@ async function secureDownload(toolId, title) {
     btn.textContent = '[ DOWNLOAD ]';
   }
   btn.disabled = false;
+}
+
+/* ── TOOL PANELS (Notes + AI) ── */
+function toggleViewerPanel(name) {
+  const panel  = document.getElementById(`panel-${name}`);
+  const btn    = document.getElementById(`btn-${name}`);
+  const isOpen = panel.classList.contains('open');
+  ['notes','ai'].forEach(p => {
+    document.getElementById(`panel-${p}`).classList.remove('open');
+    document.getElementById(`btn-${p}`).classList.remove('active');
+  });
+  if (!isOpen) {
+    panel.classList.add('open');
+    btn.classList.add('active');
+    if (name === 'ai') document.getElementById('ai-input').focus();
+  }
+}
+
+function saveViewerNotes() {
+  if (!activeTool) return;
+  const val    = document.getElementById('notes-input').value;
+  const status = document.getElementById('notes-save-status');
+  status.textContent = '// Saving...';
+  status.classList.remove('saved');
+  clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(() => {
+    localStorage.setItem(`gv_tool_notes_${activeTool.id}`, val);
+    status.textContent = '// Saved ✓';
+    status.classList.add('saved');
+  }, 600);
+}
+
+async function sendAI() {
+  const input = document.getElementById('ai-input');
+  const msgs  = document.getElementById('ai-messages');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const userEl = document.createElement('div');
+  userEl.className = 'ai-msg user';
+  userEl.textContent = q;
+  msgs.appendChild(userEl);
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ai-msg bot';
+  typingEl.textContent = '...';
+  typingEl.style.color = 'var(--text-dim)';
+  msgs.appendChild(typingEl);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const toolContext = activeTool
+      ? `You are a helpful assistant inside Genesis Vault Marketplace. The user is accessing a tool called "${activeTool.title}" (category: ${activeTool.type||'tool'}). Description: ${activeTool.description||'N/A'}. Help the user understand how to use it, troubleshoot issues, or answer questions about it. Be concise and helpful.`
+      : 'You are a helpful assistant for Genesis Vault Marketplace. Answer the user helpfully.';
+
+    const res = await fetch(`${AI_URL}/api/vault-ai`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body:    JSON.stringify({ message: `[CONTEXT]: ${toolContext}\n\n[USER]: ${q}`, rank: USER_RANK, user_id: USER_ID, username: USERNAME })
+    });
+    const data = await res.json();
+    typingEl.textContent = data.reply || data.response || data.message || 'No response.';
+    typingEl.style.color = '';
+  } catch(e) {
+    typingEl.textContent = 'AI unavailable right now. Try again later.';
+    typingEl.style.color = 'var(--accent3)';
+  }
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 /* ── UTILS ── */
