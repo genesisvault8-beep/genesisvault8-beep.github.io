@@ -287,6 +287,8 @@
 
 <script>
 const BACKEND_URL = 'https://genesis-ai-backend.onrender.com';
+let BRIDGE_TYPE  = 'recon';   // updated when bridge connects
+let BRIDGE_TOOLS = [];        // updated when bridge connects
 let USER_RANK = 'Ghost'; let USER_ID = null; let USERNAME = 'anonymous';
 let busy = false;
 let currentMemoryDepth = 0;
@@ -471,7 +473,9 @@ async function send(msg, silent = false) {
         username:         USERNAME,
         token_quota:      tokenQuota,
         tokens_remaining: tokensRemaining,
-        bridge_connected: isBridgeOn
+        bridge_connected: isBridgeOn,
+        bridge_type:      isBridgeOn ? BRIDGE_TYPE  : null,
+        bridge_tools:     isBridgeOn ? BRIDGE_TOOLS : []
       })
     });
     const data = await res.json();
@@ -694,13 +698,16 @@ async function connectBridge() {
     const data = await res.json();
     if (data.has_token) {
       setBridgeStatus('connected');
+      // Store bridge type + tools so CIPHER knows what's available
+      BRIDGE_TYPE  = data.bridge_type  || "recon";
+      BRIDGE_TOOLS = data.tools        || [];
       print('[BRIDGE]: ✓ BRIDGE LINKED. CIPHER CAN NOW RUN TOOLS ON YOUR DEVICE.', 'sys');
-      // Show the correct install command if bridge.py not yet running
+      if (BRIDGE_TYPE) print(`[BRIDGE]: Mode — ${BRIDGE_TYPE.toUpperCase()}`, 'logc');
+      if (BRIDGE_TOOLS.length) print(`[BRIDGE]: Tools ready — ${BRIDGE_TOOLS.join(", ")}`, 'logc');
+      // Show install command if bridge.py not yet running
       if (data.install_command) {
         print('[BRIDGE]: If bridge.py is not running yet, run this in Termux:', 'logc');
         print(data.install_command, 'sys');
-      } else {
-        print('[BRIDGE]: Make sure bridge.py is running in Termux.', 'logc');
       }
     } else {
       setBridgeStatus('off');
