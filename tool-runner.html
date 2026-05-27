@@ -122,6 +122,88 @@
 
   @keyframes spin   { to { transform:rotate(360deg); } }
   @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── TOOLS PANEL (Notes + AI) ── */
+  .viewer-tools-panel {
+    background:var(--bg2); border:1px solid var(--border);
+    margin-top:16px; margin-bottom:12px;
+  }
+  .viewer-tools-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.6rem; color:var(--text-dim);
+    letter-spacing:2px; padding:8px 14px;
+    border-bottom:1px solid var(--border);
+  }
+  .viewer-tools-row {
+    display:flex; gap:8px; padding:12px 14px; flex-wrap:wrap;
+  }
+  .tool-panel-btn {
+    background:none; border:1px solid var(--border);
+    color:var(--text-dim); padding:6px 14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px;
+    transition:all 0.2s;
+  }
+  .tool-panel-btn:hover { border-color:var(--accent2); color:var(--accent2); }
+  .tool-panel-btn.active { border-color:var(--accent); color:var(--accent); }
+
+  /* Notes */
+  .notes-panel {
+    background:var(--bg3); border:1px solid var(--border);
+    padding:14px; margin-bottom:12px;
+    display:none; animation:fadeIn 0.3s;
+  }
+  .notes-panel.open { display:block; }
+  .notes-panel textarea {
+    width:100%; background:var(--bg);
+    border:1px solid var(--border); color:var(--text);
+    padding:10px; font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; resize:vertical; min-height:100px;
+    outline:none; line-height:1.6;
+  }
+  .notes-panel textarea:focus { border-color:var(--accent); }
+  .notes-save-status {
+    font-family:'Share Tech Mono',monospace; font-size:0.6rem;
+    color:var(--text-dim); letter-spacing:1px; margin-top:6px;
+    transition:color 0.3s;
+  }
+  .notes-save-status.saved { color:var(--accent); }
+
+  /* AI panel */
+  .ai-panel {
+    background:var(--bg3); border:1px solid var(--border);
+    margin-bottom:12px; display:none; animation:fadeIn 0.3s;
+  }
+  .ai-panel.open { display:block; }
+  .ai-panel-messages {
+    padding:12px 14px; min-height:80px; max-height:220px;
+    overflow-y:auto;
+  }
+  .ai-panel-msg {
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.72rem; margin-bottom:8px;
+    line-height:1.6; animation:fadeIn 0.3s;
+  }
+  .ai-panel-msg.user { color:var(--accent2); }
+  .ai-panel-msg.user::before { content:'YOU > '; color:var(--text-dim); }
+  .ai-panel-msg.bot { color:var(--text); }
+  .ai-panel-msg.bot::before { content:'AI  > '; color:var(--accent); }
+  .ai-panel-input-row { display:flex; border-top:1px solid var(--border); }
+  .ai-panel-input-row input {
+    flex:1; background:transparent; border:none;
+    color:var(--text); padding:10px 14px;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.75rem; outline:none;
+  }
+  .ai-panel-input-row input::placeholder { color:var(--text-dim); }
+  .ai-panel-send {
+    background:var(--accent); border:none; color:var(--bg);
+    padding:0 16px; font-family:'Share Tech Mono',monospace;
+    font-size:0.65rem; cursor:pointer; letter-spacing:1px;
+    transition:all 0.2s;
+  }
+  .ai-panel-send:hover { background:white; }
 </style>
 </head>
 <body>
@@ -272,10 +354,8 @@ function renderRunner() {
   } else if (rt === 'ai') {
     initAIMode();
   } else if (rt === 'iframe' || tool.html_content) {
-    // New flow: all iframe tools (scripts, apps, kits) use html_content
     initAppMode();
   } else if (type === 'scripts' && tool.script_code) {
-    // Legacy: old scripts with raw script_code field
     initCopyMode();
   } else if (rt === 'download' || type === 'templates') {
     initDownloadMode();
@@ -283,6 +363,38 @@ function renderRunner() {
     initAppMode();
   } else {
     initFallback();
+  }
+
+  // ── Inject Notes + AI panel after mode renders ──
+  const panelHTML = `
+    <div class="viewer-tools-panel">
+      <div class="viewer-tools-label">// TOOLS</div>
+      <div class="viewer-tools-row">
+        <button class="tool-panel-btn" id="tpbtn-notes" onclick="toggleToolPanel('notes')">[ NOTES ]</button>
+        <button class="tool-panel-btn" id="tpbtn-ai"    onclick="toggleToolPanel('ai')"   >[ ASK AI ]</button>
+      </div>
+    </div>
+    <div class="notes-panel" id="tp-notes">
+      <textarea id="tp-notes-input" placeholder="// Write your notes here...&#10;// What did you find? What did you try?" oninput="saveToolNotes()"></textarea>
+      <div class="notes-save-status" id="tp-notes-status">// Notes auto-saved per tool</div>
+    </div>
+    <div class="ai-panel" id="tp-ai">
+      <div class="ai-panel-messages" id="tp-ai-msgs">
+        <div class="ai-panel-msg bot" style="color:var(--text-dim)">Ask me anything about this tool. I can explain how to use it or help you troubleshoot.</div>
+      </div>
+      <div class="ai-panel-input-row">
+        <input type="text" id="tp-ai-input" placeholder="Ask the AI for help..." onkeydown="if(event.key==='Enter')sendToolAI()">
+        <button class="ai-panel-send" onclick="sendToolAI()">SEND</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('container').insertAdjacentHTML('beforeend', panelHTML);
+
+  // Load saved notes
+  const saved = localStorage.getItem(`gv_tool_notes_${TOOL_ID}`) || '';
+  if (saved) {
+    document.getElementById('tp-notes-input').value = saved;
+    document.getElementById('tp-notes-status').textContent = '// Notes loaded from last session';
   }
 }
 
@@ -585,6 +697,78 @@ function toast(msg) {
   Object.assign(t.style,{position:'fixed',bottom:'30px',left:'50%',transform:'translateX(-50%)',background:'var(--bg2)',border:'1px solid var(--accent)',color:'var(--accent)',padding:'8px 20px',fontFamily:"'Share Tech Mono',monospace",fontSize:'0.75rem',letterSpacing:'1px',zIndex:'999',pointerEvents:'none',whiteSpace:'nowrap'});
   document.body.appendChild(t);
   setTimeout(()=>t.remove(),2500);
+}
+
+/* ── TOOL PANELS (Notes + AI) ── */
+const AI_URL = 'https://genesis-ai-backend.onrender.com';
+let notesSaveTimer = null;
+
+function toggleToolPanel(name) {
+  const panel = document.getElementById(`tp-${name}`);
+  const btn   = document.getElementById(`tpbtn-${name}`);
+  const isOpen = panel.classList.contains('open');
+  ['notes','ai'].forEach(p => {
+    document.getElementById(`tp-${p}`).classList.remove('open');
+    document.getElementById(`tpbtn-${p}`).classList.remove('active');
+  });
+  if (!isOpen) {
+    panel.classList.add('open');
+    btn.classList.add('active');
+    if (name === 'ai') document.getElementById('tp-ai-input').focus();
+  }
+}
+
+function saveToolNotes() {
+  const val    = document.getElementById('tp-notes-input').value;
+  const status = document.getElementById('tp-notes-status');
+  status.textContent = '// Saving...';
+  status.classList.remove('saved');
+  clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(() => {
+    localStorage.setItem(`gv_tool_notes_${TOOL_ID}`, val);
+    status.textContent = '// Saved ✓';
+    status.classList.add('saved');
+  }, 600);
+}
+
+async function sendToolAI() {
+  const input = document.getElementById('tp-ai-input');
+  const msgs  = document.getElementById('tp-ai-msgs');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const userEl = document.createElement('div');
+  userEl.className = 'ai-panel-msg user';
+  userEl.textContent = q;
+  msgs.appendChild(userEl);
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const typingEl = document.createElement('div');
+  typingEl.className = 'ai-panel-msg bot';
+  typingEl.textContent = '...';
+  typingEl.style.color = 'var(--text-dim)';
+  msgs.appendChild(typingEl);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const ctx = tool
+      ? `You are a helpful assistant inside Genesis Vault. The user is running a tool called "${tool.title}" (type: ${tool.tool_run_type||tool.type||'tool'}). Description: ${tool.description||'N/A'}. Help them use it, understand it, or troubleshoot it. Be concise.`
+      : 'You are a helpful assistant for Genesis Vault. Answer helpfully.';
+
+    const res = await fetch(`${AI_URL}/api/vault-ai`, {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
+      body:    JSON.stringify({ message: `[CONTEXT]: ${ctx}\n\n[USER]: ${q}` })
+    });
+    const data = await res.json();
+    typingEl.textContent = data.reply || data.response || data.message || 'No response.';
+    typingEl.style.color = '';
+  } catch(e) {
+    typingEl.textContent = 'AI unavailable. Try again later.';
+    typingEl.style.color = 'var(--accent3)';
+  }
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 boot();
