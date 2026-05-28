@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Genesis Vault | Bug Bounty Prompt Pack</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #0f1318;
+    --bg3: #141a22;
+    --border: #1e2d3d;
+    --accent: #00ffe0;
+    --accent2: #00bfff;
+    --red: #ff4560;
+    --yellow: #ffd700;
+    --text: #c9d8e8;
+    --muted: #4a6070;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Rajdhani', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,224,0.015) 2px,
+      rgba(0,255,224,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Grid bg */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,224,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,224,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,12,15,0.95);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(10px);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .nav-logo span { color: var(--text); }
+
+  .nav-back {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    transition: all 0.2s;
+  }
+
+  .nav-back:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* MAIN */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px 16px 60px;
+  }
+
+  /* HEADER */
+  .product-header {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .product-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 3s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .product-category {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+
+  .product-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .product-title span { color: var(--accent); }
+
+  .product-desc {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .product-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .meta-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .meta-item span {
+    color: var(--accent);
+    font-weight: bold;
+  }
+
+  .price-tag {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--yellow);
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-left: auto;
+  }
+
+
+
+  /* SECTION LABEL */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* PROMPT CARDS */
+  .prompts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    animation: fadeIn 0.6s ease 0.2s both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .prompt-card {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 18px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .prompt-card:hover { border-color: rgba(0,255,224,0.3); }
+
+  .prompt-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  .prompt-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .prompt-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .prompt-use {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+
+  .prompt-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #8ab4c8;
+    line-height: 1.8;
+    position: relative;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  .prompt-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    letter-spacing: 1px;
+  }
+
+  /* FOOTER NOTE */
+  .footer-note {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    text-align: center;
+    animation: fadeIn 0.6s ease 0.4s both;
+  }
+
+  .footer-note span { color: var(--accent); }
+
+  /* STATUS DOT */
+  .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: pulse 2s infinite;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">GENESIS<span>VAULT</span></div>
+  <a class="nav-back" href="#">← BACK</a>
+</nav>
+
+<main>
+
+  <!-- PRODUCT HEADER -->
+  <div class="product-header">
+    <div class="product-category">// MARKETPLACE · PROMPT PACK</div>
+    <div class="product-title">Bug Bounty <span>Prompt Pack</span></div>
+    <div class="product-desc">10 battle-tested AI prompts for bug bounty hunters. From recon to report — paste, run, profit.</div>
+    <div class="product-meta">
+      <div class="meta-item"><span>10</span> PROMPTS</div>
+      <div class="meta-item"><span><span class="dot"></span>INSTANT</span> ACCESS</div>
+      <div class="meta-item">BY <span>GENESISVAULT</span></div>
+      <div class="price-tag">15 VC</div>
+    </div>
+
+  </div>
+
+  <!-- PROMPTS -->
+  <div class="section-label">// PROMPTS INCLUDED</div>
+
+  <div class="prompts-grid">
+
+    <!-- 01 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 01</div>
+      <div class="prompt-name">Recon Surface Mapper</div>
+      <div class="prompt-use">Paste your raw recon output and get a structured attack surface breakdown with priorities.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are an expert bug bounty recon analyst. I will give you raw recon output (subdomains, ports, technologies). Your job is to:
+1. Categorize assets by risk level (Critical / High / Medium / Low)
+2. Identify the most interesting attack vectors
+3. Flag unusual ports or services worth investigating
+4. Suggest the next 3 recon steps
+
+Recon output:
+[PASTE YOUR RECON HERE]</div>
+      <div class="prompt-tags">
+        <div class="tag">RECON</div><div class="tag">ATTACK SURFACE</div><div class="tag">PRIORITIZATION</div>
+      </div>
+    </div>
+
+    <!-- 02 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 02</div>
+      <div class="prompt-name">XSS Payload Generator</div>
+      <div class="prompt-use">Describe the input field and context — get context-aware XSS payloads ranked by likelihood.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are an expert web security researcher. Generate XSS payloads for the following context:
+
+Input type: [text field / URL param / JSON body / header]
+WAF present: [yes/no/unknown]
+Context: [HTML body / attribute / JS / URL]
+Filter observed: [describe what gets blocked if known]
+
+Provide 10 payloads ranked by bypass probability. Explain why each works in this context.</div>
+      <div class="prompt-tags">
+        <div class="tag">XSS</div><div class="tag">PAYLOADS</div><div class="tag">WAF BYPASS</div>
+      </div>
+    </div>
+
+    <!-- 03 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 03</div>
+      <div class="prompt-name">Vulnerability Report Writer</div>
+      <div class="prompt-use">Turn raw findings into a polished HackerOne-ready report in seconds.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+Write a professional bug bounty report for the following vulnerability:
+
+Vulnerability type: [e.g. IDOR, XSS, SSRF]
+Target: [company / asset]
+Severity: [Critical/High/Medium/Low]
+Steps to reproduce: [paste your steps]
+Impact: [what can an attacker do]
+
+Format it as a HackerOne report with: Summary, Severity Justification, Steps to Reproduce, Impact, and Remediation Recommendation.</div>
+      <div class="prompt-tags">
+        <div class="tag">REPORT</div><div class="tag">HACKERONE</div><div class="tag">WRITEUP</div>
+      </div>
+    </div>
+
+    <!-- 04 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 04</div>
+      <div class="prompt-name">IDOR Hunter Checklist</div>
+      <div class="prompt-use">Feed an API endpoint and get a custom IDOR test checklist generated for that specific target.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are an IDOR vulnerability specialist. Analyze this API endpoint and generate a targeted IDOR test checklist:
+
+Endpoint: [e.g. GET /api/v1/users/1234/orders]
+Auth method: [JWT / session cookie / API key]
+User roles available: [admin, user, guest etc.]
+
+List every IDOR test case I should run, including: parameter manipulation, role switching, HTTP method tampering, and indirect reference bypasses.</div>
+      <div class="prompt-tags">
+        <div class="tag">IDOR</div><div class="tag">API</div><div class="tag">ACCESS CONTROL</div>
+      </div>
+    </div>
+
+    <!-- 05 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 05</div>
+      <div class="prompt-name">JWT Attack Analyzer</div>
+      <div class="prompt-use">Paste a JWT token and get a full attack analysis — alg confusion, none attack, key brute force vectors.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are a JWT security expert. Analyze this JWT token for vulnerabilities:
+
+Token: [paste JWT here]
+
+Check for:
+1. Algorithm confusion (RS256 → HS256)
+2. None algorithm attack
+3. Weak secret susceptibility
+4. Claims that can be manipulated (role, admin, exp)
+5. Missing signature validation
+
+For each vulnerability found, provide a proof-of-concept manipulation.</div>
+      <div class="prompt-tags">
+        <div class="tag">JWT</div><div class="tag">AUTH</div><div class="tag">ALG CONFUSION</div>
+      </div>
+    </div>
+
+    <!-- 06 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 06</div>
+      <div class="prompt-name">Scope Analyzer</div>
+      <div class="prompt-use">Paste a program's scope and get the highest ROI targets ranked with suggested test focus areas.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are a bug bounty strategist. Analyze this program scope and tell me where to focus for maximum payout potential:
+
+Program name: [name]
+In scope: [paste scope]
+Out of scope: [paste OOS]
+Rewards: [range if known]
+
+Rank the in-scope assets by: attack surface size, historical vulnerability likelihood, and payout potential. Recommend my first 5 test targets.</div>
+      <div class="prompt-tags">
+        <div class="tag">SCOPE</div><div class="tag">STRATEGY</div><div class="tag">ROI</div>
+      </div>
+    </div>
+
+    <!-- 07 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 07</div>
+      <div class="prompt-name">SSRF Payload Builder</div>
+      <div class="prompt-use">Generate SSRF payloads tailored to the target's cloud environment and bypass known filters.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are an SSRF exploitation expert. Generate SSRF payloads for:
+
+Target URL parameter: [e.g. url=, redirect=, src=]
+Cloud provider: [AWS / GCP / Azure / unknown]
+Filter bypass needed: [IP blacklist / scheme filter / domain whitelist]
+
+Provide payloads targeting: metadata endpoints, internal services, DNS rebinding, and protocol smuggling. Include bypass techniques for each filter type.</div>
+      <div class="prompt-tags">
+        <div class="tag">SSRF</div><div class="tag">CLOUD</div><div class="tag">BYPASS</div>
+      </div>
+    </div>
+
+    <!-- 08 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 08</div>
+      <div class="prompt-name">Response Diff Analyst</div>
+      <div class="prompt-use">Paste two API responses and get a security-focused diff analysis highlighting exploitable differences.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are a security analyst specializing in response analysis. Compare these two API responses and identify security-relevant differences:
+
+Response A (baseline / low-priv user):
+[paste response]
+
+Response B (modified request / different user):
+[paste response]
+
+Identify: data leakage, privilege differences, hidden fields, exploitable behavior differences, and any information that shouldn't be visible.</div>
+      <div class="prompt-tags">
+        <div class="tag">ANALYSIS</div><div class="tag">DIFF</div><div class="tag">DATA LEAK</div>
+      </div>
+    </div>
+
+    <!-- 09 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 09</div>
+      <div class="prompt-name">Triage Decision Maker</div>
+      <div class="prompt-use">Not sure if your finding is worth reporting? Get an honest severity assessment and triage recommendation.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are a senior bug bounty triage analyst. Assess whether this finding is worth reporting:
+
+Vulnerability description: [describe what you found]
+Steps to reproduce: [brief steps]
+Impact: [what can be done with it]
+Program type: [public / private / VDP]
+
+Give me: CVSS estimate, likely severity rating, probability of acceptance, duplicate risk, and your recommendation — report it or skip it.</div>
+      <div class="prompt-tags">
+        <div class="tag">TRIAGE</div><div class="tag">CVSS</div><div class="tag">SEVERITY</div>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="prompt-card">
+      <div class="prompt-number">PROMPT // 10</div>
+      <div class="prompt-name">Escalation Chain Builder</div>
+      <div class="prompt-use">Turn a low/medium finding into a critical by chaining it with other vulnerabilities — AI-assisted escalation path.</div>
+      <div class="prompt-box">
+        <button class="copy-btn" onclick="copyPrompt(this)">COPY</button>
+You are an expert at vulnerability chaining. I have a low/medium severity finding. Help me escalate it:
+
+My finding: [describe the vulnerability]
+Other behaviors I noticed on the target: [list anything unusual — open redirects, self-XSS, misconfigs, info leaks]
+Target type: [SaaS / mobile app / API / web app]
+
+Suggest chaining scenarios that could escalate this to High or Critical. For each chain, explain the attack flow and final impact.</div>
+      <div class="prompt-tags">
+        <div class="tag">CHAINING</div><div class="tag">ESCALATION</div><div class="tag">CRITICAL</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-note">
+    <span>// GENESIS VAULT MARKETPLACE</span><br/>
+    All prompts are tested and optimized for GPT-4, Claude, and Gemini.<br/>
+    Questions? Message admin from your dashboard.
+  </div>
+
+</main>
+
+<script>
+  function copyPrompt(btn) {
+    const box = btn.parentElement;
+    const text = box.innerText.replace('COPY', '').replace('COPIED', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'COPY';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+
+</script>
+
+</body>
+</html>
