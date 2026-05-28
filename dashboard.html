@@ -1907,7 +1907,7 @@ async function loadMarketplace() {
         <p>${esc((t.description||'').substring(0,100))}${(t.description||'').length>100?'...':''}</p>
         <div class="market-footer">
           <span style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent);">✓ OWNED</span>
-          <button class="buy-btn" onclick="launchOwnedTool(${JSON.stringify(t).replace(/&quot;/g,'&#34;')})" data-id="${t.id}">[ LAUNCH ]</button>
+          <button class="buy-btn" onclick="location.href='market.html?access=${t.id}'" data-id="${t.id}">[ LAUNCH ]</button>
         </div>
       </div>`).join('');
   } catch(e) {
