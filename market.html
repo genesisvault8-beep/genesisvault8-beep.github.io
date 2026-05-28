@@ -646,7 +646,7 @@ function renderTools() {
 
 function renderTool(t) {
   const vcPrice = t.vc_price > 0 ? t.vc_price : 0;
-  const isFree  = vcPrice === 0;
+  const isFree  = vcPrice === 0 && (t.price||0) === 0;
   const isNew   = t.created_at && (Date.now() - new Date(t.created_at)) < 7*86400000;
   const badges  = [
     `<span class="badge badge-cat">${esc((t.type||'TOOL').toUpperCase())}</span>`,
@@ -682,7 +682,7 @@ function renderKit(t) {
   const items = (t.kit_items||[]).map(i => `<div class="kit-item">${esc(i)}</div>`).join('');
   const footerBtn = t.owned
     ? `<button class="btn-owned" onclick="openAccessById('${t.id}')">[ ACCESS KIT ]</button>`
-    : ((t.price||0) === 0 || (t.vc_price||0) === 0)
+    : ((t.price||0) === 0 && (t.vc_price||0) === 0)
       ? `<button class="btn-free" onclick="handleToolClick('${t.id}',true)">[ GET KIT ]</button>`
       : `<button class="btn-buy" onclick="handleToolClick('${t.id}',false)">[ GET KIT ]</button>`;
   return `
