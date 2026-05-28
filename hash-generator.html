@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Generator — Genesis Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00ffe7;
+    --cyan-dim: #00ffe730;
+    --cyan-dark: #00a89a;
+    --bg: #030d0c;
+    --bg2: #071412;
+    --bg3: #0a1f1c;
+    --red: #ff3c5a;
+    --yellow: #f0c040;
+    --green: #00ff88;
+    --purple: #b06aff;
+    --text: #cde8e5;
+    --border: #0d3530;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,255,231,0.012) 2px, rgba(0,255,231,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-icon {
+    width: 42px;
+    height: 42px;
+    border: 2px solid var(--cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background: var(--cyan-dim);
+    animation: pulse 2.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 var(--cyan-dim); }
+    50% { box-shadow: 0 0 18px 4px var(--cyan-dim); }
+  }
+
+  .header-text h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .header-text p {
+    font-size: 11px;
+    color: var(--cyan-dark);
+    letter-spacing: 2px;
+  }
+
+  .badge {
+    margin-left: auto;
+    font-size: 10px;
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 3px 8px;
+    letter-spacing: 2px;
+    animation: blink 2s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Input section */
+  .input-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .input-label {
+    font-size: 11px;
+    color: var(--cyan-dark);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+
+  textarea:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan-dim);
+  }
+
+  textarea::placeholder { color: #1a4040; }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .ctrl-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--cyan-dark);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 7px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .ctrl-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .char-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: #1a5050;
+    letter-spacing: 1px;
+  }
+
+  /* Mode toggle */
+  .mode-section {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: #1a6060;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .mode-btn.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: var(--cyan-dim);
+  }
+
+  /* Hash cards */
+  .hashes-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .hash-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .hash-card:hover { border-color: #1a5050; }
+
+  .hash-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+
+  .hash-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+
+  .hash-bits {
+    font-size: 10px;
+    color: #1a6060;
+    letter-spacing: 1px;
+  }
+
+  .hash-strength {
+    margin-left: auto;
+    font-size: 9px;
+    padding: 2px 8px;
+    border: 1px solid;
+    letter-spacing: 1px;
+  }
+
+  .strength-weak { border-color: var(--red); color: var(--red); }
+  .strength-medium { border-color: var(--yellow); color: var(--yellow); }
+  .strength-strong { border-color: var(--green); color: var(--green); }
+
+  .hash-body {
+    padding: 14px 16px;
+  }
+
+  .hash-value {
+    font-size: 12px;
+    color: var(--cyan);
+    word-break: break-all;
+    letter-spacing: 1px;
+    line-height: 1.6;
+    min-height: 20px;
+    transition: all 0.15s;
+  }
+
+  .hash-value.empty { color: #1a4040; }
+
+  .hash-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .hash-len {
+    font-size: 10px;
+    color: #1a5050;
+    letter-spacing: 1px;
+  }
+
+  .copy-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--cyan-dark);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 4px 12px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .copy-btn.copied {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* Compare section */
+  .compare-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    padding: 20px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .compare-section.active { display: block; }
+
+  .compare-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    align-items: center;
+  }
+
+  .compare-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .compare-input:focus { border-color: var(--purple); }
+  .compare-input::placeholder { color: #1a4040; }
+
+  .compare-result {
+    margin-top: 12px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    display: none;
+    padding: 10px 14px;
+    border: 1px solid;
+  }
+
+  .compare-result.match {
+    border-color: var(--green);
+    color: var(--green);
+    display: block;
+  }
+
+  .compare-result.nomatch {
+    border-color: var(--red);
+    color: var(--red);
+    display: block;
+  }
+
+  /* Info section */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .info-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px;
+    text-align: center;
+  }
+
+  .info-card .val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+
+  .info-card .lbl {
+    font-size: 9px;
+    color: #1a6060;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    color: var(--cyan-dark);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Live indicator */
+  .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 1s step-end infinite;
+  }
+
+  .footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: #0d3030;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  @media (max-width: 500px) {
+    .info-grid { grid-template-columns: repeat(3, 1fr); }
+    .mode-section { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">#</div>
+    <div class="header-text">
+      <h1>Hash Generator</h1>
+      <p>// MD5 · SHA1 · SHA256 · SHA512 — VAULT TOOLS</p>
+    </div>
+    <div class="badge"><span class="live-dot"></span>LIVE</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="section-title">// SESSION STATS</div>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="val" id="statChars">0</div>
+      <div class="lbl">CHARACTERS</div>
+    </div>
+    <div class="info-card">
+      <div class="val" id="statBytes">0</div>
+      <div class="lbl">BYTES</div>
+    </div>
+    <div class="info-card">
+      <div class="val" id="statHashes">4</div>
+      <div class="lbl">HASH TYPES</div>
+    </div>
+  </div>
+
+  <!-- Mode toggle -->
+  <div class="mode-section">
+    <button class="mode-btn active" onclick="setMode('text')" id="modeText">[ TEXT INPUT ]</button>
+    <button class="mode-btn" onclick="setMode('compare')" id="modeCompare">[ HASH COMPARE ]</button>
+  </div>
+
+  <!-- Input -->
+  <div class="input-section">
+    <div class="input-label">// INPUT DATA — hashes update in real-time</div>
+    <textarea id="inputText" placeholder="Type or paste text here... hashes generate instantly" oninput="onInput()"></textarea>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="clearInput()">[ CLEAR ]</button>
+      <button class="ctrl-btn" onclick="loadSample()">[ LOAD SAMPLE ]</button>
+      <button class="ctrl-btn" onclick="copyAll()">[ COPY ALL ]</button>
+      <div class="char-count" id="charCount">0 chars</div>
+    </div>
+  </div>
+
+  <!-- Hash cards -->
+  <div class="section-title">// GENERATED HASHES</div>
+  <div class="hashes-grid">
+
+    <div class="hash-card" id="card-md5">
+      <div class="hash-header">
+        <div class="hash-name" style="color:#ff3c5a">MD5</div>
+        <div class="hash-bits">128-bit · 32 hex chars</div>
+        <div class="hash-strength strength-weak">WEAK</div>
+      </div>
+      <div class="hash-body">
+        <div class="hash-value empty" id="hash-md5">// waiting for input...</div>
+      </div>
+      <div class="hash-footer">
+        <div class="hash-len" id="len-md5">—</div>
+        <div style="font-size:10px;color:#1a4040;letter-spacing:1px">Crackable · Not recommended for passwords</div>
+        <button class="copy-btn" onclick="copyHash('md5')">[ COPY ]</button>
+      </div>
+    </div>
+
+    <div class="hash-card" id="card-sha1">
+      <div class="hash-header">
+        <div class="hash-name" style="color:#f0c040">SHA-1</div>
+        <div class="hash-bits">160-bit · 40 hex chars</div>
+        <div class="hash-strength strength-medium">LEGACY</div>
+      </div>
+      <div class="hash-body">
+        <div class="hash-value empty" id="hash-sha1">// waiting for input...</div>
+      </div>
+      <div class="hash-footer">
+        <div class="hash-len" id="len-sha1">—</div>
+        <div style="font-size:10px;color:#1a4040;letter-spacing:1px">Collision attacks known · Deprecated</div>
+        <button class="copy-btn" onclick="copyHash('sha1')">[ COPY ]</button>
+      </div>
+    </div>
+
+    <div class="hash-card" id="card-sha256">
+      <div class="hash-header">
+        <div class="hash-name" style="color:#00ffe7">SHA-256</div>
+        <div class="hash-bits">256-bit · 64 hex chars</div>
+        <div class="hash-strength strength-strong">STRONG</div>
+      </div>
+      <div class="hash-body">
+        <div class="hash-value empty" id="hash-sha256">// waiting for input...</div>
+      </div>
+      <div class="hash-footer">
+        <div class="hash-len" id="len-sha256">—</div>
+        <div style="font-size:10px;color:#1a4040;letter-spacing:1px">Industry standard · Recommended</div>
+        <button class="copy-btn" onclick="copyHash('sha256')">[ COPY ]</button>
+      </div>
+    </div>
+
+    <div class="hash-card" id="card-sha512">
+      <div class="hash-header">
+        <div class="hash-name" style="color:#b06aff">SHA-512</div>
+        <div class="hash-bits">512-bit · 128 hex chars</div>
+        <div class="hash-strength strength-strong">STRONGEST</div>
+      </div>
+      <div class="hash-body">
+        <div class="hash-value empty" id="hash-sha512">// waiting for input...</div>
+      </div>
+      <div class="hash-footer">
+        <div class="hash-len" id="len-sha512">—</div>
+        <div style="font-size:10px;color:#1a4040;letter-spacing:1px">Maximum security · Used in SSL certs</div>
+        <button class="copy-btn" onclick="copyHash('sha512')">[ COPY ]</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Compare section -->
+  <div class="compare-section" id="compareSection">
+    <div class="input-label" style="color:#b06aff">// HASH COMPARATOR — verify file integrity or match hashes</div>
+    <div class="compare-row">
+      <input class="compare-input" id="compareHash" placeholder="Paste a known hash to compare..." oninput="doCompare()" />
+    </div>
+    <div class="compare-result" id="compareResult"></div>
+  </div>
+
+  <div class="footer">// GENESIS VAULT — HASH GENERATOR v1.0 — ALL HASHING DONE CLIENT-SIDE</div>
+</div>
+
+<script>
+  let currentHashes = { md5: '', sha1: '', sha256: '', sha512: '' };
+  let mode = 'text';
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('modeText').classList.toggle('active', m === 'text');
+    document.getElementById('modeCompare').classList.toggle('active', m === 'compare');
+    document.getElementById('compareSection').classList.toggle('active', m === 'compare');
+    if (m === 'compare') doCompare();
+  }
+
+  // --- Hashing (pure JS, no libraries) ---
+
+  function toHex(buffer) {
+    return Array.from(new Uint8Array(buffer))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function sha(algorithm, text) {
+    const encoded = new TextEncoder().encode(text);
+    const buffer = await crypto.subtle.digest(algorithm, encoded);
+    return toHex(buffer);
+  }
+
+  // MD5 pure JS implementation
+  function md5(inputStr) {
+    function safeAdd(x, y) {
+      const lsw = (x & 0xffff) + (y & 0xffff);
+      const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+      return (msw << 16) | (lsw & 0xffff);
+    }
+    function bitRotateLeft(num, cnt) { return (num << cnt) | (num >>> (32 - cnt)); }
+    function md5cmn(q, a, b, x, s, t) { return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b); }
+    function md5ff(a,b,c,d,x,s,t){return md5cmn((b&c)|((~b)&d),a,b,x,s,t);}
+    function md5gg(a,b,c,d,x,s,t){return md5cmn((b&d)|(c&(~d)),a,b,x,s,t);}
+    function md5hh(a,b,c,d,x,s,t){return md5cmn(b^c^d,a,b,x,s,t);}
+    function md5ii(a,b,c,d,x,s,t){return md5cmn(c^(b|(~d)),a,b,x,s,t);}
+
+    const str8 = unescape(encodeURIComponent(inputStr));
+    const x = [];
+    for(let i=0;i<str8.length*8;i+=8) x[i>>5]|=(str8.charCodeAt(i/8)&0xff)<<(i%32);
+    x[str8.length*8>>5]|=0x80<<(str8.length*8%32);
+    x[(((str8.length*8+64)>>>9)<<4)+14]=str8.length*8;
+    let a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+    for(let i=0;i<x.length;i+=16){
+      const oa=a,ob=b,oc=c,od=d;
+      a=md5ff(a,b,c,d,x[i],7,-680876936);d=md5ff(d,a,b,c,x[i+1],12,-389564586);c=md5ff(c,d,a,b,x[i+2],17,606105819);b=md5ff(b,c,d,a,x[i+3],22,-1044525330);
+      a=md5ff(a,b,c,d,x[i+4],7,-176418897);d=md5ff(d,a,b,c,x[i+5],12,1200080426);c=md5ff(c,d,a,b,x[i+6],17,-1473231341);b=md5ff(b,c,d,a,x[i+7],22,-45705983);
+      a=md5ff(a,b,c,d,x[i+8],7,1770035416);d=md5ff(d,a,b,c,x[i+9],12,-1958414417);c=md5ff(c,d,a,b,x[i+10],17,-42063);b=md5ff(b,c,d,a,x[i+11],22,-1990404162);
+      a=md5ff(a,b,c,d,x[i+12],7,1804603682);d=md5ff(d,a,b,c,x[i+13],12,-40341101);c=md5ff(c,d,a,b,x[i+14],17,-1502002290);b=md5ff(b,c,d,a,x[i+15],22,1236535329);
+      a=md5gg(a,b,c,d,x[i+1],5,-165796510);d=md5gg(d,a,b,c,x[i+6],9,-1069501632);c=md5gg(c,d,a,b,x[i+11],14,643717713);b=md5gg(b,c,d,a,x[i],20,-373897302);
+      a=md5gg(a,b,c,d,x[i+5],5,-701558691);d=md5gg(d,a,b,c,x[i+10],9,38016083);c=md5gg(c,d,a,b,x[i+15],14,-660478335);b=md5gg(b,c,d,a,x[i+4],20,-405537848);
+      a=md5gg(a,b,c,d,x[i+9],5,568446438);d=md5gg(d,a,b,c,x[i+14],9,-1019803690);c=md5gg(c,d,a,b,x[i+3],14,-187363961);b=md5gg(b,c,d,a,x[i+8],20,1163531501);
+      a=md5gg(a,b,c,d,x[i+13],5,-1444681467);d=md5gg(d,a,b,c,x[i+2],9,-51403784);c=md5gg(c,d,a,b,x[i+7],14,1735328473);b=md5gg(b,c,d,a,x[i+12],20,-1926607734);
+      a=md5hh(a,b,c,d,x[i+5],4,-378558);d=md5hh(d,a,b,c,x[i+8],11,-2022574463);c=md5hh(c,d,a,b,x[i+11],16,1839030562);b=md5hh(b,c,d,a,x[i+14],23,-35309556);
+      a=md5hh(a,b,c,d,x[i+1],4,-1530992060);d=md5hh(d,a,b,c,x[i+4],11,1272893353);c=md5hh(c,d,a,b,x[i+7],16,-155497632);b=md5hh(b,c,d,a,x[i+10],23,-1094730640);
+      a=md5hh(a,b,c,d,x[i+13],4,681279174);d=md5hh(d,a,b,c,x[i],11,-358537222);c=md5hh(c,d,a,b,x[i+3],16,-722521979);b=md5hh(b,c,d,a,x[i+6],23,76029189);
+      a=md5hh(a,b,c,d,x[i+9],4,-640364487);d=md5hh(d,a,b,c,x[i+12],11,-421815835);c=md5hh(c,d,a,b,x[i+15],16,530742520);b=md5hh(b,c,d,a,x[i+2],23,-995338651);
+      a=md5ii(a,b,c,d,x[i],6,-198630844);d=md5ii(d,a,b,c,x[i+7],10,1126891415);c=md5ii(c,d,a,b,x[i+14],15,-1416354905);b=md5ii(b,c,d,a,x[i+5],21,-57434055);
+      a=md5ii(a,b,c,d,x[i+12],6,1700485571);d=md5ii(d,a,b,c,x[i+3],10,-1894986606);c=md5ii(c,d,a,b,x[i+10],15,-1051523);b=md5ii(b,c,d,a,x[i+1],21,-2054922799);
+      a=md5ii(a,b,c,d,x[i+8],6,1873313359);d=md5ii(d,a,b,c,x[i+15],10,-30611744);c=md5ii(c,d,a,b,x[i+6],15,-1560198380);b=md5ii(b,c,d,a,x[i+13],21,1309151649);
+      a=md5ii(a,b,c,d,x[i+4],6,-145523070);d=md5ii(d,a,b,c,x[i+11],10,-1120210379);c=md5ii(c,d,a,b,x[i+2],15,718787259);b=md5ii(b,c,d,a,x[i+9],21,-343485551);
+      a=safeAdd(a,oa);b=safeAdd(b,ob);c=safeAdd(c,oc);d=safeAdd(d,od);
+    }
+    function num2hex(n){let h='';for(let i=0;i<4;i++){h+=((n>>>(i*8+4))&0x0f).toString(16);h+=((n>>>(i*8))&0x0f).toString(16);}return h;}
+    return [num2hex(a),num2hex(b),num2hex(c),num2hex(d)].join('');
+  }
+
+  async function generateHashes(text) {
+    if (!text) {
+      currentHashes = { md5: '', sha1: '', sha256: '', sha512: '' };
+      return;
+    }
+    const [s1, s256, s512] = await Promise.all([
+      sha('SHA-1', text),
+      sha('SHA-256', text),
+      sha('SHA-512', text),
+    ]);
+    currentHashes = {
+      md5: md5(text),
+      sha1: s1,
+      sha256: s256,
+      sha512: s512
+    };
+  }
+
+  function setHashUI(id, value) {
+    const el = document.getElementById('hash-' + id);
+    const len = document.getElementById('len-' + id);
+    if (value) {
+      el.textContent = value;
+      el.classList.remove('empty');
+      len.textContent = value.length + ' chars';
+    } else {
+      el.textContent = '// waiting for input...';
+      el.classList.add('empty');
+      len.textContent = '—';
+    }
+  }
+
+  let debounceTimer;
+  function onInput() {
+    const text = document.getElementById('inputText').value;
+    const chars = text.length;
+    const bytes = new TextEncoder().encode(text).length;
+    document.getElementById('statChars').textContent = chars;
+    document.getElementById('statBytes').textContent = bytes;
+    document.getElementById('charCount').textContent = chars + ' chars';
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      await generateHashes(text);
+      setHashUI('md5', currentHashes.md5);
+      setHashUI('sha1', currentHashes.sha1);
+      setHashUI('sha256', currentHashes.sha256);
+      setHashUI('sha512', currentHashes.sha512);
+      if (mode === 'compare') doCompare();
+    }, 80);
+  }
+
+  function doCompare() {
+    const known = document.getElementById('compareHash').value.trim().toLowerCase();
+    const result = document.getElementById('compareResult');
+    if (!known) { result.className = 'compare-result'; return; }
+
+    const allHashes = Object.values(currentHashes).map(h => h.toLowerCase());
+    const labels = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'];
+    let matchType = null;
+
+    Object.entries(currentHashes).forEach(([k, v], i) => {
+      if (v && v.toLowerCase() === known) matchType = labels[i];
+    });
+
+    if (matchType) {
+      result.className = 'compare-result match';
+      result.textContent = `✔ MATCH — Hash matches ${matchType} of current input`;
+    } else if (Object.values(currentHashes).some(v => v)) {
+      result.className = 'compare-result nomatch';
+      result.textContent = `✘ NO MATCH — Hash does not match any generated hash`;
+    } else {
+      result.className = 'compare-result';
+    }
+  }
+
+  function clearInput() {
+    document.getElementById('inputText').value = '';
+    onInput();
+  }
+
+  function loadSample() {
+    document.getElementById('inputText').value = 'genesis-vault-sample-2026';
+    onInput();
+  }
+
+  async function copyHash(type) {
+    const val = currentHashes[type];
+    if (!val) return;
+    await navigator.clipboard.writeText(val);
+    const btn = document.querySelector(`#card-${type} .copy-btn`);
+    btn.textContent = '[ COPIED ]';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '[ COPY ]'; btn.classList.remove('copied'); }, 1500);
+  }
+
+  async function copyAll() {
+    if (!currentHashes.sha256) return;
+    const text = Object.entries(currentHashes)
+      .map(([k,v]) => `${k.toUpperCase()}: ${v}`).join('\n');
+    await navigator.clipboard.writeText(text);
+  }
+</script>
+</body>
+</html>
