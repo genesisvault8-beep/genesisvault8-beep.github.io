@@ -556,6 +556,128 @@
     color: var(--text-dim);
   }
 
+  /* ── MARKETPLACE ── */
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .market-card {
+    background: var(--bg2);
+    padding: 28px 24px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .market-card:hover { background: var(--bg3); }
+
+  .market-card-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .market-title {
+    font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: white;
+  }
+
+  .market-price {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem; color: var(--accent);
+    letter-spacing: 1px; white-space: nowrap;
+  }
+
+  .market-price .crypto {
+    color: #f0b90b;
+    font-size: 0.65rem; display: block; text-align: right;
+  }
+
+  .market-desc {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem; color: var(--text-dim);
+    line-height: 1.8; letter-spacing: 0.5px;
+    margin-bottom: 14px;
+  }
+
+  .market-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .market-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.52rem; letter-spacing: 1px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .market-cta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .market-note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; color: var(--text-dim);
+    letter-spacing: 1px; line-height: 1.8;
+    border: 1px solid var(--border);
+    border-left: 3px solid #f0b90b;
+    padding: 14px 18px;
+    background: var(--bg2);
+  }
+  .market-note span { color: #f0b90b; }
+
+  /* ── ABOUT ── */
+  .about-block {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    background: var(--bg2);
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .about-block::before {
+    content: '// ABOUT';
+    position: absolute; top: 0; left: 20px;
+    transform: translateY(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem; color: var(--accent);
+    letter-spacing: 2px; background: var(--bg2); padding: 0 8px;
+  }
+  .about-handle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem; color: var(--accent);
+    letter-spacing: 4px; margin-bottom: 14px;
+    display: block;
+  }
+  .about-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem; color: var(--text-dim);
+    line-height: 1.9; letter-spacing: 0.5px;
+    max-width: 640px;
+  }
+  .about-text span { color: var(--text); }
+  .about-tags {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 24px;
+  }
+  .about-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 2px;
+    padding: 5px 12px;
+    border: 1px solid rgba(0,245,196,0.2);
+    color: var(--accent);
+  }
+
   /* ── CTA ── */
   .cta-block {
     border: 1px solid var(--border);
@@ -681,6 +803,7 @@
   <div class="nav-links">
     <a href="#features">Features</a>
     <a href="#vault-labs">Labs</a>
+    <a href="#market">Market</a>
     <a href="#vc">VC</a>
     <a href="hire.html">Hire Me</a>
     <a href="login.html" class="nav-cta">[ ACCESS ]</a>
@@ -699,9 +822,9 @@
 
   <p class="hero-desc">
     A secure platform for <span class="hi">hackers</span>, builders, and learners.
-    Run real tools through our <span class="hi">AI terminal</span>, learn offensive security in
-    <span class="hi2">Vault Labs</span>, buy tools, take courses, and earn
-    <span class="hi">VC</span> — all in one place.
+    Explore hands-on labs in <span class="hi2">Vault Labs</span>, buy and sell tools in the
+    <span class="hi">Marketplace</span>, read intel in the
+    <span class="hi2">Learner Hub</span>, and earn <span class="hi">VC</span> — all in one place.
   </p>
 
   <div class="hero-btns">
@@ -722,16 +845,16 @@
     <span class="stat-label">VC on signup</span>
   </div>
   <div class="stat-item">
-    <span class="stat-val">5+</span>
-    <span class="stat-label">Tool categories</span>
-  </div>
-  <div class="stat-item">
-    <span class="stat-val">AI</span>
-    <span class="stat-label">Terminal active</span>
-  </div>
-  <div class="stat-item">
     <span class="stat-val">5</span>
-    <span class="stat-label">Member ranks</span>
+    <span class="stat-label">Free labs</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-val">LIVE</span>
+    <span class="stat-label">Vault Labs</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-val">3+</span>
+    <span class="stat-label">Market tools</span>
   </div>
   <div class="stat-item">
     <span class="stat-val">24/7</span>
@@ -754,8 +877,8 @@
       <span class="fc-icon green">⬡</span>
       <span class="fc-tag">// module_01</span>
       <div class="fc-title">Tool Store</div>
-      <div class="fc-desc">Browse and purchase cybersecurity tools and automation scripts. From recon utilities to productivity bots — built for real-world use. Unlock tools with VC or direct purchase.</div>
-      <span class="fc-badge green">LIVE</span>
+      <div class="fc-desc">Browse and purchase cybersecurity tools and automation scripts. From recon utilities to productivity bots — built for real-world use. Pay with VC or crypto (USDT).</div>
+      <span class="fc-badge green">VC / CRYPTO</span>
     </div>
 
     <div class="feature-card">
@@ -773,7 +896,7 @@
       <span class="fc-tag">// module_03</span>
       <div class="fc-title">Learner Hub</div>
       <div class="fc-desc">Read articles, field notes, and intel posts. Community-sourced knowledge base on hacking techniques, OSINT, bug bounty tips, and automation guides.</div>
-      <span class="fc-badge">OPEN ACCESS</span>
+      <span class="fc-badge green">FREE</span>
     </div>
 
     <div class="feature-card">
@@ -782,7 +905,7 @@
       <span class="fc-tag">// module_04</span>
       <div class="fc-title">AI Terminal</div>
       <div class="fc-desc">An AI-powered terminal linked directly to a live Termux environment via bridge. Type commands, get AI assistance, and execute real tools — nmap, sqlmap, ffuf — from your browser.</div>
-      <span class="fc-badge blue">LIVE EXECUTION</span>
+      <span class="fc-badge blue">BETA</span>
     </div>
 
     <div class="feature-card">
@@ -791,7 +914,7 @@
       <span class="fc-tag">// module_05</span>
       <div class="fc-title">Vault Labs</div>
       <div class="fc-desc">Hands-on hacking labs. Learn real offensive techniques in a safe, guided environment. XSS, SQLi, recon, IDOR, and more — practical training for bug bounty and CTF.</div>
-      <span class="fc-badge">RANK GATED</span>
+      <span class="fc-badge green">FREE</span>
     </div>
 
     <div class="feature-card">
@@ -812,7 +935,7 @@
 <section id="terminal" class="fade-in">
   <div class="section-tag">// 02 — AI Terminal</div>
   <div class="section-title">Run Real Tools. From Your Browser.</div>
-  <div class="section-desc">The Vault AI Terminal bridges your session to a live Termux environment. Ask the AI to run a scan, extract endpoints, or enumerate subdomains — it executes, you see results.</div>
+  <div class="section-desc">The Vault AI Terminal bridges your session to a live Termux environment. Ask the AI to run a scan, extract endpoints, or enumerate subdomains — it executes on your device, you see results. <span style="color:var(--accent)">Currently in beta — early access coming soon.</span></div>
 
   <div class="terminal">
     <div class="term-bar">
@@ -848,7 +971,7 @@
 <section id="vault-labs" class="fade-in">
   <div class="section-tag">// 03 — Vault Labs</div>
   <div class="section-title">Learn to Hack. For Real.</div>
-  <div class="section-desc">Vault Labs is Genesis Vault's hands-on hacking training ground. Guided labs with real vulnerable environments. No VMs needed — just your account and a target.</div>
+  <div class="section-desc">5 live labs covering JWT exploitation, SQLi, SSRF, XSS, and auth bypass. All free — sandboxed environments with real vulnerable targets. No VMs needed.</div>
 
   <div class="how-wrap">
     <div class="how-step">
@@ -868,8 +991,8 @@
     </div>
     <div class="how-step">
       <span class="how-num">04</span>
-      <div class="how-title">Earn VC</div>
-      <div class="how-desc">Complete labs to earn Vault Credits. Harder labs pay more. VC can be spent on tools, premium courses, and more.</div>
+      <div class="how-title">Capture the Flag</div>
+      <div class="how-desc">Solve the lab, capture the flag, and prove your skills. All labs are free — no paywalls, no gatekeeping. Just you vs the target.</div>
     </div>
   </div>
 </section>
@@ -885,15 +1008,14 @@
         <div class="vc-title">The Vault <span>Economy</span></div>
         <div class="vc-desc">
           Vault Credits (VC) are the internal currency of Genesis Vault.
-          Earn them by completing labs, inviting members, and contributing content.
-          Spend them on tools, paid courses, and premium features.
+          Get 50 VC free on signup, earn more by referring members, or buy
+          directly with USDT crypto. Spend them on tools in the marketplace.
         </div>
         <div class="vc-ways">
-          <div class="vc-way">Complete Vault Labs challenges</div>
-          <div class="vc-way">Refer new members to the platform</div>
           <div class="vc-way">Sign up — get 50 VC instantly</div>
-          <div class="vc-way">Submit bug bounty write-ups</div>
-          <div class="vc-way">Spend VC on tools and courses</div>
+          <div class="vc-way">Refer new members to the platform</div>
+          <div class="vc-way">Buy VC directly with USDT crypto</div>
+          <div class="vc-way">Spend VC on tools in the marketplace</div>
         </div>
       </div>
       <div class="vc-amounts">
@@ -957,6 +1079,103 @@
 
 <div class="section-divider"></div>
 
+<!-- ── MARKETPLACE ── -->
+<section id="market" class="fade-in">
+  <div class="section-tag">// 06 — Marketplace</div>
+  <div class="section-title">Tools. Scripts. Real Use.</div>
+  <div class="section-desc">All tools are hand-picked and sold directly by the platform founder — no third-party junk. Pay with Vault Credits (VC) or USDT crypto on BSC.</div>
+
+  <div class="market-grid">
+
+    <div class="market-card">
+      <div class="fc-glow green"></div>
+      <div class="market-card-top">
+        <div class="market-title">XSS-03 Stored XSS Keylogger</div>
+        <div class="market-price">35 VC
+          <span class="crypto">or USDT</span>
+        </div>
+      </div>
+      <div class="market-desc">An interactive browser-based lab simulating a stored XSS attack that deploys a persistent keylogger. Inject a malicious payload into a vulnerable blog comment section and capture simulated admin keystrokes.</div>
+      <div class="market-tags">
+        <span class="market-tag">XSS</span>
+        <span class="market-tag">APPS</span>
+        <span class="market-tag">VAULT LABS</span>
+      </div>
+      <div class="market-cta">[ VIEW IN MARKET ] ▸</div>
+    </div>
+
+    <div class="market-card">
+      <div class="fc-glow blue"></div>
+      <div class="market-card-top">
+        <div class="market-title">Bug Bounty Prompt Pack</div>
+        <div class="market-price">25 VC
+          <span class="crypto">or USDT</span>
+        </div>
+      </div>
+      <div class="market-desc">10 battle-tested AI prompts for bug bounty hunters covering the full workflow — Recon Surface Mapper, XSS Payload Generator, Vulnerability Report Writer, JWT Attack Analyzer, SSRF Payload Builder, and more.</div>
+      <div class="market-tags">
+        <span class="market-tag">AI TOOLS</span>
+        <span class="market-tag">BUG BOUNTY</span>
+        <span class="market-tag">TEMPLATES</span>
+      </div>
+      <div class="market-cta">[ VIEW IN MARKET ] ▸</div>
+    </div>
+
+    <div class="market-card">
+      <div class="fc-glow red"></div>
+      <div class="market-card-top">
+        <div class="market-title">Payload Generator</div>
+        <div class="market-price">30 VC
+          <span class="crypto">or USDT</span>
+        </div>
+      </div>
+      <div class="market-desc">Generate ready-to-use attack payloads for bug bounty testing with WAF bypass techniques. 7 categories, 200+ customizable payloads — XSS, SQLi, SSRF, RCE, IDOR, CSRF, LFI. Built for security research and pentesting.</div>
+      <div class="market-tags">
+        <span class="market-tag">PAYLOADS</span>
+        <span class="market-tag">PENTESTING</span>
+        <span class="market-tag">APPS</span>
+      </div>
+      <div class="market-cta">[ VIEW IN MARKET ] ▸</div>
+    </div>
+
+  </div>
+
+  <div class="market-note">
+    // Payment accepted in <span>Vault Credits (VC)</span> or <span>USDT (BEP-20 / BSC)</span>.
+    All tools sold directly by <span>Johnthebandit</span> — verified and tested before listing.
+    <a href="login.html" style="color:var(--accent); text-decoration:none; margin-left:8px;">[ BROWSE FULL MARKET → ]</a>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── ABOUT ── -->
+<section id="about" class="fade-in">
+  <div class="section-tag">// 07 — About</div>
+  <div class="section-title">Built by One. For Everyone.</div>
+  <div class="about-block">
+    <span class="about-handle">~ JOHNTHEBANDIT</span>
+    <div class="about-text">
+      Genesis Vault is a <span>solo project</span> — designed, built, and maintained by one person
+      with a passion for making offensive security accessible to anyone willing to learn.
+      No VC funding. No team of 50. Just a developer who believed the tools and knowledge
+      shouldn't be locked behind paywalls or scattered across the internet.<br><br>
+      Every lab, every article, every tool in the marketplace has been curated or built
+      with real-world use in mind. This platform exists to <span>educate, not exploit</span> —
+      all activities on Genesis Vault are intended for authorized environments only.
+    </div>
+    <div class="about-tags">
+      <span class="about-tag">SOLO BUILT</span>
+      <span class="about-tag">OFFENSIVE SECURITY</span>
+      <span class="about-tag">BUG BOUNTY</span>
+      <span class="about-tag">AUTHORIZED USE ONLY</span>
+      <span class="about-tag">ETHICAL HACKING</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
 <!-- ── CTA ── -->
 <section style="padding: 0 20px 90px;" class="fade-in">
   <div class="cta-block">
@@ -986,7 +1205,7 @@
     <a href="terms.html">Terms</a>
   </div>
   <div class="footer-copy">
-    // GENESIS VAULT — CYBERSECURITY PLATFORM — ALL RIGHTS RESERVED — USE RESPONSIBLY
+    // GENESIS VAULT — CYBERSECURITY PLATFORM — © 2026 JOHNTHEBANDIT — ALL RIGHTS RESERVED — FOR AUTHORIZED USE ONLY
   </div>
 </footer>
 
