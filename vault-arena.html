@@ -6,776 +6,168 @@
 <title>VAULT ARENA — GenesisVault</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #030a06;
-    --bg2: #060f09;
-    --panel: #071209;
-    --border: #0d2b14;
-    --cyan: #00ffa3;
-    --cyan-dim: #00c47a;
-    --cyan-dark: #003d1f;
-    --red: #ff3b3b;
-    --red-dim: #c42b2b;
-    --yellow: #f0c040;
-    --text: #a8d4b8;
-    --text-dim: #4a7a5a;
-    --text-bright: #e0ffe8;
-    --glow: 0 0 12px rgba(0,255,163,0.4);
-    --glow-red: 0 0 12px rgba(255,59,59,0.4);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Share Tech Mono', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
-    cursor: crosshair;
-  }
-
-  /* Scanline overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,255,163,0.015) 2px,
-      rgba(0,255,163,0.015) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-
-  /* Grid background */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,255,163,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,255,163,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ── NAV ── */
-  nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    height: 56px;
-    background: rgba(3,10,6,0.95);
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(8px);
-  }
-
-  .nav-logo {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 2px;
-  }
-
-  .nav-logo span { color: var(--cyan); }
-
-  .nav-center {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--cyan);
-    text-transform: uppercase;
-  }
-
-  .nav-dot {
-    width: 6px; height: 6px;
-    background: var(--cyan);
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-    box-shadow: var(--glow);
-  }
-
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 11px;
-  }
-
-  .rank-badge {
-    padding: 3px 10px;
-    border: 1px solid var(--cyan-dim);
-    color: var(--cyan);
-    font-size: 10px;
-    letter-spacing: 2px;
-  }
-
-  .vc-count {
-    color: var(--yellow);
-    font-size: 11px;
-  }
-
-  /* ── HERO ── */
-  .hero {
-    position: relative;
-    z-index: 1;
-    padding: 60px 24px 40px;
-    text-align: center;
-  }
-
-  .hero-label {
-    font-size: 10px;
-    letter-spacing: 5px;
-    color: var(--text-dim);
-    margin-bottom: 16px;
-  }
-
-  .hero-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(36px, 10vw, 72px);
-    font-weight: 900;
-    letter-spacing: 6px;
-    line-height: 1;
-    color: var(--text-bright);
-    margin-bottom: 8px;
-  }
-
-  .hero-title span {
-    color: var(--cyan);
-    text-shadow: var(--glow);
-  }
-
-  .hero-sub {
-    font-size: 12px;
-    color: var(--text-dim);
-    letter-spacing: 3px;
-    margin-bottom: 40px;
-  }
-
-  /* Stats row */
-  .stats-row {
-    display: flex;
-    justify-content: center;
-    gap: 0;
-    margin-bottom: 50px;
-    border: 1px solid var(--border);
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 50px;
-  }
-
-  .stat-item {
-    flex: 1;
-    padding: 16px 8px;
-    border-right: 1px solid var(--border);
-    text-align: center;
-  }
-
-  .stat-item:last-child { border-right: none; }
-
-  .stat-num {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--cyan);
-    text-shadow: var(--glow);
-    display: block;
-  }
-
-  .stat-num.red { color: var(--red); text-shadow: var(--glow-red); }
-  .stat-num.yellow { color: var(--yellow); }
-
-  .stat-label {
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    margin-top: 4px;
-    display: block;
-  }
-
-  /* ── GAME MODE SELECTOR ── */
-  .section {
-    position: relative;
-    z-index: 1;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px 50px;
-  }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .section-label {
-    font-size: 10px;
-    letter-spacing: 4px;
-    color: var(--cyan);
-    text-transform: uppercase;
-  }
-
-  .section-line {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .mode-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
-    margin-bottom: 50px;
-  }
-
-  .mode-card {
-    border: 1px solid var(--border);
-    background: var(--panel);
-    padding: 28px 24px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .mode-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--cyan);
-    transform: scaleY(0);
-    transition: transform 0.2s;
-    transform-origin: bottom;
-  }
-
-  .mode-card:hover::before { transform: scaleY(1); }
-
-  .mode-card:hover {
-    border-color: var(--cyan-dim);
-    background: rgba(0,255,163,0.03);
-    transform: translateY(-2px);
-  }
-
-  .mode-card.red-card::before { background: var(--red); }
-  .mode-card.red-card:hover { border-color: var(--red-dim); background: rgba(255,59,59,0.03); }
-
-  .mode-card.yellow-card::before { background: var(--yellow); }
-  .mode-card.yellow-card:hover { border-color: #c09030; background: rgba(240,192,64,0.03); }
-
-  .mode-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
-  }
-
-  .mode-icon {
-    font-size: 28px;
-    line-height: 1;
-  }
-
-  .mode-badge {
-    font-size: 9px;
-    letter-spacing: 2px;
-    padding: 3px 8px;
-    border: 1px solid var(--cyan-dim);
-    color: var(--cyan);
-  }
-
-  .mode-badge.red { border-color: var(--red-dim); color: var(--red); }
-  .mode-badge.yellow { border-color: #c09030; color: var(--yellow); }
-
-  .mode-name {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--text-bright);
-    margin-bottom: 8px;
-  }
-
-  .mode-desc {
-    font-size: 11px;
-    color: var(--text-dim);
-    line-height: 1.7;
-    margin-bottom: 20px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .mode-meta {
-    display: flex;
-    gap: 16px;
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    margin-bottom: 20px;
-  }
-
-  .mode-meta span { color: var(--cyan); }
-  .mode-meta span.red { color: var(--red); }
-
-  .mode-btn {
-    width: 100%;
-    padding: 10px;
-    background: transparent;
-    border: 1px solid var(--cyan-dim);
-    color: var(--cyan);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-transform: uppercase;
-  }
-
-  .mode-btn:hover {
-    background: var(--cyan);
-    color: var(--bg);
-  }
-
-  .mode-btn.red {
-    border-color: var(--red-dim);
-    color: var(--red);
-  }
-
-  .mode-btn.red:hover { background: var(--red); color: var(--bg); }
-
-  .mode-btn.yellow {
-    border-color: #c09030;
-    color: var(--yellow);
-  }
-
-  .mode-btn.yellow:hover { background: var(--yellow); color: var(--bg); }
-
-  /* ── LIVE MATCHES ── */
-  .matches-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 50px;
-  }
-
-  .match-row {
-    display: grid;
-    grid-template-columns: auto 1fr auto auto auto;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 18px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    cursor: pointer;
-    transition: all 0.15s;
-    font-size: 11px;
-  }
-
-  .match-row:hover {
-    border-color: var(--cyan-dim);
-    background: rgba(0,255,163,0.02);
-  }
-
-  .match-live {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--red);
-    font-size: 9px;
-    letter-spacing: 2px;
-  }
-
-  .live-dot {
-    width: 5px; height: 5px;
-    background: var(--red);
-    border-radius: 50%;
-    animation: pulse 1s infinite;
-    box-shadow: var(--glow-red);
-  }
-
-  .match-players {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text);
-  }
-
-  .match-vs {
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-  }
-
-  .player-name { color: var(--text-bright); }
-  .player-name.ai { color: var(--cyan); }
-
-  .match-type {
-    font-size: 9px;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
-
-  .match-timer {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    color: var(--yellow);
-    letter-spacing: 2px;
-    min-width: 60px;
-    text-align: right;
-  }
-
-  .match-spectate {
-    padding: 4px 12px;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-size: 9px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    background: transparent;
-    font-family: 'Share Tech Mono', monospace;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-
-  .match-spectate:hover {
-    border-color: var(--cyan-dim);
-    color: var(--cyan);
-  }
-
-  /* ── LEADERBOARD ── */
-  .leaderboard {
-    border: 1px solid var(--border);
-    background: var(--panel);
-    overflow: hidden;
-  }
-
-  .lb-header {
-    display: grid;
-    grid-template-columns: 40px 1fr 80px 80px 80px;
-    padding: 10px 18px;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,255,163,0.02);
-    text-transform: uppercase;
-  }
-
-  .lb-row {
-    display: grid;
-    grid-template-columns: 40px 1fr 80px 80px 80px;
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-    font-size: 11px;
-    transition: background 0.15s;
-    cursor: default;
-  }
-
-  .lb-row:last-child { border-bottom: none; }
-  .lb-row:hover { background: rgba(0,255,163,0.02); }
-
-  .lb-rank {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-dim);
-  }
-
-  .lb-rank.gold { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
-  .lb-rank.silver { color: #c0c0c0; }
-  .lb-rank.bronze { color: #cd7f32; }
-
-  .lb-player {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .lb-avatar {
-    width: 24px; height: 24px;
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    color: var(--cyan);
-    background: var(--cyan-dark);
-    flex-shrink: 0;
-  }
-
-  .lb-name { color: var(--text-bright); }
-  .lb-badge {
-    font-size: 8px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    padding: 1px 5px;
-    border: 1px solid var(--border);
-  }
-
-  .lb-wins { color: var(--cyan); text-align: center; }
-  .lb-losses { color: var(--red); text-align: center; }
-  .lb-vc { color: var(--yellow); text-align: right; }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(3,10,6,0.92);
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-    padding: 20px;
-  }
-
-  .modal-overlay.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .modal {
-    border: 1px solid var(--cyan-dim);
-    background: var(--panel);
-    padding: 32px;
-    max-width: 480px;
-    width: 100%;
-    position: relative;
-    box-shadow: var(--glow), inset 0 0 40px rgba(0,255,163,0.02);
-  }
-
-  .modal-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: var(--cyan);
-    margin-bottom: 6px;
-    text-shadow: var(--glow);
-  }
-
-  .modal-sub {
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    margin-bottom: 28px;
-  }
-
-  .modal-field {
-    margin-bottom: 16px;
-  }
-
-  .modal-label {
-    display: block;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-  }
-
-  .modal-select, .modal-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 12px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 12px;
-    outline: none;
-    transition: border-color 0.15s;
-    appearance: none;
-  }
-
-  .modal-select:focus, .modal-input:focus {
-    border-color: var(--cyan-dim);
-  }
-
-  .modal-select option { background: var(--bg); }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-  }
-
-  .btn-primary {
-    flex: 1;
-    padding: 12px;
-    background: var(--cyan);
-    border: none;
-    color: var(--bg);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-transform: uppercase;
-  }
-
-  .btn-primary:hover { background: var(--cyan-dim); }
-
-  .btn-secondary {
-    padding: 12px 20px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
-
-  .modal-close {
-    position: absolute;
-    top: 16px; right: 16px;
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    font-size: 18px;
-    cursor: pointer;
-    font-family: 'Share Tech Mono', monospace;
-    line-height: 1;
-    transition: color 0.15s;
-  }
-
-  .modal-close:hover { color: var(--red); }
-
-  /* ── TICKER ── */
-  .ticker-bar {
-    position: relative;
-    z-index: 1;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background: var(--panel);
-    overflow: hidden;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 40px;
-  }
-
-  .ticker-label {
-    padding: 0 16px;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--cyan);
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    height: 100%;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    flex-shrink: 0;
-    z-index: 1;
-  }
-
-  .ticker-track {
-    display: flex;
-    gap: 60px;
-    animation: ticker 25s linear infinite;
-    white-space: nowrap;
-    padding-left: 40px;
-  }
-
-  .ticker-item {
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-  }
-
-  .ticker-item .t-cyan { color: var(--cyan); }
-  .ticker-item .t-red { color: var(--red); }
-  .ticker-item .t-yellow { color: var(--yellow); }
-
-  /* ── ANIMATIONS ── */
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  @keyframes ticker {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes glitch {
-    0%, 100% { clip-path: inset(0 0 95% 0); transform: translateX(-2px); }
-    20% { clip-path: inset(30% 0 50% 0); transform: translateX(2px); }
-    40% { clip-path: inset(70% 0 10% 0); transform: translateX(-1px); }
-    60% { clip-path: inset(10% 0 80% 0); transform: translateX(1px); }
-    80% { clip-path: inset(50% 0 30% 0); transform: translateX(0); }
-  }
-
-  .hero { animation: fadeUp 0.6s ease both; }
-  .mode-grid { animation: fadeUp 0.6s 0.1s ease both; }
-
-  /* Match progress bar */
-  .match-progress {
-    height: 2px;
-    background: var(--border);
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    min-width: 60px;
-  }
-
-  .match-progress-fill {
-    height: 100%;
-    background: var(--cyan);
-    box-shadow: var(--glow);
-    transition: width 1s linear;
-  }
-
-  /* Empty state */
-  .empty-state {
-    padding: 40px;
-    text-align: center;
-    border: 1px dashed var(--border);
-    color: var(--text-dim);
-    font-size: 11px;
-    letter-spacing: 2px;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--cyan-dark); }
-
-  /* Mobile */
-  @media (max-width: 600px) {
-    .lb-header, .lb-row { grid-template-columns: 32px 1fr 60px 60px; }
-    .lb-losses { display: none; }
-    .match-row { grid-template-columns: auto 1fr auto auto; gap: 10px; }
-    .match-type { display: none; }
-    nav { padding: 0 16px; }
-    .hero { padding: 40px 16px 30px; }
-  }
+:root {
+  --bg:#030a06; --bg2:#060f09; --panel:#071209; --border:#0d2b14;
+  --cyan:#00ffa3; --cyan-dim:#00c47a; --cyan-dark:#003d1f;
+  --red:#ff3b3b; --red-dim:#c42b2b; --yellow:#f0c040;
+  --text:#a8d4b8; --text-dim:#4a7a5a; --text-bright:#e0ffe8;
+  --glow:0 0 12px rgba(0,255,163,0.4); --glow-red:0 0 12px rgba(255,59,59,0.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;cursor:crosshair;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,163,0.015) 2px,rgba(0,255,163,0.015) 4px);pointer-events:none;z-index:9999;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,163,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,163,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:rgba(3,10,6,0.95);border-bottom:1px solid var(--border);backdrop-filter:blur(8px);}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;}
+.nav-logo span{color:var(--cyan);}
+.nav-center{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:3px;color:var(--cyan);}
+.nav-dot{width:6px;height:6px;background:var(--cyan);border-radius:50%;animation:pulse 1.5s infinite;box-shadow:var(--glow);}
+.nav-right{display:flex;align-items:center;gap:16px;font-size:11px;}
+.rank-badge{padding:3px 10px;border:1px solid var(--cyan-dim);color:var(--cyan);font-size:10px;letter-spacing:2px;}
+.vc-count{color:var(--yellow);font-size:11px;}
+
+/* TICKER */
+.ticker-bar{position:relative;z-index:1;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--panel);overflow:hidden;height:36px;display:flex;align-items:center;margin-bottom:40px;}
+.ticker-label{padding:0 16px;font-size:9px;letter-spacing:3px;color:var(--cyan);background:var(--panel);border-right:1px solid var(--border);height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;z-index:1;}
+.ticker-track{display:flex;gap:60px;animation:ticker 25s linear infinite;white-space:nowrap;padding-left:40px;}
+.ticker-item{font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+.ticker-item .t-cyan{color:var(--cyan);}
+.ticker-item .t-red{color:var(--red);}
+.ticker-item .t-yellow{color:var(--yellow);}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:60px 24px 40px;text-align:center;animation:fadeUp 0.6s ease both;}
+.hero-label{font-size:10px;letter-spacing:5px;color:var(--text-dim);margin-bottom:16px;}
+.hero-title{font-family:'Orbitron',sans-serif;font-size:clamp(36px,10vw,72px);font-weight:900;letter-spacing:6px;line-height:1;color:var(--text-bright);margin-bottom:8px;}
+.hero-title span{color:var(--cyan);text-shadow:var(--glow);}
+.hero-sub{font-size:12px;color:var(--text-dim);letter-spacing:3px;margin-bottom:40px;}
+.stats-row{display:flex;justify-content:center;border:1px solid var(--border);max-width:500px;margin:0 auto 50px;}
+.stat-item{flex:1;padding:16px 8px;border-right:1px solid var(--border);text-align:center;}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--cyan);text-shadow:var(--glow);display:block;}
+.stat-num.red{color:var(--red);text-shadow:var(--glow-red);}
+.stat-num.yellow{color:var(--yellow);}
+.stat-label{font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-top:4px;display:block;}
+
+/* SECTIONS */
+.section{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px 50px;}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+.section-label{font-size:10px;letter-spacing:4px;color:var(--cyan);}
+.section-line{flex:1;height:1px;background:var(--border);}
+
+/* SANDBOX CARDS — admin posted */
+.sandbox-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:16px;}
+
+.sandbox-card{border:1px solid var(--border);background:var(--panel);padding:24px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.sandbox-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--cyan);transform:scaleY(0);transition:transform 0.2s;transform-origin:bottom;}
+.sandbox-card:hover::before{transform:scaleY(1);}
+.sandbox-card:hover{border-color:var(--cyan-dim);background:rgba(0,255,163,0.03);transform:translateY(-2px);}
+.sandbox-card.loading{opacity:0.5;pointer-events:none;}
+
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.card-icon{font-size:26px;}
+.card-badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.card-badge{font-size:8px;letter-spacing:2px;padding:2px 7px;border:1px solid var(--cyan-dim);color:var(--cyan);}
+.card-badge.easy{border-color:#00c47a;color:#00ffa3;}
+.card-badge.medium{border-color:#c09030;color:var(--yellow);}
+.card-badge.hard{border-color:var(--red-dim);color:var(--red);}
+.card-badge.live{border-color:var(--red-dim);color:var(--red);animation:redpulse 2s infinite;}
+
+.card-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;color:var(--text-bright);margin-bottom:6px;}
+.card-desc{font-size:11px;color:var(--text-dim);line-height:1.7;margin-bottom:16px;font-family:'DM Mono',monospace;}
+.card-meta{display:flex;gap:14px;font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:16px;flex-wrap:wrap;}
+.card-meta span{color:var(--cyan);}
+.card-meta span.red{color:var(--red);}
+.card-meta span.yellow{color:var(--yellow);}
+
+.card-btn{width:100%;padding:10px;background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;cursor:pointer;transition:all 0.15s;}
+.card-btn:hover{background:var(--cyan);color:var(--bg);}
+
+/* Empty / loading state */
+.empty-state{padding:40px;text-align:center;border:1px dashed var(--border);color:var(--text-dim);font-size:11px;letter-spacing:2px;grid-column:1/-1;}
+.loading-state{padding:40px;text-align:center;border:1px solid var(--border);color:var(--text-dim);font-size:11px;letter-spacing:2px;grid-column:1/-1;animation:blink 1.2s infinite;}
+
+/* LIVE MATCHES */
+.matches-list{display:flex;flex-direction:column;gap:8px;margin-bottom:50px;}
+.match-row{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:16px;padding:14px 18px;border:1px solid var(--border);background:var(--panel);cursor:pointer;transition:all 0.15s;font-size:11px;}
+.match-row:hover{border-color:var(--cyan-dim);background:rgba(0,255,163,0.02);}
+.match-live{display:flex;align-items:center;gap:6px;color:var(--red);font-size:9px;letter-spacing:2px;}
+.live-dot{width:5px;height:5px;background:var(--red);border-radius:50%;animation:pulse 1s infinite;box-shadow:var(--glow-red);}
+.match-players{display:flex;align-items:center;gap:10px;color:var(--text);}
+.match-vs{font-size:9px;color:var(--text-dim);letter-spacing:2px;}
+.player-name{color:var(--text-bright);}
+.player-name.ai{color:var(--cyan);}
+.match-type{font-size:9px;letter-spacing:2px;color:var(--text-dim);}
+.match-timer{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--yellow);letter-spacing:2px;min-width:60px;text-align:right;}
+.match-spectate{padding:4px 12px;border:1px solid var(--border);color:var(--text-dim);font-size:9px;letter-spacing:2px;cursor:pointer;background:transparent;font-family:'Share Tech Mono',monospace;transition:all 0.15s;white-space:nowrap;}
+.match-spectate:hover{border-color:var(--cyan-dim);color:var(--cyan);}
+
+/* LEADERBOARD */
+.leaderboard{border:1px solid var(--border);background:var(--panel);overflow:hidden;}
+.lb-header{display:grid;grid-template-columns:40px 1fr 80px 80px 80px;padding:10px 18px;font-size:9px;letter-spacing:3px;color:var(--text-dim);border-bottom:1px solid var(--border);background:rgba(0,255,163,0.02);}
+.lb-row{display:grid;grid-template-columns:40px 1fr 80px 80px 80px;padding:12px 18px;border-bottom:1px solid var(--border);align-items:center;font-size:11px;transition:background 0.15s;}
+.lb-row:last-child{border-bottom:none;}
+.lb-row:hover{background:rgba(0,255,163,0.02);}
+.lb-rank{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--text-dim);}
+.lb-rank.gold{color:#ffd700;text-shadow:0 0 8px rgba(255,215,0,0.5);}
+.lb-rank.silver{color:#c0c0c0;}
+.lb-rank.bronze{color:#cd7f32;}
+.lb-player{display:flex;align-items:center;gap:10px;}
+.lb-avatar{width:24px;height:24px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--cyan);background:var(--cyan-dark);flex-shrink:0;}
+.lb-name{color:var(--text-bright);}
+.lb-badge{font-size:8px;letter-spacing:1px;color:var(--text-dim);padding:1px 5px;border:1px solid var(--border);}
+.lb-wins{color:var(--cyan);text-align:center;}
+.lb-losses{color:var(--red);text-align:center;}
+.lb-vc{color:var(--yellow);text-align:right;}
+
+/* CONFIRM MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(3,10,6,0.92);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;padding:20px;}
+.modal-overlay.active{opacity:1;pointer-events:all;}
+.modal{border:1px solid var(--cyan-dim);background:var(--panel);padding:32px;max-width:460px;width:100%;position:relative;box-shadow:var(--glow);}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;color:var(--cyan);margin-bottom:6px;text-shadow:var(--glow);}
+.modal-sub{font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:24px;}
+.modal-info{background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:14px;margin-bottom:20px;}
+.modal-row{display:flex;justify-content:space-between;font-size:10px;padding:5px 0;border-bottom:1px solid var(--border);letter-spacing:1px;}
+.modal-row:last-child{border-bottom:none;}
+.modal-row .lbl{color:var(--text-dim);}
+.modal-row .val{color:var(--text-bright);}
+.modal-row .val.cyan{color:var(--cyan);}
+.modal-row .val.yellow{color:var(--yellow);}
+.modal-cost{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--yellow);text-align:center;margin:14px 0 4px;}
+.modal-cost-label{text-align:center;font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-bottom:20px;}
+.modal-actions{display:flex;gap:10px;}
+.btn-primary{flex:1;padding:12px;background:var(--cyan);border:none;color:var(--bg);font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.15s;}
+.btn-primary:hover{background:var(--cyan-dim);}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-secondary{padding:12px 20px;background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.15s;}
+.btn-secondary:hover{border-color:var(--text-dim);color:var(--text);}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;font-family:'Share Tech Mono',monospace;line-height:1;transition:color 0.15s;}
+.modal-close:hover{color:var(--red);}
+.modal-error{margin-top:10px;font-size:10px;color:var(--red);letter-spacing:1px;text-align:center;display:none;}
+
+/* ANIMATIONS */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes redpulse{0%,100%{box-shadow:var(--glow-red)}50%{box-shadow:none}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* Mobile */
+@media(max-width:600px){
+  .lb-header,.lb-row{grid-template-columns:32px 1fr 60px 60px;}
+  .lb-losses{display:none;}
+  .match-row{grid-template-columns:auto 1fr auto auto;gap:10px;}
+  .match-type{display:none;}
+  nav{padding:0 16px;}
+  .hero{padding:40px 16px 30px;}
+}
 </style>
 </head>
 <body>
@@ -783,162 +175,84 @@
 <!-- NAV -->
 <nav>
   <div class="nav-logo"><span>GENESIS</span>VAULT</div>
-  <div class="nav-center">
-    <div class="nav-dot"></div>
-    VAULT ARENA
-  </div>
+  <div class="nav-center"><div class="nav-dot"></div>VAULT ARENA</div>
   <div class="nav-right">
-    <span class="rank-badge">GHOST</span>
-    <span class="vc-count">⬡ 50 VC</span>
+    <span class="rank-badge" id="userRank">GHOST</span>
+    <span class="vc-count">⬡ <span id="userVC">—</span> VC</span>
   </div>
 </nav>
 
 <!-- TICKER -->
 <div class="ticker-bar">
   <div class="ticker-label">// LIVE FEED</div>
-  <div class="ticker-track" id="ticker">
-    <span class="ticker-item"><span class="t-red">●</span> ruger captured flag in SQLi Showdown — <span class="t-yellow">+75 VC</span></span>
-    <span class="ticker-item"><span class="t-cyan">◈</span> cipher_x defended 3 attacks in a row</span>
-    <span class="ticker-item"><span class="t-red">●</span> AI DEFENDER patched XSS vector in 0.4s</span>
-    <span class="ticker-item"><span class="t-cyan">◈</span> ghost_01 won Human vs Human — Auth Bypass</span>
-    <span class="ticker-item"><span class="t-yellow">⬡</span> New match: AI vs AI — RECON WARS starting</span>
-    <span class="ticker-item"><span class="t-red">●</span> ruger captured flag in SQLi Showdown — <span class="t-yellow">+75 VC</span></span>
-    <span class="ticker-item"><span class="t-cyan">◈</span> cipher_x defended 3 attacks in a row</span>
-    <span class="ticker-item"><span class="t-red">●</span> AI DEFENDER patched XSS vector in 0.4s</span>
-    <span class="ticker-item"><span class="t-cyan">◈</span> ghost_01 won Human vs Human — Auth Bypass</span>
-    <span class="ticker-item"><span class="t-yellow">⬡</span> New match: AI vs AI — RECON WARS starting</span>
+  <div class="ticker-track" id="tickerTrack">
+    <span class="ticker-item"><span class="t-red">●</span> CIPHER completed OSINT Image Attack — <span class="t-yellow">+10 VC earned</span></span>
+    <span class="ticker-item"><span class="t-cyan">◈</span> New sandbox posted — SQL Injection Basics</span>
+    <span class="ticker-item"><span class="t-red">●</span> cipher_x watched CIPHER bypass login in 42s</span>
+    <span class="ticker-item"><span class="t-cyan">◈</span> ghost_01 completed AI Sandbox — XSS Attack</span>
+    <span class="ticker-item"><span class="t-yellow">⬡</span> Admin posted new attack — IDOR Breach Demo</span>
+    <span class="ticker-item"><span class="t-red">●</span> CIPHER completed OSINT Image Attack — <span class="t-yellow">+10 VC earned</span></span>
+    <span class="ticker-item"><span class="t-cyan">◈</span> New sandbox posted — SQL Injection Basics</span>
+    <span class="ticker-item"><span class="t-red">●</span> cipher_x watched CIPHER bypass login in 42s</span>
+    <span class="ticker-item"><span class="t-cyan">◈</span> ghost_01 completed AI Sandbox — XSS Attack</span>
+    <span class="ticker-item"><span class="t-yellow">⬡</span> Admin posted new attack — IDOR Breach Demo</span>
   </div>
 </div>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-label">// 04 — SANDBOXED COMBAT ENVIRONMENT</div>
+  <div class="hero-label">// 04 — AI ATTACK DEMONSTRATIONS</div>
   <div class="hero-title">VAULT <span>ARENA</span></div>
-  <div class="hero-sub">ATTACK. DEFEND. DOMINATE.</div>
-
+  <div class="hero-sub">WATCH. LEARN. DOMINATE.</div>
   <div class="stats-row">
     <div class="stat-item">
-      <span class="stat-num" id="live-count">3</span>
-      <span class="stat-label">LIVE MATCHES</span>
+      <span class="stat-num" id="liveCount">—</span>
+      <span class="stat-label">LIVE SANDBOXES</span>
     </div>
     <div class="stat-item">
-      <span class="stat-num yellow">50</span>
+      <span class="stat-num yellow" id="userVCStat">—</span>
       <span class="stat-label">YOUR VC</span>
     </div>
     <div class="stat-item">
-      <span class="stat-num red">0</span>
-      <span class="stat-label">YOUR WINS</span>
+      <span class="stat-num red" id="userWins">0</span>
+      <span class="stat-label">COMPLETED</span>
     </div>
     <div class="stat-item">
-      <span class="stat-num">247</span>
+      <span class="stat-num" id="totalPlayers">—</span>
       <span class="stat-label">TOTAL PLAYERS</span>
     </div>
   </div>
 </div>
 
-<!-- GAME MODES -->
+<!-- SANDBOXES -->
 <div class="section">
   <div class="section-header">
-    <div class="section-label">// SELECT MODE</div>
+    <div class="section-label">// AI ATTACK SANDBOXES</div>
     <div class="section-line"></div>
   </div>
 
-  <div class="mode-grid">
-
-    <!-- AI vs Human -->
-    <div class="mode-card" onclick="openModal('ai-human')">
-      <div class="mode-top">
-        <div class="mode-icon">🤖</div>
-        <div class="mode-badge">EASY — HARD</div>
-      </div>
-      <div class="mode-name">AI VS HUMAN</div>
-      <div class="mode-desc">Face off against CIPHER — Genesis Vault's AI agent. Attack a live target while CIPHER defends in real time. Or flip roles and defend against a relentless AI attacker.</div>
-      <div class="mode-meta">
-        <div>PLAYERS <span>1</span></div>
-        <div>TIMER <span>5 MIN</span></div>
-        <div>REWARD <span>+50 VC</span></div>
-      </div>
-      <button class="mode-btn">[ ENTER MATCH ]</button>
-    </div>
-
-    <!-- Human vs Human -->
-    <div class="mode-card red-card" onclick="openModal('hvh')">
-      <div class="mode-top">
-        <div class="mode-icon">⚔️</div>
-        <div class="mode-badge red">PVP — RANKED</div>
-      </div>
-      <div class="mode-name">HUMAN VS HUMAN</div>
-      <div class="mode-desc">Matched against a real player. One attacks, one defends. Blind mode — you can't see their terminal, only the aftermath. Pure skill. No hints. No mercy.</div>
-      <div class="mode-meta">
-        <div>PLAYERS <span class="red">2</span></div>
-        <div>TIMER <span>10 MIN</span></div>
-        <div>REWARD <span class="red">+100 VC</span></div>
-      </div>
-      <button class="mode-btn red">[ FIND OPPONENT ]</button>
-    </div>
-
-    <!-- AI vs AI -->
-    <div class="mode-card yellow-card" onclick="openModal('aivai')">
-      <div class="mode-top">
-        <div class="mode-icon">👁️</div>
-        <div class="mode-badge yellow">SPECTATE</div>
-      </div>
-      <div class="mode-name">AI VS AI</div>
-      <div class="mode-desc">Watch two AI agents go to war. Red AI attacks using real recon techniques. Blue AI defends with adaptive patching. Full visibility — learn from every move.</div>
-      <div class="mode-meta">
-        <div>PLAYERS <span style="color:var(--yellow)">0</span></div>
-        <div>DURATION <span style="color:var(--yellow)">15 MIN</span></div>
-        <div>REWARD <span style="color:var(--yellow)">+10 VC</span></div>
-      </div>
-      <button class="mode-btn yellow">[ WATCH LIVE ]</button>
-    </div>
-
+  <div class="sandbox-grid" id="sandboxGrid">
+    <div class="loading-state">// LOADING SANDBOXES...</div>
   </div>
 
-  <!-- LIVE MATCHES -->
-  <div class="section-header">
-    <div class="section-label">// LIVE MATCHES</div>
+  <!-- LIVE SESSIONS -->
+  <div class="section-header" style="margin-top:40px">
+    <div class="section-label">// ACTIVE SESSIONS</div>
     <div class="section-line"></div>
   </div>
 
-  <div class="matches-list">
-
+  <div class="matches-list" id="sessionsList">
     <div class="match-row">
-      <div class="match-live"><div class="live-dot"></div> LIVE</div>
+      <div class="match-live"><div class="live-dot"></div>LIVE</div>
       <div class="match-players">
-        <span class="player-name">ruger</span>
-        <span class="match-vs">VS</span>
-        <span class="player-name ai">CIPHER-AI</span>
+        <span class="player-name ai">CIPHER</span>
+        <span class="match-vs">→</span>
+        <span class="player-name">OSINT Image Lab</span>
       </div>
-      <div class="match-type">AI VS HUMAN</div>
-      <div class="match-timer">03:42</div>
-      <button class="match-spectate">SPECTATE</button>
+      <div class="match-type">AI SANDBOX</div>
+      <div class="match-timer">04:22</div>
+      <button class="match-spectate">JOIN</button>
     </div>
-
-    <div class="match-row">
-      <div class="match-live"><div class="live-dot"></div> LIVE</div>
-      <div class="match-players">
-        <span class="player-name">ghost_x</span>
-        <span class="match-vs">VS</span>
-        <span class="player-name">cipher_01</span>
-      </div>
-      <div class="match-type">HUMAN VS HUMAN</div>
-      <div class="match-timer">07:15</div>
-      <button class="match-spectate">SPECTATE</button>
-    </div>
-
-    <div class="match-row">
-      <div class="match-live"><div class="live-dot"></div> LIVE</div>
-      <div class="match-players">
-        <span class="player-name ai">RED-AI</span>
-        <span class="match-vs">VS</span>
-        <span class="player-name ai">BLUE-AI</span>
-      </div>
-      <div class="match-type">AI VS AI</div>
-      <div class="match-timer">11:03</div>
-      <button class="match-spectate">SPECTATE</button>
-    </div>
-
   </div>
 
   <!-- LEADERBOARD -->
@@ -947,202 +261,260 @@
     <div class="section-line"></div>
   </div>
 
-  <div class="leaderboard">
+  <div class="leaderboard" id="leaderboard">
     <div class="lb-header">
-      <div>#</div>
-      <div>PLAYER</div>
-      <div style="text-align:center">WINS</div>
-      <div style="text-align:center">LOSSES</div>
+      <div>#</div><div>PLAYER</div>
+      <div style="text-align:center">COMPLETED</div>
+      <div style="text-align:center">STREAK</div>
       <div style="text-align:right">VC EARNED</div>
     </div>
-
     <div class="lb-row">
       <div class="lb-rank gold">01</div>
-      <div class="lb-player">
-        <div class="lb-avatar">S</div>
-        <div>
-          <div class="lb-name">specter_99</div>
-          <div class="lb-badge">SPECTRE</div>
-        </div>
-      </div>
-      <div class="lb-wins">47</div>
-      <div class="lb-losses">8</div>
-      <div class="lb-vc">4,200</div>
+      <div class="lb-player"><div class="lb-avatar">S</div><div><div class="lb-name">specter_99</div><div class="lb-badge">SPECTRE</div></div></div>
+      <div class="lb-wins">47</div><div class="lb-losses">12</div><div class="lb-vc">4,200</div>
     </div>
-
     <div class="lb-row">
       <div class="lb-rank silver">02</div>
-      <div class="lb-player">
-        <div class="lb-avatar">N</div>
-        <div>
-          <div class="lb-name">null_byte</div>
-          <div class="lb-badge">SHADOW</div>
-        </div>
-      </div>
-      <div class="lb-wins">39</div>
-      <div class="lb-losses">12</div>
-      <div class="lb-vc">3,150</div>
+      <div class="lb-player"><div class="lb-avatar">N</div><div><div class="lb-name">null_byte</div><div class="lb-badge">SHADOW</div></div></div>
+      <div class="lb-wins">39</div><div class="lb-losses">8</div><div class="lb-vc">3,150</div>
     </div>
-
     <div class="lb-row">
       <div class="lb-rank bronze">03</div>
-      <div class="lb-player">
-        <div class="lb-avatar">0</div>
-        <div>
-          <div class="lb-name">0xdead</div>
-          <div class="lb-badge">OPERATOR</div>
-        </div>
-      </div>
-      <div class="lb-wins">31</div>
-      <div class="lb-losses">15</div>
-      <div class="lb-vc">2,400</div>
+      <div class="lb-player"><div class="lb-avatar">0</div><div><div class="lb-name">0xdead</div><div class="lb-badge">OPERATOR</div></div></div>
+      <div class="lb-wins">31</div><div class="lb-losses">5</div><div class="lb-vc">2,400</div>
     </div>
-
     <div class="lb-row">
-      <div class="lb-rank">04</div>
-      <div class="lb-player">
-        <div class="lb-avatar">R</div>
-        <div>
-          <div class="lb-name">r3con_king</div>
-          <div class="lb-badge">RECON</div>
-        </div>
-      </div>
-      <div class="lb-wins">22</div>
-      <div class="lb-losses">18</div>
-      <div class="lb-vc">1,750</div>
-    </div>
-
-    <div class="lb-row">
-      <div class="lb-rank">05</div>
-      <div class="lb-player">
-        <div class="lb-avatar" style="color:var(--text-dim);background:transparent">◌</div>
-        <div>
-          <div class="lb-name" style="color:var(--text-dim)">you</div>
-          <div class="lb-badge">GHOST</div>
-        </div>
-      </div>
-      <div class="lb-wins" style="color:var(--text-dim)">0</div>
+      <div class="lb-rank" style="color:var(--text-dim)">—</div>
+      <div class="lb-player"><div class="lb-avatar" style="color:var(--text-dim);background:transparent">◌</div><div><div class="lb-name" style="color:var(--text-dim)" id="lbYouName">you</div><div class="lb-badge">GHOST</div></div></div>
+      <div class="lb-wins" style="color:var(--text-dim)" id="lbYouWins">0</div>
       <div class="lb-losses" style="color:var(--text-dim)">0</div>
-      <div class="lb-vc" style="color:var(--text-dim)">50</div>
+      <div class="lb-vc" style="color:var(--text-dim)" id="lbYouVC">—</div>
     </div>
-
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title" id="modal-title">CREATE MATCH</div>
-    <div class="modal-sub" id="modal-sub">CONFIGURE YOUR MATCH SETTINGS</div>
-
-    <div class="modal-field">
-      <label class="modal-label">TARGET SCENARIO</label>
-      <select class="modal-select">
-        <option>SQLi Showdown — Login Bypass</option>
-        <option>XSS Domination — Stored Payload</option>
-        <option>IDOR Breach — Account Takeover</option>
-        <option>Auth Bypass — JWT Crack</option>
-      </select>
+    <div class="modal-title" id="modalTitle">ENTER SANDBOX</div>
+    <div class="modal-sub" id="modalSub">// CIPHER WILL DEMONSTRATE THIS ATTACK</div>
+    <div class="modal-info">
+      <div class="modal-row"><span class="lbl">ATTACK TYPE</span><span class="val cyan" id="modalType">—</span></div>
+      <div class="modal-row"><span class="lbl">LAB TARGET</span><span class="val" id="modalLab">—</span></div>
+      <div class="modal-row"><span class="lbl">DIFFICULTY</span><span class="val" id="modalDiff">—</span></div>
+      <div class="modal-row"><span class="lbl">DURATION</span><span class="val" id="modalDuration">~8 MIN</span></div>
+      <div class="modal-row"><span class="lbl">REWARD</span><span class="val yellow">+10 VC ON COMPLETION</span></div>
     </div>
-
-    <div class="modal-field" id="role-field">
-      <label class="modal-label">YOUR ROLE</label>
-      <select class="modal-select">
-        <option>⚔️  ATTACKER — Capture the flag</option>
-        <option>🛡️  DEFENDER — Protect the target</option>
-      </select>
-    </div>
-
-    <div class="modal-field">
-      <label class="modal-label">DIFFICULTY</label>
-      <select class="modal-select">
-        <option>EASY — Guided hints enabled</option>
-        <option>MEDIUM — Limited hints</option>
-        <option>HARD — No hints. No mercy.</option>
-      </select>
-    </div>
-
+    <div class="modal-cost" id="modalCost">50 VC</div>
+    <div class="modal-cost-label">// ENTRY FEE — DEDUCTED FROM YOUR WALLET</div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal()">CANCEL</button>
-      <button class="btn-primary" id="modal-action-btn">ENTER ARENA</button>
+      <button class="btn-primary" id="enterBtn" onclick="enterSandbox()">[ ENTER ]</button>
     </div>
+    <div class="modal-error" id="modalError"></div>
   </div>
 </div>
 
 <script>
-  // Live match timer countdown
-  function updateTimers() {
-    const timers = document.querySelectorAll('.match-timer');
-    timers.forEach(t => {
+// ── CONFIG ──
+const AI_BACKEND   = 'https://genesis-ai-backend.onrender.com';
+const VAULT_BACKEND = 'https://genesis-vault-backend.onrender.com';
+const SANDBOX_PAGE = 'https://genesisvault8-beep.github.io/ai-sandbox.html';
+
+// ── STATE ──
+const token = localStorage.getItem('token') || null;
+let currentMatch = null;
+let userVC = 0;
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  loadUser();
+  loadSandboxes();
+  startSessionTimers();
+});
+
+// ── LOAD USER ──
+async function loadUser() {
+  if (!token) return;
+  try {
+    const r = await fetch(`${VAULT_BACKEND}/profile`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const d = await r.json();
+    if (d && d.username) {
+      userVC = d.vc_balance || 0;
+      document.getElementById('userVC').textContent = userVC;
+      document.getElementById('userVCStat').textContent = userVC;
+      document.getElementById('userRank').textContent = d.rank || 'GHOST';
+      document.getElementById('lbYouName').textContent = d.username;
+      document.getElementById('lbYouVC').textContent = userVC;
+    }
+  } catch(e) {
+    document.getElementById('userVC').textContent = '?';
+  }
+}
+
+// ── LOAD SANDBOXES FROM BACKEND ──
+async function loadSandboxes() {
+  const grid = document.getElementById('sandboxGrid');
+  try {
+    const r = await fetch(`${AI_BACKEND}/arena/matches`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    const d = await r.json();
+    const matches = Array.isArray(d) ? d : (d.matches || []);
+
+    // Filter only sandbox type matches that are active
+    const sandboxes = matches.filter(m =>
+      m.status === 'active' || m.status === 'live' || !m.status
+    );
+
+    if (sandboxes.length === 0) {
+      grid.innerHTML = `<div class="empty-state">// NO SANDBOXES LIVE RIGHT NOW<br><br>Check back soon — admin posts new attack demos regularly.</div>`;
+      document.getElementById('liveCount').textContent = '0';
+      return;
+    }
+
+    document.getElementById('liveCount').textContent = sandboxes.length;
+    grid.innerHTML = sandboxes.map(m => buildSandboxCard(m)).join('');
+
+  } catch(e) {
+    // Fallback — show demo card if backend unreachable
+    console.warn('[ARENA] Backend unreachable — showing demo card');
+    document.getElementById('liveCount').textContent = '1';
+    grid.innerHTML = buildSandboxCard({
+      id: 'demo',
+      title: 'OSINT Image Attack',
+      description: 'Watch CIPHER extract hidden GPS coordinates from social media photos to locate a suspect. Learn how EXIF metadata exposes your location.',
+      attack_type: 'OSINT',
+      difficulty: 'easy',
+      vc_cost: 50,
+      duration: '~8 MIN',
+      lab_url: 'https://genesisvault8-beep.github.io/lab-osint-image.html',
+      status: 'live',
+      icon: '🔍'
+    });
+  }
+}
+
+function buildSandboxCard(m) {
+  const diff = (m.difficulty || 'easy').toLowerCase();
+  const diffLabel = diff.toUpperCase();
+  const icon = m.icon || getIcon(m.attack_type);
+  const cost = m.vc_cost || 50;
+  const duration = m.duration || '~8 MIN';
+  const attackType = m.attack_type || m.mode || 'SANDBOX';
+
+  return `
+  <div class="sandbox-card" onclick="openModal(${JSON.stringify(m).replace(/"/g, '&quot;')})">
+    <div class="card-top">
+      <div class="card-icon">${icon}</div>
+      <div class="card-badges">
+        <span class="card-badge live">● LIVE</span>
+        <span class="card-badge ${diff}">${diffLabel}</span>
+      </div>
+    </div>
+    <div class="card-title">${escHtml(m.title || 'AI SANDBOX')}</div>
+    <div class="card-desc">${escHtml(m.description || 'Watch CIPHER demonstrate a real attack technique in a sandboxed environment.')}</div>
+    <div class="card-meta">
+      <div>TYPE <span>${escHtml(attackType)}</span></div>
+      <div>COST <span class="yellow">${cost} VC</span></div>
+      <div>DURATION <span>${escHtml(duration)}</span></div>
+    </div>
+    <button class="card-btn">[ WATCH CIPHER ATTACK ]</button>
+  </div>`;
+}
+
+function getIcon(type) {
+  const icons = {
+    'OSINT': '🔍', 'SQLi': '💉', 'XSS': '⚡',
+    'IDOR': '🔑', 'AUTH': '🔓', 'RCE': '💀',
+    'RECON': '🌐', 'CSRF': '🎭'
+  };
+  return icons[(type || '').toUpperCase()] || '🤖';
+}
+
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&amp;/g,'&').replace(/&quot;/g,'"')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── MODAL ──
+function openModal(matchData) {
+  if (typeof matchData === 'string') {
+    try { matchData = JSON.parse(matchData); } catch(e) { return; }
+  }
+  currentMatch = matchData;
+
+  document.getElementById('modalTitle').textContent = (matchData.title || 'AI SANDBOX').toUpperCase();
+  document.getElementById('modalSub').textContent = '// CIPHER WILL DEMONSTRATE THIS ATTACK';
+  document.getElementById('modalType').textContent = matchData.attack_type || 'SANDBOX';
+  document.getElementById('modalLab').textContent = matchData.lab_url
+    ? matchData.lab_url.split('/').pop().replace('.html','').toUpperCase()
+    : 'SANDBOXED LAB';
+  document.getElementById('modalDiff').textContent = (matchData.difficulty || 'EASY').toUpperCase();
+  document.getElementById('modalDuration').textContent = matchData.duration || '~8 MIN';
+  document.getElementById('modalCost').textContent = (matchData.vc_cost || 50) + ' VC';
+  document.getElementById('modalError').style.display = 'none';
+  document.getElementById('enterBtn').disabled = false;
+  document.getElementById('enterBtn').textContent = '[ ENTER ]';
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  currentMatch = null;
+}
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── ENTER SANDBOX ──
+function enterSandbox() {
+  if (!currentMatch) return;
+
+  const labUrl    = currentMatch.lab_url || 'https://genesisvault8-beep.github.io/lab-osint-image.html';
+  const title     = encodeURIComponent(currentMatch.title || 'AI Sandbox');
+  const cost      = currentMatch.vc_cost || 50;
+  const matchId   = currentMatch.id || 'demo';
+  const attackType = encodeURIComponent(currentMatch.attack_type || 'OSINT');
+  const difficulty = encodeURIComponent(currentMatch.difficulty || 'easy');
+  const labEncoded = encodeURIComponent(labUrl);
+
+  // Build sandbox URL with all params
+  const sandboxUrl = `${SANDBOX_PAGE}?lab=${labEncoded}&title=${title}&cost=${cost}&match_id=${matchId}&type=${attackType}&difficulty=${difficulty}`;
+
+  // Navigate — works inside iframe (replaces current page in iframe container)
+  window.location.href = sandboxUrl;
+}
+
+// ── SESSION TIMERS ──
+function startSessionTimers() {
+  setInterval(() => {
+    document.querySelectorAll('.match-timer').forEach(t => {
       const parts = t.textContent.split(':');
       let m = parseInt(parts[0]), s = parseInt(parts[1]);
-      if (s === 0) { if (m > 0) { m--; s = 59; } }
-      else s--;
+      if (s === 0) { if (m > 0) { m--; s = 59; } } else s--;
       t.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     });
-  }
-  setInterval(updateTimers, 1000);
+  }, 1000);
+}
 
-  // Live count flicker
-  let liveCount = 3;
-  setInterval(() => {
-    if (Math.random() > 0.7) {
-      liveCount = Math.random() > 0.5 ? 4 : 3;
-      document.getElementById('live-count').textContent = liveCount;
-    }
-  }, 4000);
-
-  // Modal
-  function openModal(type) {
-    const modal = document.getElementById('modal');
-    const title = document.getElementById('modal-title');
-    const sub = document.getElementById('modal-sub');
-    const roleField = document.getElementById('role-field');
-    const btn = document.getElementById('modal-action-btn');
-
-    if (type === 'ai-human') {
-      title.textContent = 'AI VS HUMAN';
-      sub.textContent = 'CONFIGURE YOUR MATCH — CIPHER IS WAITING';
-      roleField.style.display = 'block';
-      btn.textContent = 'ENTER ARENA';
-    } else if (type === 'hvh') {
-      title.textContent = 'FIND OPPONENT';
-      sub.textContent = 'MATCHMAKING — RANKED MATCH';
-      roleField.style.display = 'none';
-      btn.textContent = 'SEARCH OPPONENT';
-    } else if (type === 'aivai') {
-      title.textContent = 'AI VS AI — SPECTATE';
-      sub.textContent = 'WATCH THE MACHINES FIGHT';
-      roleField.style.display = 'none';
-      btn.textContent = 'JOIN AS SPECTATOR';
-    }
-
-    modal.classList.add('active');
-  }
-
-  function closeModal() {
-    document.getElementById('modal').classList.remove('active');
-  }
-
-  document.getElementById('modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+// Spectate join buttons
+document.querySelectorAll('.match-spectate').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const row = btn.closest('.match-row');
+    const labName = row?.querySelector('.player-name:not(.ai)')?.textContent || '';
+    // For now just navigate to demo sandbox
+    window.location.href = `${SANDBOX_PAGE}?lab=${encodeURIComponent('https://genesisvault8-beep.github.io/lab-osint-image.html')}&title=${encodeURIComponent(labName)}&cost=0&match_id=spectate`;
   });
+});
 
-  // Spectate buttons
-  document.querySelectorAll('.match-spectate').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      btn.textContent = 'JOINING...';
-      btn.style.color = 'var(--cyan)';
-      btn.style.borderColor = 'var(--cyan-dim)';
-      setTimeout(() => {
-        btn.textContent = 'SPECTATE';
-        btn.style.color = '';
-        btn.style.borderColor = '';
-      }, 2000);
-    });
-  });
+// Reload sandboxes every 60s to pick up new admin posts
+setInterval(loadSandboxes, 60000);
 </script>
 </body>
 </html>
