@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI SANDBOX — GenesisVault</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#020a06; --bg2:#050f08; --panel:#061009; --border:#0a2414;
+  --cyan:#00ffa3; --cyan-dim:#00c47a; --cyan-dark:#002d16;
+  --red:#ff3b3b; --red-dim:#c42b2b; --yellow:#f0c040;
+  --text:#8ecfa8; --text-dim:#3a6648; --text-bright:#d4ffe4;
+  --glow:0 0 16px rgba(0,255,163,0.35); --glow-red:0 0 16px rgba(255,59,59,0.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,163,0.012) 2px,rgba(0,255,163,0.012) 4px);pointer-events:none;z-index:9999;}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,163,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,163,0.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
+
+/* HEADER */
+.match-header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;background:rgba(2,10,6,0.97);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;}
+.header-logo{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;color:var(--text-bright);white-space:nowrap;}
+.header-logo span{color:var(--cyan);text-shadow:var(--glow);}
+.header-center{display:flex;align-items:center;gap:14px;flex:1;justify-content:center;}
+.match-badge{font-size:9px;letter-spacing:3px;padding:3px 10px;border:1px solid var(--red-dim);color:var(--red);animation:redpulse 2s infinite;}
+@keyframes redpulse{0%,100%{box-shadow:var(--glow-red);}50%{box-shadow:none;}}
+.match-timer{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:var(--yellow);letter-spacing:3px;min-width:70px;text-align:center;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.vc-badge{font-size:9px;color:var(--yellow);letter-spacing:1px;white-space:nowrap;}
+.back-btn{font-size:9px;letter-spacing:2px;color:var(--text-dim);border:1px solid var(--border);padding:4px 10px;cursor:pointer;background:none;transition:all 0.15s;font-family:'Share Tech Mono',monospace;}
+.back-btn:hover{color:var(--cyan);border-color:var(--cyan-dim);}
+
+/* ARENA */
+.arena{position:relative;z-index:1;display:grid;grid-template-columns:1fr 380px;flex:1;overflow:hidden;}
+
+/* LAB PANE */
+.lab-pane{position:relative;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.lab-label{padding:7px 14px;font-size:9px;letter-spacing:3px;color:var(--text-dim);border-bottom:1px solid var(--border);background:var(--panel);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.lab-label-left{display:flex;align-items:center;gap:8px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:var(--glow-red);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.lab-iframe{flex:1;border:none;width:100%;}
+
+/* COMMENTARY PANE */
+.commentary-pane{display:flex;flex-direction:column;overflow:hidden;background:var(--bg2);}
+.ai-status{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--panel);}
+.ai-avatar{width:28px;height:28px;border:1px solid var(--cyan-dim);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;position:relative;}
+.ai-avatar::after{content:'';position:absolute;bottom:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow);animation:pulse 1.5s infinite;}
+.ai-info{flex:1;}
+.ai-name{font-size:10px;color:var(--text-bright);letter-spacing:2px;}
+.ai-state{font-size:9px;color:var(--cyan);letter-spacing:1px;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+.ai-model-badge{font-size:8px;color:var(--text-dim);border:1px solid var(--border);padding:2px 6px;letter-spacing:1px;}
+
+/* FEED */
+.feed{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+.feed::-webkit-scrollbar{width:3px;}
+.feed::-webkit-scrollbar-track{background:var(--bg);}
+.feed::-webkit-scrollbar-thumb{background:var(--border);}
+.msg{animation:msgIn 0.35s ease both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.msg-system{text-align:center;font-size:9px;color:var(--text-dim);letter-spacing:2px;padding:4px 0;}
+.msg-block{border:1px solid var(--border);background:var(--panel);overflow:hidden;}
+.msg-block.attacker{border-left:3px solid var(--red);}
+.msg-block.defender{border-left:3px solid var(--cyan);}
+.msg-block.info{border-left:3px solid var(--yellow);}
+.msg-header{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:2px;}
+.msg-tag{padding:2px 6px;font-size:8px;letter-spacing:1px;}
+.msg-tag.red{color:var(--red);border:1px solid var(--red-dim);}
+.msg-tag.cyan{color:var(--cyan);border:1px solid var(--cyan-dim);}
+.msg-tag.yellow{color:var(--yellow);border:1px solid rgba(240,192,64,0.4);}
+.msg-step{font-size:9px;color:var(--text-dim);margin-left:auto;letter-spacing:1px;}
+.msg-body{padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);line-height:1.75;}
+.msg-technique{margin:8px 10px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:7px 10px;font-size:9px;color:var(--text-dim);letter-spacing:1px;}
+.msg-technique span{color:var(--yellow);}
+.typing-indicator{display:flex;align-items:center;gap:5px;padding:12px 14px;border:1px solid var(--border);background:var(--panel);border-left:3px solid var(--red);}
+.typing-dots{display:flex;gap:4px;}
+.typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--red);animation:dot-bounce 1.2s infinite;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dot-bounce{0%,80%,100%{transform:scale(0.6);opacity:0.4;}40%{transform:scale(1);opacity:1;}}
+.typing-label{font-size:9px;color:var(--text-dim);letter-spacing:2px;}
+
+/* FOOTER */
+.commentary-footer{border-top:1px solid var(--border);padding:10px 12px;background:var(--panel);flex-shrink:0;}
+.ask-row{display:flex;gap:8px;}
+.ask-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;outline:none;transition:border-color 0.15s;}
+.ask-input:focus{border-color:var(--cyan-dim);}
+.ask-input::placeholder{color:var(--text-dim);}
+.ask-btn{background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:8px 12px;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.ask-btn:hover{background:var(--cyan);color:var(--bg);}
+.ask-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.footer-hint{font-size:8px;color:var(--text-dim);letter-spacing:1px;margin-top:6px;}
+
+/* MATCH END */
+.match-end{display:none;position:fixed;inset:0;background:rgba(2,10,6,0.95);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.match-end.active{display:flex;}
+.end-box{border:1px solid var(--cyan-dim);background:var(--panel);padding:32px 24px;max-width:360px;width:100%;text-align:center;box-shadow:var(--glow);animation:msgIn 0.4s ease both;}
+.end-icon{font-size:48px;margin-bottom:12px;}
+.end-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:var(--glow);margin-bottom:6px;}
+.end-sub{font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:20px;}
+.end-summary{background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:12px;margin-bottom:20px;font-size:11px;color:var(--text);line-height:1.8;text-align:left;}
+.end-summary .label{color:var(--cyan);font-size:9px;letter-spacing:2px;}
+.end-btn{width:100%;background:var(--cyan);color:var(--bg);border:none;padding:12px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:background 0.15s;}
+.end-btn:hover{background:var(--cyan-dim);}
+.end-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* GATE */
+.gate{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;}
+.gate-box{border:1px solid var(--cyan-dim);background:var(--panel);padding:36px 28px;max-width:380px;width:100%;box-shadow:var(--glow);animation:msgIn 0.5s ease both;}
+.gate-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--cyan);letter-spacing:4px;text-shadow:var(--glow);margin-bottom:4px;}
+.gate-sub{font-size:9px;color:var(--text-dim);letter-spacing:3px;margin-bottom:24px;}
+.gate-info{background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:14px;margin-bottom:20px;}
+.gate-row{display:flex;justify-content:space-between;font-size:10px;padding:5px 0;border-bottom:1px solid var(--border);letter-spacing:1px;}
+.gate-row:last-child{border-bottom:none;}
+.gate-row .lbl{color:var(--text-dim);}
+.gate-row .val{color:var(--text-bright);}
+.gate-row .val.cyan{color:var(--cyan);}
+.gate-row .val.yellow{color:var(--yellow);}
+.gate-cost{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:var(--yellow);text-align:center;margin:16px 0 6px;}
+.gate-cost-label{text-align:center;font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-bottom:20px;}
+.gate-enter-btn{width:100%;background:var(--cyan);color:var(--bg);border:none;padding:14px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:4px;cursor:pointer;transition:background 0.15s;}
+.gate-enter-btn:hover{background:var(--cyan-dim);}
+.gate-enter-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.gate-cancel{width:100%;margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:10px;cursor:pointer;transition:all 0.15s;}
+.gate-cancel:hover{border-color:var(--text-dim);color:var(--text);}
+.gate-error{margin-top:10px;font-size:10px;color:var(--red);letter-spacing:1px;text-align:center;display:none;}
+
+/* MOBILE */
+@media(max-width:700px){
+  body{overflow:auto;}
+  .arena{grid-template-columns:1fr;grid-template-rows:50vh 1fr;overflow:auto;}
+  .lab-pane{border-right:none;border-bottom:1px solid var(--border);}
+  .commentary-pane{min-height:400px;}
+  .match-timer{font-size:14px;}
+  .header-logo{font-size:10px;letter-spacing:2px;}
+}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="gate-title">AI SANDBOX</div>
+    <div class="gate-sub">// OSINT IMAGE ANALYSIS — DEMO MATCH</div>
+    <div class="gate-info">
+      <div class="gate-row"><span class="lbl">LAB</span><span class="val">SnapGrid OSINT — Image Metadata</span></div>
+      <div class="gate-row"><span class="lbl">MODE</span><span class="val cyan">AI ATTACKER — YOU SPECTATE</span></div>
+      <div class="gate-row"><span class="lbl">DURATION</span><span class="val">~8 MIN</span></div>
+      <div class="gate-row"><span class="lbl">DIFFICULTY</span><span class="val">BEGINNER FRIENDLY</span></div>
+      <div class="gate-row"><span class="lbl">REWARD</span><span class="val yellow">+10 VC ON COMPLETION</span></div>
+    </div>
+    <div class="gate-cost" id="gateCost">50 VC</div>
+    <div class="gate-cost-label">// ENTRY FEE — DEDUCTED FROM YOUR WALLET</div>
+    <button class="gate-enter-btn" id="enterBtn" onclick="enterSandbox()">[ ENTER SANDBOX ]</button>
+    <button class="gate-cancel" onclick="window.history.back()">CANCEL</button>
+    <div class="gate-error" id="gateError"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="match-header">
+  <div class="header-logo"><span>GENESIS</span>VAULT · SANDBOX</div>
+  <div class="header-center">
+    <div class="match-badge">● LIVE</div>
+    <div class="match-timer" id="matchTimer">08:00</div>
+  </div>
+  <div class="header-right">
+    <span class="vc-badge">⬡ <span id="vcDisplay">—</span> VC</span>
+    <button class="back-btn" onclick="window.history.back()">← ARENA</button>
+  </div>
+</header>
+
+<!-- ARENA -->
+<div class="arena">
+  <div class="lab-pane">
+    <div class="lab-label">
+      <div class="lab-label-left">
+        <div class="live-dot"></div>
+        <span>// TARGET — SNAPGRID SOCIAL PLATFORM</span>
+      </div>
+      <span style="font-size:8px;color:var(--text-dim);">SANDBOXED ENVIRONMENT</span>
+    </div>
+    <iframe class="lab-iframe" id="labFrame"
+      id="labFrame" src=""
+      sandbox="allow-scripts allow-same-origin allow-forms"
+      title="Lab Target"></iframe>
+  </div>
+
+  <div class="commentary-pane">
+    <div class="ai-status">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-info">
+        <div class="ai-name">CIPHER — AI ATTACKER</div>
+        <div class="ai-state" id="aiState">// STANDBY...</div>
+      </div>
+      <div class="ai-model-badge" id="providerBadge">OFFLINE</div>
+    </div>
+    <div class="feed" id="feed">
+      <div class="msg msg-system">// WAITING FOR MATCH TO START</div>
+    </div>
+    <div class="commentary-footer">
+      <div class="ask-row">
+        <input class="ask-input" id="askInput"
+          placeholder="Ask CIPHER anything about this attack..."
+          onkeydown="if(event.key==='Enter') askQuestion()"/>
+        <button class="ask-btn" id="askBtn" onclick="askQuestion()" disabled>ASK</button>
+      </div>
+      <div class="footer-hint">// Try: "why does this work?" or "what is EXIF data?"</div>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH END -->
+<div class="match-end" id="matchEnd">
+  <div class="end-box">
+    <div class="end-icon">📍</div>
+    <div class="end-title">MISSION COMPLETE</div>
+    <div class="end-sub">// TARGET LOCATION IDENTIFIED</div>
+    <div class="end-summary">
+      <div class="label">TECHNIQUES USED</div><br>
+      • EXIF metadata extraction<br>
+      • GPS coordinate analysis<br>
+      • Device fingerprinting via photo metadata<br>
+      • Social media OSINT profiling<br><br>
+      <div class="label">KEY LESSON</div><br>
+      Photos posted online can expose your exact location, device model, and identity through hidden metadata most people never know exists.
+    </div>
+    <button class="end-btn" id="claimBtn" onclick="claimReward()">[ CLAIM +10 VC ]</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const AI_BACKEND  = 'https://genesis-ai-backend.onrender.com';
+
+// Read params from URL (set by vault-arena when user enters)
+const urlParams   = new URLSearchParams(window.location.search);
+const LAB_URL_PARAM = urlParams.get('lab') || 'https://genesisvault8-beep.github.io/lab-osint-image.html';
+const LAB_NAME    = decodeURIComponent(urlParams.get('title') || 'SnapGrid OSINT — Image Metadata');
+const VC_COST     = parseInt(urlParams.get('cost') || '50');
+const MATCH_ID    = urlParams.get('match_id') || 'demo';
+const ATTACK_TYPE = urlParams.get('type') || 'OSINT';
+const DIFFICULTY  = urlParams.get('difficulty') || 'easy';
+
+// ── STATE ──
+let userToken     = localStorage.getItem('token') || null;
+let matchActive   = false;
+let timerSeconds  = 480;
+let timerInterval = null;
+let stepCount     = 0;
+let convHistory   = [];
+let isThinking    = false;
+let matchEnded    = false;
+let currentVC     = 0;
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  // Apply URL params to UI
+  document.getElementById('gateTitle').textContent = LAB_NAME.toUpperCase();
+  document.getElementById('gateSub').textContent = '// ' + ATTACK_TYPE.toUpperCase() + ' ATTACK DEMONSTRATION';
+  document.getElementById('gateCost').textContent = VC_COST + ' VC';
+  document.getElementById('labFrame').src = LAB_URL_PARAM;
+  // Update gate info rows
+  const rows = document.querySelectorAll('.gate-row .val');
+  if (rows[0]) rows[0].textContent = LAB_NAME;
+  if (rows[2]) rows[2].textContent = DIFFICULTY.toUpperCase();
+  if (userToken) loadVC();
+});
+
+async function loadVC() {
+  try {
+    const r = await fetch(`${AI_BACKEND}/bridge/validate`, {
+      headers: { Authorization: `Bearer ${userToken}` }
+    });
+    const d = await r.json();
+    if (d.valid) {
+      // Get VC from vault backend
+      const r2 = await fetch('https://genesis-vault-backend.onrender.com/profile', {
+        headers: { Authorization: `Bearer ${userToken}` }
+      });
+      const d2 = await r2.json();
+      currentVC = d2?.vc_balance || 0;
+      document.getElementById('vcDisplay').textContent = currentVC;
+    }
+  } catch(e) {
+    document.getElementById('vcDisplay').textContent = '?';
+  }
+}
+
+// ── GATE ──
+async function enterSandbox() {
+  const btn = document.getElementById('enterBtn');
+  const errEl = document.getElementById('gateError');
+  btn.disabled = true;
+  btn.textContent = '[ PROCESSING... ]';
+  errEl.style.display = 'none';
+
+  if (userToken) {
+    try {
+      const r = await fetch(`${AI_BACKEND}/sandbox/enter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`
+        }
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        errEl.textContent = d.error || 'Failed to enter sandbox';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = '[ ENTER SANDBOX ]';
+        return;
+      }
+      currentVC = d.vc_remaining;
+      document.getElementById('vcDisplay').textContent = currentVC;
+    } catch(e) {
+      // If backend unreachable, allow entry (demo mode)
+      console.warn('[GATE] Backend unreachable — demo mode');
+    }
+  }
+
+  document.getElementById('gate').style.display = 'none';
+  matchActive = true;
+  document.getElementById('askBtn').disabled = false;
+  startTimer();
+  setTimeout(startMatch, 800);
+}
+
+// ── TIMER ──
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    const m = Math.floor(timerSeconds / 60);
+    const s = timerSeconds % 60;
+    document.getElementById('matchTimer').textContent =
+      String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    if (timerSeconds <= 0) endMatch();
+  }, 1000);
+}
+
+// ── FEED HELPERS ──
+function addSystem(text) {
+  const el = document.createElement('div');
+  el.className = 'msg msg-system';
+  el.textContent = '// ' + text;
+  document.getElementById('feed').appendChild(el);
+  scrollFeed();
+}
+
+function addMessage({ role, tag, tagClass, title, body, technique, step }) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-block ${role}">
+      <div class="msg-header">
+        <span class="msg-tag ${tagClass}">${tag}</span>
+        <span style="font-size:9px;color:var(--text-dim);letter-spacing:1px;">${title}</span>
+        ${step ? `<span class="msg-step">STEP ${step}</span>` : ''}
+      </div>
+      <div class="msg-body">${escapeHtml(body)}</div>
+      ${technique ? `<div class="msg-technique">// TECHNIQUE: <span>${technique}</span></div>` : ''}
+    </div>`;
+  document.getElementById('feed').appendChild(el);
+  scrollFeed();
+}
+
+function showTyping() {
+  removeTyping();
+  const el = document.createElement('div');
+  el.className = 'msg'; el.id = 'typingIndicator';
+  el.innerHTML = `<div class="typing-indicator">
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+    <span class="typing-label">CIPHER IS THINKING...</span>
+  </div>`;
+  document.getElementById('feed').appendChild(el);
+  scrollFeed();
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingIndicator');
+  if (t) t.remove();
+}
+
+function scrollFeed() {
+  const feed = document.getElementById('feed');
+  setTimeout(() => feed.scrollTop = feed.scrollHeight, 50);
+}
+
+function setAIState(text) {
+  document.getElementById('aiState').textContent = text;
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── AI CALL ──
+async function askCipher(userMessage) {
+  try {
+    const r = await fetch(`${AI_BACKEND}/sandbox/commentary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(userToken ? { Authorization: `Bearer ${userToken}` } : {})
+      },
+      body: JSON.stringify({
+        message: userMessage,
+        step: stepCount,
+        lab: LAB_NAME,
+        history: convHistory.slice(-8) // last 8 messages for context
+      })
+    });
+
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'AI backend error');
+
+    const text = d.response || 'Analysis complete.';
+    const provider = d.provider || 'CIPHER';
+
+    // Update provider badge
+    document.getElementById('providerBadge').textContent = provider.toUpperCase();
+
+    // Update conversation history
+    convHistory.push({ role: 'user', content: userMessage });
+    convHistory.push({ role: 'assistant', content: text });
+
+    return text;
+  } catch(e) {
+    console.error('[AI]', e.message);
+    return 'CIPHER is reconnecting to the network...';
+  }
+}
+
+// ── MATCH SCRIPT ──
+const matchScript = [
+  {
+    delay: 1000,
+    step: 1,
+    title: 'INITIAL RECON',
+    technique: 'Open Source Intelligence (OSINT)',
+    prompt: 'You just arrived at the SnapGrid profile of target "travel.with.alex". Introduce yourself briefly, describe what you can see on the page, and explain your first move as an OSINT attacker. Be exciting for beginners.'
+  },
+  {
+    delay: 14000,
+    step: 2,
+    title: 'PROFILE ANALYSIS',
+    technique: 'Social Media Profiling',
+    prompt: 'Explain what useful information an attacker can gather just from a public social media profile — username, bio, post count, follower count. What does each piece of data reveal about the target?'
+  },
+  {
+    delay: 28000,
+    step: 3,
+    title: 'METADATA DISCOVERY',
+    technique: 'EXIF Data Extraction',
+    prompt: 'Explain what EXIF metadata is hidden inside photos, and why photos posted on social media are dangerous for privacy. Tell the beginner watching to tap the Eiffel Tower photo on the left to see the metadata panel appear.'
+  },
+  {
+    delay: 46000,
+    step: 4,
+    title: 'GPS COORDINATES FOUND',
+    technique: 'GPS Coordinate Analysis',
+    prompt: 'The EXIF panel has revealed GPS coordinates: 48.8583° N, 2.2944° E from the Eiffel Tower photo. Explain what these coordinates mean, what city they identify, and why this is a critical finding. Make it exciting!'
+  },
+  {
+    delay: 64000,
+    step: 5,
+    title: 'MISSION SUMMARY',
+    technique: 'OSINT Report',
+    prompt: 'Summarize the full attack: you found the suspect is in Paris from a single Instagram-style post. Give 2-3 practical tips beginners can use right now to protect their own photos from this kind of attack.'
+  }
+];
+
+async function startMatch() {
+  addSystem('CIPHER connecting to target...');
+  await delay(800);
+  addSystem('TARGET ACQUIRED — SNAPGRID PROFILE LOADED');
+
+  for (const item of matchScript) {
+    await delay(item.delay);
+    if (!matchActive) return;
+
+    stepCount = item.step;
+    setAIState(`// STEP ${item.step} — ${item.title.toUpperCase()}...`);
+    showTyping();
+
+    const response = await askCipher(item.prompt);
+    removeTyping();
+
+    addMessage({
+      role: 'attacker',
+      tag: 'CIPHER',
+      tagClass: 'red',
+      title: item.title,
+      step: item.step,
+      body: response,
+      technique: item.technique
+    });
+
+    setAIState(`// STEP ${item.step} COMPLETE`);
+  }
+
+  await delay(4000);
+  endMatch();
+}
+
+// ── ASK QUESTION ──
+async function askQuestion() {
+  const input = document.getElementById('askInput');
+  const btn   = document.getElementById('askBtn');
+  const question = input.value.trim();
+  if (!question || isThinking || !matchActive) return;
+
+  input.value = '';
+  isThinking = true;
+  btn.disabled = true;
+
+  addMessage({
+    role: 'defender', tag: 'YOU', tagClass: 'cyan',
+    title: 'QUESTION', step: null, body: question, technique: null
+  });
+
+  setAIState('// CIPHER IS RESPONDING...');
+  showTyping();
+
+  const prompt = `A beginner watching this match asks: "${question}". Answer clearly and simply, relating your answer to what's visible on the SnapGrid lab page if possible.`;
+  const response = await askCipher(prompt);
+
+  removeTyping();
+  addMessage({
+    role: 'attacker', tag: 'CIPHER', tagClass: 'red',
+    title: 'ANSWER', step: null, body: response, technique: null
+  });
+
+  setAIState('// ATTACK CONTINUING...');
+  isThinking = false;
+  btn.disabled = false;
+}
+
+// ── END MATCH ──
+function endMatch() {
+  if (matchEnded) return;
+  matchEnded = true;
+  matchActive = false;
+  clearInterval(timerInterval);
+  document.getElementById('matchTimer').textContent = '00:00';
+  document.getElementById('matchTimer').style.color = 'var(--cyan)';
+  setAIState('// MISSION COMPLETE');
+  addSystem('MATCH ENDED — CIPHER HAS IDENTIFIED THE TARGET');
+  setTimeout(() => document.getElementById('matchEnd').classList.add('active'), 1500);
+}
+
+async function claimReward() {
+  const btn = document.getElementById('claimBtn');
+  btn.disabled = true;
+  btn.textContent = '[ CLAIMING... ]';
+
+  if (userToken) {
+    try {
+      const r = await fetch(`${AI_BACKEND}/sandbox/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`
+        }
+      });
+      const d = await r.json();
+      if (d.success) {
+        currentVC += 10;
+        document.getElementById('vcDisplay').textContent = currentVC;
+      }
+    } catch(e) {
+      console.warn('[REWARD] Backend unreachable');
+    }
+  }
+
+  document.getElementById('matchEnd').classList.remove('active');
+  addSystem('✓ +10 VC CLAIMED — WELL DONE OPERATOR');
+  btn.disabled = false;
+  btn.textContent = '[ CLAIM +10 VC ]';
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+</script>
+</body>
+</html>
