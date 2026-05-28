@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bug Bounty Starter Kit // Genesis Vault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #080c0f;
+    --bg2: #0d1317;
+    --bg3: #111820;
+    --cyan: #00ffe1;
+    --red: #ff2d55;
+    --green: #00ff88;
+    --yellow: #ffe600;
+    --muted: #3a4a55;
+    --text: #c8d8e0;
+    --border: #1a2a35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,225,0.015) 2px,
+      rgba(0,255,225,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 3px;
+  }
+  .logo span { color: var(--cyan); }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    padding: 3px 8px;
+    letter-spacing: 2px;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* HERO */
+  .hero {
+    padding: 30px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,255,225,0.03) 0%, transparent 100%);
+  }
+
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .hero h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .hero h1 em {
+    color: var(--cyan);
+    font-style: normal;
+  }
+
+  .hero p {
+    font-size: 14px;
+    color: #7a9aaa;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .kit-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  .stat::before { content: '▸ '; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    overflow-x: auto;
+  }
+
+  .tab {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 14px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+  }
+
+  /* PANELS */
+  .panel { display: none; padding: 20px; }
+  .panel.active { display: block; }
+
+  /* SECTION HEADERS */
+  .section-head {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ===================== CHECKLIST ===================== */
+  .progress-wrap {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .phase {
+    margin-bottom: 24px;
+  }
+
+  .phase-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .check-item:hover { border-color: var(--muted); }
+  .check-item.done { border-color: var(--green); background: rgba(0,255,136,0.04); }
+
+  .check-item input[type="checkbox"] { display: none; }
+
+  .checkmark {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--muted);
+    border-radius: 1px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: all 0.2s;
+  }
+
+  .check-item.done .checkmark {
+    background: var(--green);
+    border-color: var(--green);
+    color: #000;
+  }
+
+  .check-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  .check-text span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #5a7a8a;
+  }
+
+  .reset-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { background: rgba(255,45,85,0.1); }
+
+  /* ===================== CVSS ===================== */
+  .cvss-grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cvss-row {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 2px;
+  }
+
+  .cvss-row label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 8px;
+  }
+
+  .cvss-row select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--muted);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 2px;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .cvss-row select:focus {
+    outline: none;
+    border-color: var(--cyan);
+  }
+
+  .score-display {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-display::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .score-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+    transition: color 0.3s;
+  }
+
+  .score-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 4px;
+    transition: color 0.3s;
+  }
+
+  .score-vector {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: #3a5a6a;
+    margin-top: 10px;
+    word-break: break-all;
+  }
+
+  .severity-none { color: #7a9aaa; }
+  .severity-low { color: var(--green); }
+  .severity-medium { color: var(--yellow); }
+  .severity-high { color: #ff8800; }
+  .severity-critical { color: var(--red); }
+
+  .cvss-info {
+    background: rgba(0,255,225,0.04);
+    border: 1px solid rgba(0,255,225,0.15);
+    padding: 12px;
+    border-radius: 2px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #5a8a9a;
+    line-height: 1.8;
+  }
+
+  /* ===================== REPORT BUILDER ===================== */
+  .field-group {
+    margin-bottom: 14px;
+  }
+
+  .field-group label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 6px;
+  }
+
+  .field-group input,
+  .field-group select,
+  .field-group textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 2px;
+    transition: border-color 0.2s;
+  }
+
+  .field-group input:focus,
+  .field-group select:focus,
+  .field-group textarea:focus {
+    outline: none;
+    border-color: var(--cyan);
+  }
+
+  .field-group textarea { resize: vertical; min-height: 80px; }
+
+  .severity-select {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .sev-opt {
+    padding: 8px 4px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg3);
+  }
+
+  .sev-opt[data-sev="Low"] { color: var(--green); }
+  .sev-opt[data-sev="Medium"] { color: var(--yellow); }
+  .sev-opt[data-sev="High"] { color: #ff8800; }
+  .sev-opt[data-sev="Critical"] { color: var(--red); }
+
+  .sev-opt.active[data-sev="Low"] { background: rgba(0,255,136,0.15); border-color: var(--green); }
+  .sev-opt.active[data-sev="Medium"] { background: rgba(255,230,0,0.1); border-color: var(--yellow); }
+  .sev-opt.active[data-sev="High"] { background: rgba(255,136,0,0.1); border-color: #ff8800; }
+  .sev-opt.active[data-sev="Critical"] { background: rgba(255,45,85,0.1); border-color: var(--red); }
+
+  .gen-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    background: var(--cyan);
+    color: #000;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+  }
+
+  .gen-btn:hover { background: #00ccb4; }
+
+  .report-output {
+    display: none;
+    background: var(--bg3);
+    border: 1px solid var(--cyan);
+    padding: 16px;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .report-output.visible { display: block; }
+
+  .report-output pre {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.7;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { background: rgba(0,255,225,0.1); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  /* FOOTER */
+  footer {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #2a4a5a;
+    letter-spacing: 2px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GENESIS<span>VAULT</span></div>
+  <div class="badge">STARTER KIT v1.0</div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">// BUG BOUNTY TOOLKIT</div>
+  <h1>Bug Bounty<br><em>Starter Kit</em></h1>
+  <p>3 tools in one. Recon to report — everything you need to find, score, and submit your first bug.</p>
+  <div class="kit-stats">
+    <span class="stat">Recon Checklist (28 steps)</span>
+    <span class="stat">CVSS 3.1 Calculator</span>
+    <span class="stat">Report Builder</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('checklist', this)">01 // RECON</button>
+  <button class="tab" onclick="switchTab('cvss', this)">02 // CVSS CALC</button>
+  <button class="tab" onclick="switchTab('report', this)">03 // REPORT</button>
+</div>
+
+<!-- ==================== CHECKLIST ==================== -->
+<div id="checklist" class="panel active">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>RECON PROGRESS</span>
+      <span id="prog-text">0 / 28</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="prog-fill"></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label">PHASE 01 — PASSIVE RECON</div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>robots.txt</strong><span>Visit target.com/robots.txt — note disallowed paths</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>sitemap.xml</strong><span>Visit target.com/sitemap.xml — map all endpoints</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Observatory Scan</strong><span>observatory.mozilla.org — check security headers</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Wayback Machine</strong><span>web.archive.org — find old endpoints and pages</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Google Dorking</strong><span>site:target.com filetype:pdf inurl:admin etc.</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>SSL Certificate</strong><span>crt.sh — enumerate subdomains from SSL certs</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>WHOIS Lookup</strong><span>Check registration info and related domains</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>GitHub Recon</strong><span>Search org name on GitHub — look for leaked secrets</span></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label">PHASE 02 — SUBDOMAIN ENUMERATION</div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Subfinder / crt.sh</strong><span>Run subfinder or check crt.sh for all subdomains</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>DNS Brute Force</strong><span>Try common subs: dev, staging, api, admin, test</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Check Live Hosts</strong><span>Ping/curl each subdomain — note what responds</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Subdomain Takeover Check</strong><span>Look for NXDOMAIN + unclaimed third-party services</span></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label">PHASE 03 — HEADER & CONFIG ANALYSIS</div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Missing Security Headers</strong><span>X-Frame-Options, CSP, HSTS, X-Content-Type</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Clickjacking Test</strong><span>Try loading target in iframe — check X-Frame-Options</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>CORS Misconfiguration</strong><span>Add Origin: evil.com header — check Access-Control response</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Cookie Flags</strong><span>Check HttpOnly, Secure, SameSite on session cookies</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Server Info Leakage</strong><span>Check Server, X-Powered-By headers for tech stack</span></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label">PHASE 04 — ENDPOINT HUNTING</div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>JS File Analysis</strong><span>Open DevTools → Sources — read JS for API endpoints</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Network Tab Capture</strong><span>Log in/browse — capture all API calls in DevTools</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>API Fuzzing</strong><span>Try /api/v1/, /api/v2/, /graphql, /admin, /swagger</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Param Discovery</strong><span>Try hidden params: debug=true, test=1, admin=1</span></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-label">PHASE 05 — VULNERABILITY TESTING</div>
+
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>IDOR Test</strong><span>Change IDs in API calls — try other users' data</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>XSS Test</strong><span>Inject &lt;script&gt;alert(1)&lt;/script&gt; in all input fields</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Open Redirect</strong><span>Try ?redirect=https://evil.com on redirect params</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Rate Limiting</strong><span>Spam login/OTP endpoints — check for lockout</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Auth Bypass</strong><span>Try accessing /admin, /dashboard without login</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>SQL Injection</strong><span>Try ' OR 1=1-- in login and search fields</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <input type="checkbox"><div class="checkmark">✓</div>
+      <div class="check-text"><strong>Build PoC</strong><span>Always build a working proof of concept before reporting</span></div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetChecklist()">[ RESET CHECKLIST ]</button>
+</div>
+
+<!-- ==================== CVSS CALC ==================== -->
+<div id="cvss" class="panel">
+
+  <div class="score-display">
+    <div class="score-number severity-none" id="score-num">0.0</div>
+    <div class="score-label severity-none" id="score-label">NONE</div>
+    <div class="score-vector" id="score-vector">Select metrics to calculate score</div>
+  </div>
+
+  <div class="section-head">// BASE METRICS</div>
+
+  <div class="cvss-grid">
+    <div class="cvss-row">
+      <label>ATTACK VECTOR (AV)</label>
+      <select id="av" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="N">Network (0.85)</option>
+        <option value="A">Adjacent (0.62)</option>
+        <option value="L">Local (0.55)</option>
+        <option value="P">Physical (0.20)</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>ATTACK COMPLEXITY (AC)</label>
+      <select id="ac" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="L">Low (0.77)</option>
+        <option value="H">High (0.44)</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>PRIVILEGES REQUIRED (PR)</label>
+      <select id="pr" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="N">None (0.85)</option>
+        <option value="L">Low (0.62)</option>
+        <option value="H">High (0.27)</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>USER INTERACTION (UI)</label>
+      <select id="ui" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="N">None (0.85)</option>
+        <option value="R">Required (0.62)</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>SCOPE (S)</label>
+      <select id="sc" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="U">Unchanged</option>
+        <option value="C">Changed</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>CONFIDENTIALITY (C)</label>
+      <select id="ci" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="N">None (0.00)</option>
+        <option value="L">Low (0.22)</option>
+        <option value="H">High (0.56)</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>INTEGRITY (I)</label>
+      <select id="ii" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="N">None (0.00)</option>
+        <option value="L">Low (0.22)</option>
+        <option value="H">High (0.56)</option>
+      </select>
+    </div>
+
+    <div class="cvss-row">
+      <label>AVAILABILITY (A)</label>
+      <select id="ai" onchange="calcCVSS()">
+        <option value="">— Select —</option>
+        <option value="N">None (0.00)</option>
+        <option value="L">Low (0.22)</option>
+        <option value="H">High (0.56)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="cvss-info">
+    ▸ CVSS 3.1 Base Score Formula<br>
+    ▸ Score range: 0.0 – 10.0<br>
+    ▸ None: 0.0 &nbsp;|&nbsp; Low: 0.1–3.9 &nbsp;|&nbsp; Medium: 4.0–6.9<br>
+    ▸ High: 7.0–8.9 &nbsp;|&nbsp; Critical: 9.0–10.0
+  </div>
+</div>
+
+<!-- ==================== REPORT BUILDER ==================== -->
+<div id="report" class="panel">
+
+  <div class="section-head">// HACKERONE REPORT BUILDER</div>
+
+  <div class="field-group">
+    <label>VULNERABILITY TYPE</label>
+    <select id="r-type">
+      <option value="">— Select type —</option>
+      <option>Cross-Site Scripting (XSS)</option>
+      <option>Insecure Direct Object Reference (IDOR)</option>
+      <option>SQL Injection</option>
+      <option>Server-Side Request Forgery (SSRF)</option>
+      <option>Cross-Site Request Forgery (CSRF)</option>
+      <option>Clickjacking</option>
+      <option>Open Redirect</option>
+      <option>Missing Security Headers</option>
+      <option>Subdomain Takeover</option>
+      <option>Authentication Bypass</option>
+      <option>Information Disclosure</option>
+      <option>Rate Limiting Missing</option>
+      <option>CORS Misconfiguration</option>
+      <option>Business Logic Error</option>
+    </select>
+  </div>
+
+  <div class="field-group">
+    <label>TARGET / PROGRAM</label>
+    <input type="text" id="r-target" placeholder="e.g. Company Name — api.company.com">
+  </div>
+
+  <div class="field-group">
+    <label>AFFECTED ENDPOINT</label>
+    <input type="text" id="r-endpoint" placeholder="e.g. https://api.company.com/v1/users/123">
+  </div>
+
+  <div class="field-group">
+    <label>SEVERITY</label>
+    <div class="severity-select">
+      <div class="sev-opt" data-sev="Low" onclick="setSev(this)">LOW</div>
+      <div class="sev-opt" data-sev="Medium" onclick="setSev(this)">MEDIUM</div>
+      <div class="sev-opt" data-sev="High" onclick="setSev(this)">HIGH</div>
+      <div class="sev-opt" data-sev="Critical" onclick="setSev(this)">CRITICAL</div>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label>STEPS TO REPRODUCE</label>
+    <textarea id="r-steps" placeholder="1. Navigate to...&#10;2. Click on...&#10;3. Observe that..."></textarea>
+  </div>
+
+  <div class="field-group">
+    <label>IMPACT</label>
+    <textarea id="r-impact" placeholder="An attacker could..."></textarea>
+  </div>
+
+  <div class="field-group">
+    <label>REMEDIATION (optional)</label>
+    <textarea id="r-fix" placeholder="The application should implement..." style="min-height:60px"></textarea>
+  </div>
+
+  <button class="gen-btn" onclick="generateReport()">[ GENERATE REPORT ]</button>
+
+  <div class="report-output" id="report-out">
+    <button class="copy-btn" id="copy-btn" onclick="copyReport()">[ COPY ]</button>
+    <pre id="report-text"></pre>
+  </div>
+</div>
+
+<footer>// GENESIS VAULT MARKETPLACE &nbsp;·&nbsp; BUG BOUNTY STARTER KIT v1.0</footer>
+
+<script>
+// ===== TABS =====
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== CHECKLIST =====
+const TOTAL = 28;
+
+function toggle(el) {
+  el.classList.toggle('done');
+  updateProgress();
+}
+
+function updateProgress() {
+  const done = document.querySelectorAll('.check-item.done').length;
+  document.getElementById('prog-text').textContent = done + ' / ' + TOTAL;
+  document.getElementById('prog-fill').style.width = (done / TOTAL * 100) + '%';
+}
+
+function resetChecklist() {
+  document.querySelectorAll('.check-item').forEach(el => el.classList.remove('done'));
+  updateProgress();
+}
+
+// ===== CVSS =====
+const avMap  = { N: 0.85, A: 0.62, L: 0.55, P: 0.20 };
+const acMap  = { L: 0.77, H: 0.44 };
+const prMapU = { N: 0.85, L: 0.62, H: 0.27 };
+const prMapC = { N: 0.85, L: 0.68, H: 0.50 };
+const uiMap  = { N: 0.85, R: 0.62 };
+const impMap = { N: 0.00, L: 0.22, H: 0.56 };
+
+function calcCVSS() {
+  const av = document.getElementById('av').value;
+  const ac = document.getElementById('ac').value;
+  const pr = document.getElementById('pr').value;
+  const ui = document.getElementById('ui').value;
+  const sc = document.getElementById('sc').value;
+  const ci = document.getElementById('ci').value;
+  const ii = document.getElementById('ii').value;
+  const ai = document.getElementById('ai').value;
+
+  if (!av || !ac || !pr || !ui || !sc || !ci || !ii || !ai) return;
+
+  const prMap = sc === 'C' ? prMapC : prMapU;
+  const ISC = 1 - (1 - impMap[ci]) * (1 - impMap[ii]) * (1 - impMap[ai]);
+  let ISS, exploitability;
+
+  if (sc === 'U') {
+    ISS = 6.42 * ISC;
+  } else {
+    ISS = 7.52 * (ISC - 0.029) - 3.25 * Math.pow(ISC - 0.02, 15);
+  }
+
+  exploitability = 8.22 * avMap[av] * acMap[ac] * prMap[pr] * uiMap[ui];
+
+  let score;
+  if (ISS <= 0) {
+    score = 0;
+  } else {
+    if (sc === 'U') {
+      score = Math.min(ISS + exploitability, 10);
+    } else {
+      score = Math.min(1.08 * (ISS + exploitability), 10);
+    }
+    score = Math.ceil(score * 10) / 10;
+  }
+
+  const scoreEl = document.getElementById('score-num');
+  const labelEl = document.getElementById('score-label');
+  const vectorEl = document.getElementById('score-vector');
+
+  scoreEl.textContent = score.toFixed(1);
+
+  let cls, label;
+  if (score === 0) { cls = 'severity-none'; label = 'NONE'; }
+  else if (score < 4) { cls = 'severity-low'; label = 'LOW'; }
+  else if (score < 7) { cls = 'severity-medium'; label = 'MEDIUM'; }
+  else if (score < 9) { cls = 'severity-high'; label = 'HIGH'; }
+  else { cls = 'severity-critical'; label = 'CRITICAL'; }
+
+  scoreEl.className = 'score-number ' + cls;
+  labelEl.className = 'score-label ' + cls;
+  labelEl.textContent = label;
+  vectorEl.textContent = `CVSS:3.1/AV:${av}/AC:${ac}/PR:${pr}/UI:${ui}/S:${sc}/C:${ci}/I:${ii}/A:${ai}`;
+}
+
+// ===== REPORT BUILDER =====
+let selectedSev = '';
+
+function setSev(el) {
+  document.querySelectorAll('.sev-opt').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  selectedSev = el.dataset.sev;
+}
+
+function generateReport() {
+  const type     = document.getElementById('r-type').value;
+  const target   = document.getElementById('r-target').value;
+  const endpoint = document.getElementById('r-endpoint').value;
+  const steps    = document.getElementById('r-steps').value;
+  const impact   = document.getElementById('r-impact').value;
+  const fix      = document.getElementById('r-fix').value;
+  const sev      = selectedSev || 'Not specified';
+
+  if (!type || !target || !steps || !impact) {
+    alert('Please fill in: Type, Target, Steps, and Impact.');
+    return;
+  }
+
+  const date = new Date().toISOString().split('T')[0];
+
+  const report = `## Summary
+
+A ${type} vulnerability was identified on ${target}. This issue${endpoint ? ` affects the endpoint: ${endpoint}. It` : ''} allows an attacker to ${impact.toLowerCase().startsWith('an attacker') ? impact.replace(/^an attacker could?/i, 'perform malicious actions').trim() : impact.trim()}.
+
+**Severity:** ${sev}
+**Date Discovered:** ${date}
+**Target:** ${target}${endpoint ? `\n**Endpoint:** ${endpoint}` : ''}
+
+---
+
+## Steps to Reproduce
+
+${steps}
+
+---
+
+## Impact
+
+${impact}
+
+---
+
+## Remediation${fix ? `\n\n${fix}` : '\n\nThe development team should review the affected component and implement appropriate security controls to mitigate this vulnerability. Refer to OWASP guidelines for remediation best practices.'}
+
+---
+
+*Report generated with Genesis Vault Bug Bounty Starter Kit*`;
+
+  document.getElementById('report-text').textContent = report;
+  const out = document.getElementById('report-out');
+  out.classList.add('visible');
+  out.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyReport() {
+  const text = document.getElementById('report-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '[ COPIED ✓ ]';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '[ COPY ]';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
