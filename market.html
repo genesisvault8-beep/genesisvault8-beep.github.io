@@ -222,7 +222,7 @@
     background:var(--accent); animation:pulse 2s infinite;
   }
   #tool-frame {
-    width:100%; height:420px; border:none;
+    width:100%; height:540px; border:none;
     background:white; display:block;
   }
 
@@ -446,8 +446,14 @@
 
     <!-- iframe target (for html_content / iframe run type) -->
     <div class="viewer-target" id="viewer-target-wrap">
-      <div class="viewer-target-label">LIVE ENVIRONMENT</div>
-      <iframe id="tool-frame" sandbox="allow-scripts allow-forms allow-same-origin allow-modals"></iframe>
+      <div class="viewer-target-label" style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;display:inline-block;flex-shrink:0;"></span>
+          LIVE ENVIRONMENT
+        </span>
+        <button onclick="if(activeTool){const u=activeTool.content_url||activeTool.tool_url||activeTool.url||'';if(u)window.open(u,'_blank');else toast('// No external URL for this tool.');}" style="background:none;border:1px solid var(--border);color:var(--text-dim);padding:3px 10px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;cursor:pointer;letter-spacing:1px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--accent2)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)';">[ OPEN FULL ]</button>
+      </div>
+      <iframe id="tool-frame" sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-popups"></iframe>
     </div>
 
     <!-- Script copy panel -->
@@ -848,12 +854,24 @@ function openAccess(t) {
   document.getElementById('tool-frame').src = 'about:blank';
 
   // Decide which panel to show
-  if (activeTool.html_content && runType === 'iframe') {
-    // ── IFRAME TOOL — write HTML directly into frame ──
+  if (activeTool.html_content) {
+    // ── EMBEDDED HTML — write directly into frame ──
     const iframe = document.getElementById('tool-frame');
     const doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open(); doc.write(activeTool.html_content); doc.close();
     document.getElementById('viewer-target-wrap').style.display = 'block';
+
+  } else if (activeTool.content_url || runType === 'iframe' || type === 'apps') {
+    // ── EXTERNAL URL — load any hosted URL into iframe ──
+    const url = activeTool.content_url || activeTool.tool_url || activeTool.url || '';
+    if (url) {
+      document.getElementById('tool-frame').src = url;
+      document.getElementById('viewer-target-wrap').style.display = 'block';
+    } else {
+      // URL missing — show a clear message
+      document.getElementById('viewer-target-wrap').style.display = 'block';
+      document.getElementById('tool-frame').srcdoc = `<div style="background:#020608;color:#ff003c;font-family:'Share Tech Mono',monospace;padding:40px;text-align:center;font-size:0.8rem;letter-spacing:2px;">// Tool URL not configured.<br><br>// Admin needs to set content_url for this tool.</div>`;
+    }
 
   } else if (type === 'scripts' && activeTool.script_code) {
     // ── LEGACY SCRIPT — show raw code ──
@@ -926,11 +944,29 @@ function launchTool() {
   if (!activeTool) return;
   const type    = (activeTool.type||'').toLowerCase();
   const runType = (activeTool.tool_run_type||'').toLowerCase();
-  if (runType === 'automation' || runType === 'security') { location.href = `tool-runner.html?tool_id=${activeTool.id}`; return; }
+
+  // Scripts / downloads
+  if (type === 'scripts' || type === 'templates' || runType === 'download') {
+    secureDownload(activeTool.id, activeTool.title); return;
+  }
+  // AI terminal
   if (type === 'ai') { location.href = `vault-ai.html?tool=${activeTool.id}`; return; }
-  if (type === 'scripts' || type === 'templates' || runType === 'download') { secureDownload(activeTool.id, activeTool.title); return; }
-  if (activeTool.script_content || activeTool.command_template) { location.href = `tool-runner.html?tool_id=${activeTool.id}`; }
-  else { location.href = `vault-labs.html?tool=${activeTool.id}`; }
+
+  // Apps / iframe — load inline
+  const url = activeTool.content_url || activeTool.tool_url || activeTool.url || '';
+  if (url) {
+    document.getElementById('tool-frame').src = url;
+    document.getElementById('viewer-target-wrap').style.display = 'block';
+    document.getElementById('viewer-launch-wrap').style.display = 'none';
+    return;
+  }
+
+  // Automation / security with params — still use tool-runner
+  if (runType === 'automation' || runType === 'security' || activeTool.script_content || activeTool.command_template) {
+    location.href = `tool-runner.html?tool_id=${activeTool.id}`; return;
+  }
+
+  toast('// Tool URL not configured. Contact admin.');
 }
 
 async function secureDownload(toolId, title) {
