@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DORK ENGINE // GENESIS VAULT</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #020408;
+    --bg2: #060d14;
+    --panel: #0a1520;
+    --border: #1a3a4a;
+    --red: #ff2244;
+    --cyan: #00ffcc;
+    --cyan2: #00c9a7;
+    --dim: #3a6070;
+    --text: #a0d0d8;
+    --white: #e0f0f4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,204,0.015) 2px,
+      rgba(0,255,204,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Grid background */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image:
+      linear-gradient(rgba(0,255,204,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,204,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--red);
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--white);
+  }
+
+  .logo span { color: var(--red); }
+
+  .status {
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(18px, 5vw, 32px);
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+  }
+
+  h1 span { color: var(--cyan); }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+
+  /* Input section */
+  .input-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .input-row { grid-template-columns: 1fr; }
+  }
+
+  .field-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+  .field-label {
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 2px;
+  }
+
+  input[type="text"] {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 10px rgba(0,255,204,0.1);
+  }
+
+  input[type="text"]::placeholder { color: var(--dim); }
+
+  /* Category grid */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .cat-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .cat-btn:hover {
+    border-color: var(--cyan2);
+    color: var(--cyan);
+  }
+
+  .cat-btn.active {
+    background: rgba(0,255,204,0.08);
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .cat-btn .cat-icon { margin-right: 6px; }
+
+  /* Generate button */
+  .gen-btn {
+    width: 100%;
+    background: var(--cyan);
+    color: var(--bg);
+    border: none;
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+
+  .gen-btn:hover {
+    background: var(--white);
+    box-shadow: 0 0 20px rgba(0,255,204,0.3);
+  }
+
+  .gen-btn:active { transform: scale(0.99); }
+
+  /* Results */
+  .results-section {
+    display: none;
+  }
+
+  .results-section.show { display: block; }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .results-count {
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+  }
+
+  .copy-all-btn {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .copy-all-btn:hover {
+    background: var(--red);
+    color: var(--bg);
+  }
+
+  /* Category result block */
+  .result-block {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .result-block-header {
+    background: rgba(255,34,68,0.08);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dork-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(26,58,74,0.5);
+    gap: 10px;
+    transition: background 0.15s;
+  }
+
+  .dork-item:last-child { border-bottom: none; }
+  .dork-item:hover { background: rgba(0,255,204,0.03); }
+
+  .dork-text {
+    font-size: 12px;
+    color: var(--cyan2);
+    word-break: break-all;
+    flex: 1;
+  }
+
+  .dork-label {
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    margin-right: 8px;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .copy-btn.copied {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+    border: 1px dashed var(--border);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 30px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo"><span>GENESIS</span>VAULT // TOOLS</div>
+    <div class="status">● DORK ENGINE ONLINE</div>
+  </header>
+
+  <h1>DORK <span>ENGINE</span></h1>
+  <div class="subtitle">// ADVANCED GOOGLE DORKING GENERATOR — RECON & OSINT</div>
+
+  <div class="input-section">
+    <div class="section-label">// TARGET PARAMETERS</div>
+    <div class="input-row">
+      <div class="field-wrap">
+        <div class="field-label">TARGET DOMAIN</div>
+        <input type="text" id="domain" placeholder="example.com" />
+      </div>
+      <div class="field-wrap">
+        <div class="field-label">KEYWORD / TECH STACK</div>
+        <input type="text" id="keyword" placeholder="admin, login, php, etc..." />
+      </div>
+    </div>
+
+    <div class="section-label">// SELECT CATEGORIES</div>
+    <div class="cat-grid" id="catGrid">
+      <button class="cat-btn active" data-cat="google"><span class="cat-icon">⬡</span>GOOGLE</button>
+      <button class="cat-btn" data-cat="github"><span class="cat-icon">◈</span>GITHUB</button>
+      <button class="cat-btn" data-cat="shodan"><span class="cat-icon">▣</span>SHODAN</button>
+      <button class="cat-btn" data-cat="files"><span class="cat-icon">◉</span>FILES</button>
+      <button class="cat-btn" data-cat="login"><span class="cat-icon">⬡</span>LOGIN PAGES</button>
+      <button class="cat-btn" data-cat="vulns"><span class="cat-icon">◈</span>VULNS</button>
+      <button class="cat-btn" data-cat="cameras"><span class="cat-icon">▣</span>CAMERAS</button>
+      <button class="cat-btn" data-cat="wayback"><span class="cat-icon">◉</span>WAYBACK</button>
+      <button class="cat-btn" data-cat="emails"><span class="cat-icon">⬡</span>EMAILS</button>
+      <button class="cat-btn" data-cat="subdomains"><span class="cat-icon">◈</span>SUBDOMAINS</button>
+    </div>
+
+    <button class="gen-btn" onclick="generate()">[ GENERATE DORKS ]</button>
+  </div>
+
+  <div class="results-section" id="results">
+    <div class="results-header">
+      <div class="results-count" id="resultsCount">// 0 DORKS GENERATED</div>
+      <button class="copy-all-btn" onclick="copyAll()">[ COPY ALL ]</button>
+    </div>
+    <div id="dorkList"></div>
+  </div>
+
+</div>
+
+<footer>GENESIS VAULT // DORK ENGINE v1.0 // USE RESPONSIBLY</footer>
+
+<script>
+const DORKS = {
+  google: {
+    label: 'GOOGLE DORKS',
+    items: [
+      { label: 'SITE SEARCH', dork: (d,k) => `site:${d} ${k}` },
+      { label: 'INURL', dork: (d,k) => `site:${d} inurl:${k}` },
+      { label: 'INTITLE', dork: (d,k) => `site:${d} intitle:${k}` },
+      { label: 'INTEXT', dork: (d,k) => `site:${d} intext:${k}` },
+      { label: 'FILETYPE ANY', dork: (d,k) => `site:${d} filetype:pdf ${k}` },
+      { label: 'CACHE', dork: (d,k) => `cache:${d}` },
+      { label: 'RELATED', dork: (d,k) => `related:${d}` },
+      { label: 'INFO', dork: (d,k) => `info:${d}` },
+      { label: 'ALL IN URL', dork: (d,k) => `allinurl:${d} ${k}` },
+      { label: 'ALL IN TEXT', dork: (d,k) => `allintext:${k} site:${d}` },
+    ]
+  },
+  github: {
+    label: 'GITHUB DORKS',
+    items: [
+      { label: 'PASSWORDS', dork: (d,k) => `"${d}" password` },
+      { label: 'API KEYS', dork: (d,k) => `"${d}" api_key OR apikey OR api-key` },
+      { label: 'SECRET', dork: (d,k) => `"${d}" secret` },
+      { label: 'TOKEN', dork: (d,k) => `"${d}" token` },
+      { label: 'CONFIG', dork: (d,k) => `"${d}" config.yml OR config.json` },
+      { label: 'ENV FILE', dork: (d,k) => `"${d}" .env` },
+      { label: 'DB CREDENTIALS', dork: (d,k) => `"${d}" db_password OR database_password` },
+      { label: 'PRIVATE KEY', dork: (d,k) => `"${d}" private_key OR privatekey` },
+      { label: 'KEYWORD SEARCH', dork: (d,k) => `"${d}" "${k}"` },
+      { label: 'SMTP CREDS', dork: (d,k) => `"${d}" smtp_password OR mail_password` },
+    ]
+  },
+  shodan: {
+    label: 'SHODAN DORKS',
+    items: [
+      { label: 'HOSTNAME', dork: (d,k) => `hostname:${d}` },
+      { label: 'ORG', dork: (d,k) => `org:"${d}"` },
+      { label: 'HTTP TITLE', dork: (d,k) => `http.title:"${k}" hostname:${d}` },
+      { label: 'OPEN PORTS', dork: (d,k) => `hostname:${d} port:8080,8443,9200` },
+      { label: 'SSL CERT', dork: (d,k) => `ssl.cert.subject.cn:${d}` },
+      { label: 'PRODUCT', dork: (d,k) => `product:"${k}" hostname:${d}` },
+      { label: 'VULN CVE', dork: (d,k) => `vuln:CVE-2021-44228 hostname:${d}` },
+      { label: 'OPEN DIR', dork: (d,k) => `http.title:"Index of /" hostname:${d}` },
+      { label: 'LOGIN PANEL', dork: (d,k) => `http.title:"${k} login" hostname:${d}` },
+      { label: 'COUNTRY', dork: (d,k) => `hostname:${d} country:"US"` },
+    ]
+  },
+  files: {
+    label: 'FILE EXPOSURE',
+    items: [
+      { label: 'PDF DOCS', dork: (d,k) => `site:${d} filetype:pdf ${k}` },
+      { label: 'EXCEL FILES', dork: (d,k) => `site:${d} filetype:xls OR filetype:xlsx ${k}` },
+      { label: 'SQL FILES', dork: (d,k) => `site:${d} filetype:sql` },
+      { label: 'LOG FILES', dork: (d,k) => `site:${d} filetype:log` },
+      { label: 'CONFIG FILES', dork: (d,k) => `site:${d} filetype:cfg OR filetype:conf` },
+      { label: 'ENV FILES', dork: (d,k) => `site:${d} filetype:env` },
+      { label: 'BACKUP FILES', dork: (d,k) => `site:${d} filetype:bak OR filetype:backup` },
+      { label: 'XML FILES', dork: (d,k) => `site:${d} filetype:xml ${k}` },
+      { label: 'JSON FILES', dork: (d,k) => `site:${d} filetype:json ${k}` },
+      { label: 'PHP SOURCE', dork: (d,k) => `site:${d} filetype:php ${k}` },
+    ]
+  },
+  login: {
+    label: 'LOGIN PAGES',
+    items: [
+      { label: 'ADMIN PANEL', dork: (d,k) => `site:${d} inurl:admin` },
+      { label: 'LOGIN PAGE', dork: (d,k) => `site:${d} inurl:login` },
+      { label: 'DASHBOARD', dork: (d,k) => `site:${d} inurl:dashboard` },
+      { label: 'CPANEL', dork: (d,k) => `site:${d} inurl:cpanel` },
+      { label: 'PHPMY ADMIN', dork: (d,k) => `site:${d} inurl:phpmyadmin` },
+      { label: 'WORDPRESS', dork: (d,k) => `site:${d} inurl:wp-admin` },
+      { label: 'SIGNIN', dork: (d,k) => `site:${d} inurl:signin OR inurl:sign-in` },
+      { label: 'PORTAL', dork: (d,k) => `site:${d} inurl:portal` },
+      { label: 'MANAGEMENT', dork: (d,k) => `site:${d} inurl:manage OR inurl:management` },
+      { label: 'CONTROL PANEL', dork: (d,k) => `site:${d} intitle:"control panel"` },
+    ]
+  },
+  vulns: {
+    label: 'VULNERABILITY DORKS',
+    items: [
+      { label: 'SQL ERROR', dork: (d,k) => `site:${d} "sql syntax" OR "mysql error"` },
+      { label: 'PHP ERROR', dork: (d,k) => `site:${d} "PHP Parse error" OR "PHP Warning"` },
+      { label: 'OPEN REDIRECT', dork: (d,k) => `site:${d} inurl:redirect= OR inurl:url=` },
+      { label: 'LFI PRONE', dork: (d,k) => `site:${d} inurl:file= OR inurl:path=` },
+      { label: 'SSRF PRONE', dork: (d,k) => `site:${d} inurl:dest= OR inurl:fetch=` },
+      { label: 'UPLOAD FORMS', dork: (d,k) => `site:${d} inurl:upload` },
+      { label: 'DEBUG PAGE', dork: (d,k) => `site:${d} inurl:debug OR intitle:"debug"` },
+      { label: 'EXPOSED API', dork: (d,k) => `site:${d} inurl:/api/v1 OR inurl:/api/v2` },
+      { label: 'GIT EXPOSED', dork: (d,k) => `site:${d} inurl:/.git` },
+      { label: 'DS_STORE', dork: (d,k) => `site:${d} inurl:/.DS_Store` },
+    ]
+  },
+  cameras: {
+    label: 'CAMERAS & IOT',
+    items: [
+      { label: 'WEBCAM TITLE', dork: (d,k) => `intitle:"webcam" inurl:view` },
+      { label: 'AXIS CAM', dork: (d,k) => `intitle:"AXIS" inurl:/view/index.shtml` },
+      { label: 'HIKVISION', dork: (d,k) => `intitle:"Hikvision" inurl:doc/page/login.asp` },
+      { label: 'LIVE VIEW', dork: (d,k) => `inurl:/live/ch00_0 intitle:"Live View"` },
+      { label: 'NETWORK CAM', dork: (d,k) => `intitle:"Network Camera" inurl:admin` },
+      { label: 'DVR LOGIN', dork: (d,k) => `intitle:"DVR Login" inurl:login.asp` },
+      { label: 'OPEN CAM', dork: (d,k) => `inurl:"/video.mjpg"` },
+      { label: 'CCTV', dork: (d,k) => `intitle:"CCTV" inurl:login` },
+      { label: 'ROUTER PANEL', dork: (d,k) => `intitle:"Router" inurl:admin` },
+      { label: 'PRINTER', dork: (d,k) => `intitle:"Printer Status" inurl:printer` },
+    ]
+  },
+  wayback: {
+    label: 'WAYBACK / ARCHIVE',
+    items: [
+      { label: 'WAYBACK', dork: (d,k) => `https://web.archive.org/web/*/${d}/*` },
+      { label: 'WAYBACK ADMIN', dork: (d,k) => `https://web.archive.org/web/*/${d}/admin*` },
+      { label: 'WAYBACK LOGIN', dork: (d,k) => `https://web.archive.org/web/*/${d}/*login*` },
+      { label: 'WAYBACK API', dork: (d,k) => `https://web.archive.org/web/*/${d}/api*` },
+      { label: 'WAYBACK ENV', dork: (d,k) => `https://web.archive.org/web/*/${d}/.env*` },
+      { label: 'CDX API', dork: (d,k) => `https://web.archive.org/cdx/search/cdx?url=${d}/*&output=text&fl=original&collapse=urlkey` },
+      { label: 'COMMONCRAWL', dork: (d,k) => `https://index.commoncrawl.org/CC-MAIN-2023-40-index?url=${d}*&output=json` },
+      { label: 'ALIENVAULT', dork: (d,k) => `https://otx.alienvault.com/indicator/domain/${d}` },
+      { label: 'URLSCAN', dork: (d,k) => `https://urlscan.io/search/#domain:${d}` },
+      { label: 'DNSDUMPSTER', dork: (d,k) => `https://dnsdumpster.com` },
+    ]
+  },
+  emails: {
+    label: 'EMAIL HARVESTING',
+    items: [
+      { label: 'EMAIL FORMAT', dork: (d,k) => `site:${d} "@${d}"` },
+      { label: 'CONTACT PAGE', dork: (d,k) => `site:${d} inurl:contact` },
+      { label: 'STAFF LIST', dork: (d,k) => `site:${d} intitle:"staff" OR intitle:"team"` },
+      { label: 'LINKEDIN', dork: (d,k) => `site:linkedin.com "${d}"` },
+      { label: 'HUNTER.IO', dork: (d,k) => `https://hunter.io/search/${d}` },
+      { label: 'PASTEBIN EMAIL', dork: (d,k) => `site:pastebin.com "@${d}"` },
+      { label: 'GITHUB EMAIL', dork: (d,k) => `"@${d}" site:github.com` },
+      { label: 'DOCUMENT EMAIL', dork: (d,k) => `site:${d} filetype:pdf "@${d}"` },
+      { label: 'SKYPE', dork: (d,k) => `site:${d} intext:"skype"` },
+      { label: 'WHOIS', dork: (d,k) => `https://www.whois.com/whois/${d}` },
+    ]
+  },
+  subdomains: {
+    label: 'SUBDOMAIN RECON',
+    items: [
+      { label: 'SITE WILDCARD', dork: (d,k) => `site:*.${d}` },
+      { label: 'EXCLUDE WWW', dork: (d,k) => `site:*.${d} -www` },
+      { label: 'DEV SUBS', dork: (d,k) => `site:dev.${d} OR site:staging.${d} OR site:test.${d}` },
+      { label: 'API SUBS', dork: (d,k) => `site:api.${d} OR site:v1.${d} OR site:v2.${d}` },
+      { label: 'ADMIN SUBS', dork: (d,k) => `site:admin.${d} OR site:panel.${d}` },
+      { label: 'MAIL SUBS', dork: (d,k) => `site:mail.${d} OR site:webmail.${d}` },
+      { label: 'VPN SUBS', dork: (d,k) => `site:vpn.${d} OR site:remote.${d}` },
+      { label: 'CERT SEARCH', dork: (d,k) => `https://crt.sh/?q=%25.${d}` },
+      { label: 'VIRUSTOTAL', dork: (d,k) => `https://www.virustotal.com/gui/domain/${d}/relations` },
+      { label: 'SUBFINDER TIP', dork: (d,k) => `subfinder -d ${d} -silent` },
+    ]
+  }
+};
+
+// Category toggle
+document.getElementById('catGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.cat-btn');
+  if (btn) btn.classList.toggle('active');
+});
+
+function generate() {
+  const domain = document.getElementById('domain').value.trim() || 'target.com';
+  const keyword = document.getElementById('keyword').value.trim() || 'admin';
+  const active = [...document.querySelectorAll('.cat-btn.active')].map(b => b.dataset.cat);
+
+  if (active.length === 0) {
+    alert('SELECT AT LEAST ONE CATEGORY');
+    return;
+  }
+
+  const list = document.getElementById('dorkList');
+  list.innerHTML = '';
+  let total = 0;
+
+  active.forEach(cat => {
+    const data = DORKS[cat];
+    const block = document.createElement('div');
+    block.className = 'result-block';
+
+    const header = document.createElement('div');
+    header.className = 'result-block-header';
+    header.innerHTML = `<span>// ${data.label}</span><span>${data.items.length} DORKS</span>`;
+    block.appendChild(header);
+
+    data.items.forEach(item => {
+      const dork = item.dork(domain, keyword);
+      const row = document.createElement('div');
+      row.className = 'dork-item';
+      row.innerHTML = `
+        <span class="dork-label">${item.label}</span>
+        <span class="dork-text">${dork}</span>
+        <button class="copy-btn" onclick="copyDork(this, \`${dork.replace(/`/g, '\\`')}\`)">COPY</button>
+      `;
+      block.appendChild(row);
+      total++;
+    });
+
+    list.appendChild(block);
+  });
+
+  document.getElementById('resultsCount').textContent = `// ${total} DORKS GENERATED`;
+  const resultsEl = document.getElementById('results');
+  resultsEl.classList.add('show');
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copyDork(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'COPY';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+function copyAll() {
+  const dorks = [...document.querySelectorAll('.dork-text')].map(el => el.textContent).join('\n');
+  navigator.clipboard.writeText(dorks).then(() => {
+    const btn = document.querySelector('.copy-all-btn');
+    btn.textContent = '[ COPIED! ]';
+    setTimeout(() => btn.textContent = '[ COPY ALL ]', 2000);
+  });
+}
+</script>
+</body>
+</html>
