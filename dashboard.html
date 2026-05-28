@@ -1907,7 +1907,7 @@ async function loadMarketplace() {
         <p>${esc((t.description||'').substring(0,100))}${(t.description||'').length>100?'...':''}</p>
         <div class="market-footer">
           <span style="font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--accent);">✓ OWNED</span>
-          <button class="buy-btn" onclick="location.href='tool-runner.html?tool_id='+this.getAttribute('data-id')" data-id="${t.id}">[ LAUNCH ]</button>
+          <button class="buy-btn" onclick="launchOwnedTool(${JSON.stringify(t).replace(/&quot;/g,'&#34;')})" data-id="${t.id}">[ LAUNCH ]</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -2302,27 +2302,30 @@ function toast(msg) {
 
 /* ── TOOL LAUNCHER — routes owned tools to correct runner ── */
 function launchOwnedTool(t) {
-  // Handle both object and button-element calls
+  // Handle both object, JSON string, and button-element calls
+  if (typeof t === 'string') { try { t = JSON.parse(t); } catch(e) {} }
   if (t && t.tagName) {
     const btn  = t;
     const rt   = (btn.getAttribute('ref-type') || '').toLowerCase();
     const cat  = (btn.getAttribute('ref-cat')  || '').toLowerCase();
     const html = btn.getAttribute('ref-html') === '1';
-    const id   = btn.getAttribute('data-tool-id');
+    const id   = btn.getAttribute('data-tool-id') || btn.getAttribute('data-id');
     if (rt === 'iframe' || rt === 'copy' || cat === 'apps' || html) {
       location.href = 'market.html?access=' + id;
     } else {
-      location.href = 'tool-runner.html?tool_id=' + id;
+      location.href = 'market.html?access=' + id;
     }
     return;
   }
   const rt   = (t.tool_run_type || '').toLowerCase();
   const type = (t.type || '').toLowerCase();
-  if (rt === 'iframe' || rt === 'copy' || type === 'apps' || t.html_content) {
+  const url  = t.content_url || t.tool_url || t.url || '';
+  // Route everything through market.html inline viewer
+  if (type === 'scripts' || type === 'templates' || rt === 'download') {
     location.href = `market.html?access=${t.id}`;
-    return;
+  } else {
+    location.href = `market.html?access=${t.id}`;
   }
-  location.href = `tool-runner.html?tool_id=${t.id}`;
 }
 
 /* ── INIT ──────────────────────────────────────────────────────────── */
