@@ -543,7 +543,7 @@ async function init() {
     return;
   }
   try {
-    const r = await fetch("https://genesis-vault-backend.onrender.com/api/auth/me", {
+    const r = await fetch("https://youngbill44.pythonanywhere.com/api/auth/me", {
       headers: { "Authorization": "Bearer " + token }
     });
     if (r.status === 401) {
@@ -573,7 +573,7 @@ async function init() {
 
 
 // ── TOKEN QUOTA SYSTEM ─────────────────────────────────────
-const API = 'https://genesis-vault-backend.onrender.com';
+const API = 'https://youngbill44.pythonanywhere.com';
 let tokenQuota   = 5000;
 let tokenUsed    = 0;
 let selectedPkg  = null;

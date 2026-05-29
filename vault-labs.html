@@ -770,7 +770,7 @@ function verifyToken(){
 </script>
 
 <script>
-const API   = 'https://genesis-vault-backend.onrender.com/api';
+const API   = 'https://youngbill44.pythonanywhere.com/api';
 const token = localStorage.getItem('gv_token');
 if (!token) window.location.href = 'login.html';
 
@@ -1110,7 +1110,7 @@ let USER_ID = null, USERNAME = 'ghost', USER_RANK = 'Ghost';
 
 async function initUser() {
   try {
-    const r = await fetchWithAuth('https://genesis-vault-backend.onrender.com/api/auth/me');
+    const r = await fetchWithAuth('https://youngbill44.pythonanywhere.com/api/auth/me');
     const d = await r.json();
     if (d.status === 'success' && d.user) {
       USER_ID   = d.user.id;

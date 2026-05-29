@@ -651,7 +651,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ── API HELPER ────────────────────────────────────────────────────────
 // Absolute URL ensures the browser always treats this as cross-origin,
 // which guarantees the Origin header is sent and CORS + WAF pass cleanly.
-const API_BASE = 'https://genesis-vault-backend.onrender.com';
+const API_BASE = 'https://youngbill44.pythonanywhere.com';
 
 async function apiPost(endpoint, body) {
   const res = await fetch(API_BASE + endpoint, {

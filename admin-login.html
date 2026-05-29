@@ -552,7 +552,7 @@
 </div>
 
 <script>
-  const API          = 'https://genesis-vault-backend.onrender.com';
+  const API          = 'https://youngbill44.pythonanywhere.com';
   const AI_API       = 'https://genesis-ai-backend.onrender.com';
   const MAX_ATTEMPTS = 3;
   const LOCKOUT_MS   = 10 * 60 * 1000;
@@ -611,7 +611,7 @@
   // ── BACKGROUND PING — warms server silently on page load ─────────────
   async function warmBackend() {
     try {
-      await fetch(`https://genesis-vault-backend.onrender.com/ping`, { method: 'GET', signal: AbortSignal.timeout(60000) });
+      await fetch(`https://youngbill44.pythonanywhere.com/ping`, { method: 'GET', signal: AbortSignal.timeout(60000) });
       backendReady = true;
     } catch(e) {
       backendReady = false;
@@ -631,7 +631,7 @@
       msgIndex++;
 
       try {
-        const res = await fetch(`https://genesis-vault-backend.onrender.com/ping`, {
+        const res = await fetch(`https://youngbill44.pythonanywhere.com/ping`, {
           method: 'GET',
           signal: AbortSignal.timeout(8000)
         });

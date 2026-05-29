@@ -278,7 +278,7 @@ async function loadVC() {
     const d = await r.json();
     if (d.valid) {
       // Get VC from vault backend
-      const r2 = await fetch('https://genesis-vault-backend.onrender.com/profile', {
+      const r2 = await fetch('https://youngbill44.pythonanywhere.com/profile', {
         headers: { Authorization: `Bearer ${userToken}` }
       });
       const d2 = await r2.json();
