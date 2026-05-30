@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Package Observer // Genesis Vault</title>
+<title>Package Observer v2.0 // Genesis Vault</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -447,7 +447,7 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
     <span class="s"> // PACKAGE OBSERVER</span>
   </a>
-  <span class="nav-badge">TOOL v1.0</span>
+  <span class="nav-badge">TOOL v2.0 — LIVE</span>
 </nav>
 
 <div class="container">
@@ -457,7 +457,8 @@
     <div class="tool-title">PACKAGE <span>OBSERVER</span></div>
     <div class="tool-desc">
       Paste your package.json or requirements.txt — detect vulnerable dependencies,<br>
-      known CVEs, outdated versions, and typosquatting attempts.
+      known CVEs, outdated versions, and typosquatting attempts.<br>
+      <span style="color:var(--accent2)">// Powered by OSV.dev — live vulnerability data, no API key required.</span>
     </div>
   </div>
 
@@ -526,162 +527,6 @@ function setFormat(fmt) {
   }
 }
 
-// Vulnerability database (curated known CVEs)
-const vulnDB = {
-  // NPM
-  'lodash': {
-    versions: { vulnerable: ['<4.17.21'], fixed: '4.17.21' },
-    cves: ['CVE-2021-23337', 'CVE-2020-8203'],
-    severity: 'high',
-    desc: 'Prototype pollution and command injection vulnerabilities in older versions.'
-  },
-  'axios': {
-    versions: { vulnerable: ['<0.21.2'], fixed: '0.21.2' },
-    cves: ['CVE-2021-3749'],
-    severity: 'medium',
-    desc: 'ReDoS vulnerability in axios versions below 0.21.2.'
-  },
-  'express': {
-    versions: { vulnerable: ['<4.18.2'], fixed: '4.18.2' },
-    cves: [],
-    severity: 'low',
-    desc: 'Minor security patches in recent versions. Consider upgrading.'
-  },
-  'minimist': {
-    versions: { vulnerable: ['<1.2.6'], fixed: '1.2.6' },
-    cves: ['CVE-2021-44906'],
-    severity: 'critical',
-    desc: 'Prototype pollution vulnerability allows attackers to modify Object.prototype.'
-  },
-  'node-fetch': {
-    versions: { vulnerable: ['<2.6.7', '<3.1.1'], fixed: '2.6.7 / 3.1.1' },
-    cves: ['CVE-2022-0235'],
-    severity: 'high',
-    desc: 'Exposure of sensitive information to unauthorized actors.'
-  },
-  'tar': {
-    versions: { vulnerable: ['<6.1.9'], fixed: '6.1.9' },
-    cves: ['CVE-2021-37713', 'CVE-2021-37712'],
-    severity: 'critical',
-    desc: 'Arbitrary file creation/overwrite via path traversal during extraction.'
-  },
-  'jsonwebtoken': {
-    versions: { vulnerable: ['<9.0.0'], fixed: '9.0.0' },
-    cves: ['CVE-2022-23529', 'CVE-2022-23539'],
-    severity: 'critical',
-    desc: 'JWT signature bypass and algorithm confusion vulnerabilities.'
-  },
-  'moment': {
-    versions: { vulnerable: ['<2.29.4'], fixed: '2.29.4' },
-    cves: ['CVE-2022-31129'],
-    severity: 'high',
-    desc: 'ReDoS vulnerability. Consider switching to date-fns or dayjs.'
-  },
-  'handlebars': {
-    versions: { vulnerable: ['<4.7.7'], fixed: '4.7.7' },
-    cves: ['CVE-2021-23369', 'CVE-2021-23383'],
-    severity: 'critical',
-    desc: 'Remote code execution via prototype pollution in template compilation.'
-  },
-  'serialize-javascript': {
-    versions: { vulnerable: ['<6.0.0'], fixed: '6.0.0' },
-    cves: ['CVE-2022-25878'],
-    severity: 'medium',
-    desc: 'Cross-site scripting (XSS) vulnerability in serialization.'
-  },
-  'cross-fetch': {
-    versions: { vulnerable: ['<3.1.5'], fixed: '3.1.5' },
-    cves: ['CVE-2022-1365'],
-    severity: 'medium',
-    desc: 'Information exposure through sent data.'
-  },
-  'glob-parent': {
-    versions: { vulnerable: ['<5.1.2'], fixed: '5.1.2' },
-    cves: ['CVE-2020-28469'],
-    severity: 'high',
-    desc: 'ReDoS vulnerability in path parsing.'
-  },
-  'path-parse': {
-    versions: { vulnerable: ['<1.0.7'], fixed: '1.0.7' },
-    cves: ['CVE-2021-23343'],
-    severity: 'medium',
-    desc: 'ReDoS vulnerability in path parsing logic.'
-  },
-  'ws': {
-    versions: { vulnerable: ['<7.4.6', '<6.2.2'], fixed: '7.4.6 / 6.2.2' },
-    cves: ['CVE-2021-32640'],
-    severity: 'medium',
-    desc: 'ReDoS in Sec-Websocket-Protocol header parsing.'
-  },
-  'follow-redirects': {
-    versions: { vulnerable: ['<1.14.8'], fixed: '1.14.8' },
-    cves: ['CVE-2022-0536'],
-    severity: 'medium',
-    desc: 'Exposure of sensitive information via HTTP redirect.'
-  },
-  // Python
-  'django': {
-    versions: { vulnerable: ['<4.2.8', '<3.2.23'], fixed: '4.2.8 / 3.2.23' },
-    cves: ['CVE-2023-46695', 'CVE-2023-43665'],
-    severity: 'high',
-    desc: 'DoS via username enumeration and ReDoS vulnerabilities in older versions.'
-  },
-  'flask': {
-    versions: { vulnerable: ['<2.3.0', '<=0.12.4'], fixed: '2.3.0' },
-    cves: ['CVE-2018-1000656'],
-    severity: 'high',
-    desc: 'Denial of service via crafted JSON with incorrect content type.'
-  },
-  'requests': {
-    versions: { vulnerable: ['<2.31.0'], fixed: '2.31.0' },
-    cves: ['CVE-2023-32681'],
-    severity: 'medium',
-    desc: 'Unintended leak of proxy credentials to destination servers.'
-  },
-  'pillow': {
-    versions: { vulnerable: ['<10.0.1'], fixed: '10.0.1' },
-    cves: ['CVE-2023-44271', 'CVE-2023-50447'],
-    severity: 'high',
-    desc: 'Multiple vulnerabilities including DoS and arbitrary code execution.'
-  },
-  'cryptography': {
-    versions: { vulnerable: ['<41.0.6'], fixed: '41.0.6' },
-    cves: ['CVE-2023-49083'],
-    severity: 'medium',
-    desc: 'NULL pointer dereference when loading PKCS12 files.'
-  },
-  'pyyaml': {
-    versions: { vulnerable: ['<6.0'], fixed: '6.0' },
-    cves: ['CVE-2020-14343'],
-    severity: 'critical',
-    desc: 'Arbitrary code execution via specially crafted YAML input.'
-  },
-  'paramiko': {
-    versions: { vulnerable: ['<3.4.0'], fixed: '3.4.0' },
-    cves: ['CVE-2023-48795'],
-    severity: 'medium',
-    desc: 'Terrapin SSH protocol prefix truncation attack.'
-  },
-  'sqlalchemy': {
-    versions: { vulnerable: ['<2.0.0'], fixed: '2.0.0' },
-    cves: [],
-    severity: 'low',
-    desc: 'Major security improvements in v2. Legacy versions lack important patches.'
-  },
-  'urllib3': {
-    versions: { vulnerable: ['<2.0.7', '<1.26.18'], fixed: '2.0.7 / 1.26.18' },
-    cves: ['CVE-2023-45803', 'CVE-2023-43804'],
-    severity: 'medium',
-    desc: 'Cookie leakage and request body not stripped on redirect.'
-  },
-  'numpy': {
-    versions: { vulnerable: ['<1.22.0'], fixed: '1.22.0' },
-    cves: ['CVE-2021-41495', 'CVE-2021-41496'],
-    severity: 'medium',
-    desc: 'Null pointer dereference and buffer overflow in certain operations.'
-  }
-};
-
 // Typosquatting patterns
 const typosquatPatterns = [
   { name: 'lodahs', real: 'lodash' },
@@ -697,6 +542,92 @@ const typosquatPatterns = [
   { name: 'jsonwebtoekn', real: 'jsonwebtoken' },
 ];
 
+// Popular packages list for Levenshtein typo check
+const popularPackages = [
+  'lodash','express','react','axios','moment','webpack','babel','eslint','jest',
+  'typescript','vue','angular','jquery','redux','socket.io','mongoose','sequelize',
+  'jsonwebtoken','bcrypt','dotenv','nodemon','cors','helmet','morgan','passport',
+  'requests','django','flask','numpy','pandas','scipy','pillow','sqlalchemy',
+  'pyyaml','paramiko','cryptography','urllib3','boto3','fastapi','celery'
+];
+
+// OSV.dev live API query — fully client-side, no key needed
+async function queryOSV(name, version, ecosystem) {
+  try {
+    const res = await fetch('https://api.osv.dev/v1/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        version: version,
+        package: { name: name, ecosystem: ecosystem }
+      })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.vulns || [];
+  } catch (e) {
+    return null;
+  }
+}
+
+function osvSeverityToLevel(vulns) {
+  let highest = 'safe';
+  const order = { safe: 0, low: 1, medium: 2, high: 3, critical: 4 };
+  for (const v of vulns) {
+    const db = v.database_specific;
+    const sev = v.severity || [];
+    let level = 'low';
+    // Check CVSS score
+    for (const s of sev) {
+      if (s.score >= 9.0) level = 'critical';
+      else if (s.score >= 7.0 && order[level] < order['high']) level = 'high';
+      else if (s.score >= 4.0 && order[level] < order['medium']) level = 'medium';
+    }
+    // Fallback: check database_specific severity string
+    if (db && db.severity) {
+      const ds = db.severity.toLowerCase();
+      if (ds === 'critical' && order[level] < 4) level = 'critical';
+      else if (ds === 'high' && order[level] < 3) level = 'high';
+      else if (ds === 'moderate' && order[level] < 2) level = 'medium';
+      else if (ds === 'low' && order[level] < 1) level = 'low';
+    }
+    if (order[level] > order[highest]) highest = level;
+  }
+  return highest;
+}
+
+function extractCVEs(vulns) {
+  const cves = [];
+  for (const v of vulns) {
+    if (v.id && v.id.startsWith('CVE-')) cves.push(v.id);
+    if (v.aliases) {
+      for (const a of v.aliases) {
+        if (a.startsWith('CVE-') && !cves.includes(a)) cves.push(a);
+      }
+    }
+  }
+  return cves;
+}
+
+function extractFixedVersion(vulns) {
+  for (const v of vulns) {
+    for (const affected of (v.affected || [])) {
+      for (const range of (affected.ranges || [])) {
+        for (const ev of (range.events || [])) {
+          if (ev.fixed) return ev.fixed;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function extractDescription(vulns) {
+  if (!vulns.length) return null;
+  const v = vulns[0];
+  return v.summary || v.details?.slice(0, 120) || null;
+}
+
 function parseNPM(text) {
   try {
     const json = JSON.parse(text);
@@ -706,7 +637,7 @@ function parseNPM(text) {
     };
     return Object.entries(deps).map(([name, version]) => ({
       name,
-      version: version.replace(/[\^~>=<]/g, '').trim(),
+      version: version.replace(/[\^~>=<]/g, '').split(' ')[0].trim(),
       rawVersion: version,
       type: 'npm'
     }));
@@ -738,44 +669,6 @@ function detectFormat(text) {
   return 'pip';
 }
 
-function compareVersions(v1, v2) {
-  const p1 = v1.split('.').map(Number);
-  const p2 = v2.split('.').map(Number);
-  for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
-    const a = p1[i] || 0, b = p2[i] || 0;
-    if (a < b) return -1;
-    if (a > b) return 1;
-  }
-  return 0;
-}
-
-function isVulnerable(version, vulnerableRanges) {
-  for (const range of vulnerableRanges) {
-    const match = range.match(/^([<>=!]+)([\d\.]+)$/);
-    if (!match) continue;
-    const op = match[1], ver = match[2];
-    const cmp = compareVersions(version, ver);
-    if (op === '<' && cmp < 0) return true;
-    if (op === '<=' && cmp <= 0) return true;
-    if (op === '>' && cmp > 0) return true;
-    if (op === '>=' && cmp >= 0) return true;
-  }
-  return false;
-}
-
-function checkTyposquatting(name) {
-  const known = typosquatPatterns.find(t => t.name === name.toLowerCase());
-  if (known) return known;
-  // Levenshtein distance check
-  const popularPkgs = Object.keys(vulnDB);
-  for (const pkg of popularPkgs) {
-    if (levenshtein(name.toLowerCase(), pkg) === 1 && name !== pkg) {
-      return { name, real: pkg };
-    }
-  }
-  return null;
-}
-
 function levenshtein(a, b) {
   const dp = Array.from({length: a.length+1}, (_, i) => [i]);
   for (let j = 1; j <= b.length; j++) dp[0][j] = j;
@@ -786,54 +679,30 @@ function levenshtein(a, b) {
   return dp[a.length][b.length];
 }
 
-function analyzePackage(pkg) {
-  const name = pkg.name.toLowerCase();
-  const version = pkg.version;
-  const result = {
-    ...pkg,
-    severity: 'safe',
-    issues: [],
-    cves: [],
-    fixedIn: null,
-    typo: null
-  };
-
-  // Check typosquatting
-  const typo = checkTyposquatting(name);
-  if (typo) {
-    result.severity = 'critical';
-    result.typo = typo.real;
-    result.issues.push(`⚠ Possible typosquatting — did you mean "${typo.real}"?`);
-    return result;
-  }
-
-  // Check vuln DB
-  const vuln = vulnDB[name];
-  if (vuln) {
-    const vulnerable = isVulnerable(version, vuln.versions.vulnerable);
-    if (vulnerable) {
-      result.severity = vuln.severity;
-      result.cves = vuln.cves;
-      result.fixedIn = vuln.versions.fixed;
-      result.issues.push(vuln.desc);
+function checkTyposquatting(name) {
+  const n = name.toLowerCase();
+  const known = typosquatPatterns.find(t => t.name === n);
+  if (known) return known;
+  for (const pkg of popularPackages) {
+    if (levenshtein(n, pkg) === 1 && n !== pkg) {
+      return { name: n, real: pkg };
     }
   }
-
-  return result;
+  return null;
 }
 
 const scanMessages = [
-  '// Loading vulnerability database...',
+  '// Connecting to OSV.dev vulnerability database...',
   '// Parsing dependency tree...',
-  '// Checking CVE records...',
+  '// Querying live CVE records...',
   '// Scanning for typosquatting...',
-  '// Running version comparison...',
   '// Cross-referencing NVD feeds...',
   '// Analyzing dependency chain...',
+  '// Fetching vulnerability details...',
   '// Generating security report...'
 ];
 
-function startScan() {
+async function startScan() {
   const input = document.getElementById('pkgInput').value.trim();
   const errorBox = document.getElementById('errorBox');
 
@@ -844,7 +713,6 @@ function startScan() {
   }
   errorBox.classList.remove('active');
 
-  // Detect format
   const fmt = currentFormat === 'both' ? detectFormat(input) : currentFormat;
   let packages = fmt === 'npm' ? parseNPM(input) : parsePIP(input);
 
@@ -854,42 +722,85 @@ function startScan() {
     return;
   }
 
-  // Hide input, show scanning
   document.getElementById('inputSection').style.display = 'none';
   document.getElementById('scanBtn').disabled = true;
   const overlay = document.getElementById('scanningOverlay');
   overlay.classList.add('active');
 
-  let progress = 0;
-  let msgIdx = 0;
   const logEl = document.getElementById('scanLog');
   const fillEl = document.getElementById('scanBarFill');
   const animEl = document.getElementById('scanAnim');
 
-  const interval = setInterval(() => {
-    progress += Math.random() * 15 + 5;
-    if (progress > 100) progress = 100;
-    fillEl.style.width = progress + '%';
-
+  // Animate log messages while real API calls run in parallel
+  let msgIdx = 0;
+  const logInterval = setInterval(() => {
     if (msgIdx < scanMessages.length) {
       animEl.textContent = scanMessages[msgIdx];
       logEl.innerHTML += `<div style="color:var(--accent)">${scanMessages[msgIdx]}</div>`;
       if (packages[msgIdx]) {
-        logEl.innerHTML += `<div>> Checking: ${packages[Math.min(msgIdx, packages.length-1)].name}</div>`;
+        logEl.innerHTML += `<div>> Querying OSV: ${packages[Math.min(msgIdx, packages.length-1)].name}</div>`;
       }
       msgIdx++;
       logEl.scrollTop = logEl.scrollHeight;
     }
+  }, 400);
 
-    if (progress >= 100) {
-      clearInterval(interval);
-      setTimeout(() => showResults(packages), 600);
+  // Run all OSV API queries in parallel
+  const ecosystem = fmt === 'npm' ? 'npm' : 'PyPI';
+  const results = await Promise.all(packages.map(async (pkg) => {
+    // Typosquatting check first (no API needed)
+    const typo = checkTyposquatting(pkg.name);
+    if (typo) {
+      return {
+        ...pkg,
+        severity: 'critical',
+        issues: [`⚠ Possible typosquatting — did you mean "${typo.real}"?`],
+        cves: [],
+        fixedIn: null,
+        typo: typo.real
+      };
     }
-  }, 350);
+
+    if (pkg.version === 'unknown') {
+      return { ...pkg, severity: 'safe', issues: ['// Version unknown — could not query OSV.'], cves: [], fixedIn: null, typo: null };
+    }
+
+    const vulns = await queryOSV(pkg.name, pkg.version, ecosystem);
+
+    if (vulns === null) {
+      return { ...pkg, severity: 'safe', issues: ['// OSV query failed — check network.'], cves: [], fixedIn: null, typo: null };
+    }
+
+    if (vulns.length === 0) {
+      return { ...pkg, severity: 'safe', issues: [], cves: [], fixedIn: null, typo: null };
+    }
+
+    const severity = osvSeverityToLevel(vulns);
+    const cves = extractCVEs(vulns);
+    const fixedIn = extractFixedVersion(vulns);
+    const desc = extractDescription(vulns);
+    const issues = desc ? [desc] : [`${vulns.length} vulnerabilit${vulns.length > 1 ? 'ies' : 'y'} found via OSV.`];
+
+    return { ...pkg, severity, issues, cves, fixedIn, typo: null };
+  }));
+
+  // Animate progress bar to 100%
+  let p = 0;
+  const barInterval = setInterval(() => {
+    p = Math.min(p + 8, 100);
+    fillEl.style.width = p + '%';
+    if (p >= 100) clearInterval(barInterval);
+  }, 80);
+
+  clearInterval(logInterval);
+  fillEl.style.width = '100%';
+  animEl.textContent = '// SCAN COMPLETE';
+
+  setTimeout(() => showResults(results), 600);
 }
 
 function showResults(packages) {
-  allResults = packages.map(analyzePackage);
+  allResults = packages;
 
   document.getElementById('scanningOverlay').classList.remove('active');
   const resultsSection = document.getElementById('resultsSection');
@@ -939,8 +850,8 @@ function showResults(packages) {
   document.getElementById('reportFooter').innerHTML = `
     // SCAN COMPLETE — <span>${allResults.length} packages analyzed</span> —
     <span style="color:${vulnCount > 0 ? 'var(--accent3)' : 'var(--safe)'}">${vulnCount} vulnerabilities found</span><br>
-    // Scan time: ${now} UTC — Tool: Genesis Vault Package Observer v1.0<br>
-    // Data sourced from NVD CVE database. Always verify with official advisories before patching.
+    // Scan time: ${now} UTC — Tool: Genesis Vault Package Observer v2.0<br>
+    // Live data sourced from OSV.dev (Google Open Source Vulnerability DB). Always verify with official advisories before patching.
   `;
 }
 
