@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE MONITOR // GENESIS VAULT</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0e;
+    --panel: #0a1018;
+    --border: #0ff3;
+    --accent: #00ffe7;
+    --accent2: #ff003c;
+    --text: #c8e6f0;
+    --dim: #4a7a8a;
+    --green: #00ff88;
+    --yellow: #ffe600;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,231,0.015) 2px,
+      rgba(0,255,231,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(18px, 4vw, 28px);
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px var(--accent);
+  }
+
+  h1 span { color: var(--text); }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 6px;
+    letter-spacing: 2px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .panel::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -1px;
+    left: 16px;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 9px;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 2px;
+    padding: 2px 8px;
+    font-weight: 700;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+
+  input, select {
+    width: 100%;
+    background: #060d12;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0,255,231,0.1);
+  }
+
+  input::placeholder { color: var(--dim); }
+
+  select option { background: #060d12; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
+
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    padding: 12px 28px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover {
+    background: #fff;
+    box-shadow: 0 0 20px var(--accent);
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+  }
+
+  .btn-danger:hover {
+    background: var(--accent2);
+    color: #fff;
+  }
+
+  .btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #060d12;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    font-size: 11px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dim);
+    flex-shrink: 0;
+  }
+
+  .status-dot.active {
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 1.5s infinite;
+  }
+
+  .status-dot.error { background: var(--accent2); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  #status-text { color: var(--dim); flex: 1; }
+  #status-text.active { color: var(--green); }
+  #status-text.error { color: var(--accent2); }
+
+  #next-check { color: var(--dim); font-size: 10px; }
+
+  /* Log */
+  .log-wrap {
+    background: #060d12;
+    border: 1px solid var(--border);
+    height: 240px;
+    overflow-y: auto;
+    padding: 14px;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .log-wrap::-webkit-scrollbar { width: 4px; }
+  .log-wrap::-webkit-scrollbar-track { background: transparent; }
+  .log-wrap::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .log-entry { display: flex; gap: 10px; }
+  .log-time { color: var(--dim); flex-shrink: 0; }
+  .log-msg { color: var(--text); }
+  .log-msg.change { color: var(--yellow); }
+  .log-msg.ok { color: var(--green); }
+  .log-msg.error { color: var(--accent2); }
+  .log-msg.info { color: var(--accent); }
+
+  /* Monitors list */
+  #monitors-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .monitor-item {
+    background: #060d12;
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .monitor-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
+  .monitor-url { color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .monitor-interval { color: var(--dim); flex-shrink: 0; }
+  .monitor-remove { background: none; border: none; color: var(--accent2); cursor: pointer; font-size: 14px; padding: 0 4px; flex-shrink: 0; }
+  .monitor-remove:hover { text-shadow: 0 0 8px var(--accent2); }
+
+  .empty-state {
+    text-align: center;
+    color: var(--dim);
+    font-size: 11px;
+    padding: 30px;
+    letter-spacing: 2px;
+  }
+
+  .change-count {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 9px;
+    font-family: 'Orbitron', monospace;
+    padding: 2px 6px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    margin-bottom: 14px;
+  }
+
+  .tip {
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  .tip a { color: var(--accent); text-decoration: none; }
+  .tip a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">// GENESIS VAULT — TOOLS</div>
+    <h1>SITE <span>MONITOR</span></h1>
+    <div class="subtitle">// DETECT WEBSITE CHANGES — DISCORD ALERTS</div>
+  </header>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <div id="status-text">IDLE — NO MONITORS RUNNING</div>
+    <div id="next-check"></div>
+  </div>
+
+  <!-- Config Panel -->
+  <div class="panel" data-label="TARGET CONFIG">
+    <div class="field">
+      <label>// TARGET URL</label>
+      <input type="url" id="url-input" placeholder="https://example.com/page-to-watch" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>// CHECK INTERVAL</label>
+        <select id="interval-select">
+          <option value="30000">Every 30 seconds</option>
+          <option value="60000" selected>Every 1 minute</option>
+          <option value="300000">Every 5 minutes</option>
+          <option value="600000">Every 10 minutes</option>
+          <option value="1800000">Every 30 minutes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>// MONITOR MODE</label>
+        <select id="mode-select">
+          <option value="full">Full page content</option>
+          <option value="text">Text only</option>
+          <option value="size">Page size (bytes)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>// DISCORD WEBHOOK URL</label>
+      <input type="url" id="webhook-input" placeholder="https://discord.com/api/webhooks/..." />
+      <div class="tip">Get this from your Discord server → Edit Channel → Integrations → Webhooks → <a href="https://support.discord.com/hc/en-us/articles/228383668" target="_blank">How to create one ↗</a></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="add-btn" onclick="addMonitor()">[ ADD MONITOR ]</button>
+    </div>
+  </div>
+
+  <!-- Active Monitors -->
+  <div class="panel" data-label="ACTIVE MONITORS" style="padding-top:28px;">
+    <div class="section-title">// WATCHING TARGETS</div>
+    <div id="monitors-list">
+      <div class="empty-state">// NO TARGETS ADDED YET</div>
+    </div>
+  </div>
+
+  <!-- Log Panel -->
+  <div class="panel" data-label="EVENT LOG" style="padding-top:28px;">
+    <div class="section-title">// LIVE FEED</div>
+    <div class="log-wrap" id="log"></div>
+  </div>
+
+</div>
+
+<script>
+  const monitors = {};
+  let logCount = 0;
+
+  function timestamp() {
+    const n = new Date();
+    return n.toTimeString().slice(0,8);
+  }
+
+  function log(msg, type='') {
+    const log = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">[${timestamp()}]</span><span class="log-msg ${type}">${msg}</span>`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+    logCount++;
+    if (logCount > 200) {
+      log.removeChild(log.firstChild);
+      logCount--;
+    }
+  }
+
+  function updateStatus() {
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('status-text');
+    const count = Object.keys(monitors).length;
+    if (count === 0) {
+      dot.className = 'status-dot';
+      txt.className = '';
+      txt.textContent = 'IDLE — NO MONITORS RUNNING';
+      document.getElementById('next-check').textContent = '';
+    } else {
+      dot.className = 'status-dot active';
+      txt.className = 'active';
+      txt.textContent = `MONITORING ${count} TARGET${count > 1 ? 'S' : ''}`;
+    }
+  }
+
+  function renderMonitors() {
+    const list = document.getElementById('monitors-list');
+    const keys = Object.keys(monitors);
+    if (keys.length === 0) {
+      list.innerHTML = '<div class="empty-state">// NO TARGETS ADDED YET</div>';
+      return;
+    }
+    list.innerHTML = '';
+    keys.forEach(id => {
+      const m = monitors[id];
+      const item = document.createElement('div');
+      item.className = 'monitor-item';
+      item.id = `monitor-item-${id}`;
+      item.innerHTML = `
+        <div class="monitor-dot"></div>
+        <div class="monitor-url" title="${m.url}">${m.url}</div>
+        <div class="monitor-interval">${formatInterval(m.interval)}</div>
+        <span class="change-count" id="count-${id}" title="Changes detected">0 CHG</span>
+        <button class="monitor-remove" onclick="removeMonitor('${id}')" title="Remove">✕</button>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  function formatInterval(ms) {
+    if (ms < 60000) return `${ms/1000}s`;
+    if (ms < 3600000) return `${ms/60000}m`;
+    return `${ms/3600000}h`;
+  }
+
+  async function fetchContent(url, mode) {
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&timestamp=${Date.now()}`;
+    const res = await fetch(proxy);
+    if (!res.ok) throw new Error(`Proxy error ${res.status}`);
+    const data = await res.json();
+    const content = data.contents || '';
+    if (mode === 'size') return String(content.length);
+    if (mode === 'text') {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = content;
+      return tmp.textContent || tmp.innerText || '';
+    }
+    return content;
+  }
+
+  async function sendDiscordAlert(webhook, url, changeInfo) {
+    if (!webhook) return;
+    try {
+      await fetch(webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'Genesis Vault Monitor',
+          avatar_url: 'https://i.imgur.com/4M34hi2.png',
+          embeds: [{
+            title: '⚠️ CHANGE DETECTED',
+            description: `A change was detected on the monitored target.`,
+            color: 0x00ffe7,
+            fields: [
+              { name: '🎯 Target', value: url, inline: false },
+              { name: '🕒 Time', value: new Date().toUTCString(), inline: false },
+              { name: '📊 Info', value: changeInfo, inline: false }
+            ],
+            footer: { text: 'Genesis Vault Site Monitor' }
+          }]
+        })
+      });
+      log(`Discord alert sent for ${url}`, 'info');
+    } catch(e) {
+      log(`Discord alert failed: ${e.message}`, 'error');
+    }
+  }
+
+  async function checkSite(id) {
+    const m = monitors[id];
+    if (!m) return;
+    try {
+      log(`Checking ${m.url}...`);
+      const content = await fetchContent(m.url, m.mode);
+      if (m.lastContent === null) {
+        m.lastContent = content;
+        log(`Baseline captured for ${m.url}`, 'ok');
+        return;
+      }
+      if (content !== m.lastContent) {
+        m.changeCount++;
+        const el = document.getElementById(`count-${id}`);
+        if (el) el.textContent = `${m.changeCount} CHG`;
+        const info = m.mode === 'size'
+          ? `Size changed: ${m.lastContent} → ${content} bytes`
+          : `Content differs from last snapshot`;
+        log(`⚠ CHANGE DETECTED on ${m.url}`, 'change');
+        await sendDiscordAlert(m.webhook, m.url, info);
+        m.lastContent = content;
+      } else {
+        log(`No change on ${m.url}`, 'ok');
+      }
+    } catch(e) {
+      log(`Error checking ${m.url}: ${e.message}`, 'error');
+    }
+  }
+
+  async function addMonitor() {
+    const url = document.getElementById('url-input').value.trim();
+    const interval = parseInt(document.getElementById('interval-select').value);
+    const mode = document.getElementById('mode-select').value;
+    const webhook = document.getElementById('webhook-input').value.trim();
+
+    if (!url) { log('No URL provided', 'error'); return; }
+    if (!url.startsWith('http')) { log('Invalid URL — must start with http/https', 'error'); return; }
+
+    const id = Date.now().toString();
+    monitors[id] = {
+      url, interval, mode, webhook,
+      lastContent: null,
+      changeCount: 0,
+      timer: null
+    };
+
+    log(`Monitor added: ${url} [${formatInterval(interval)}]`, 'info');
+
+    await checkSite(id);
+    monitors[id].timer = setInterval(() => checkSite(id), interval);
+
+    document.getElementById('url-input').value = '';
+    document.getElementById('webhook-input').value = '';
+
+    renderMonitors();
+    updateStatus();
+  }
+
+  function removeMonitor(id) {
+    if (!monitors[id]) return;
+    clearInterval(monitors[id].timer);
+    log(`Monitor removed: ${monitors[id].url}`, 'error');
+    delete monitors[id];
+    renderMonitors();
+    updateStatus();
+  }
+
+  log('// Genesis Vault Site Monitor initialized', 'info');
+  log('// Add a target URL to begin monitoring', 'info');
+</script>
+</body>
+</html>
