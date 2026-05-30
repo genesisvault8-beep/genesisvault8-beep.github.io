@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUBDOMAIN RECON // GENESIS VAULT</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0d1117;
+    --border: #00ff9d22;
+    --green: #00ff9d;
+    --cyan: #00e5ff;
+    --red: #ff3e3e;
+    --yellow: #ffe600;
+    --dim: #1a2332;
+    --text: #8ba8c4;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-display: 'Orbitron', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,157,0.015) 2px,
+      rgba(0,255,157,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--green);
+  }
+
+  .logo span { color: var(--text); }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  .title-block {
+    margin-bottom: 28px;
+  }
+
+  .title-block h1 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px rgba(0,255,157,0.4);
+    margin-bottom: 6px;
+  }
+
+  .title-block p {
+    font-size: 11px;
+    color: var(--text);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .input-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .input-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .target-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .target-input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(0,255,157,0.15);
+  }
+
+  .target-input::placeholder { color: #2a4a3a; }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 12px 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn:hover {
+    background: var(--green);
+    color: var(--bg);
+    box-shadow: 0 0 20px rgba(0,255,157,0.4);
+  }
+
+  .btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .btn-danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .btn-danger:hover {
+    background: var(--red);
+    color: var(--bg);
+    box-shadow: 0 0 20px rgba(255,62,62,0.4);
+  }
+
+  .options-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    accent-color: var(--green);
+    width: 14px; height: 14px;
+  }
+
+  /* Progress bar */
+  .progress-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .progress-block.active { display: block; }
+
+  .progress-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar-track {
+    height: 4px;
+    background: var(--dim);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--cyan));
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px var(--green);
+  }
+
+  .log-output {
+    font-size: 11px;
+    color: var(--text);
+    margin-top: 10px;
+    max-height: 80px;
+    overflow-y: auto;
+    line-height: 1.8;
+  }
+
+  .log-output .log-line { opacity: 0; animation: fadeIn 0.3s forwards; }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--green);
+    display: block;
+    text-shadow: 0 0 12px rgba(0,255,157,0.4);
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Results table */
+  .results-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+
+  .results-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .results-title {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--cyan);
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 6px;
+  }
+
+  .filter-tab {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    transition: all 0.2s;
+  }
+
+  .filter-tab.active, .filter-tab:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead tr {
+    background: var(--dim);
+  }
+
+  th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text);
+    text-transform: uppercase;
+    font-weight: normal;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #0d1117;
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: rgba(0,255,157,0.03); }
+
+  .subdomain-cell {
+    color: var(--green);
+    font-size: 12px;
+    word-break: break-all;
+  }
+
+  .ip-cell { color: var(--cyan); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .badge-200 { color: var(--green); border-color: var(--green); background: rgba(0,255,157,0.08); }
+  .badge-301, .badge-302 { color: var(--cyan); border-color: var(--cyan); background: rgba(0,229,255,0.08); }
+  .badge-403 { color: var(--yellow); border-color: var(--yellow); background: rgba(255,230,0,0.08); }
+  .badge-401 { color: #ff9a00; border-color: #ff9a00; background: rgba(255,154,0,0.08); }
+  .badge-404 { color: var(--text); border-color: var(--dim); }
+  .badge-000, .badge-err { color: var(--red); border-color: var(--red); background: rgba(255,62,62,0.08); }
+
+  .waf-badge {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border: 1px solid;
+  }
+
+  .waf-akamai { color: #ff6b35; border-color: #ff6b35; }
+  .waf-cloudflare { color: #f38020; border-color: #f38020; }
+  .waf-none { color: var(--green); border-color: var(--green); }
+  .waf-unknown { color: var(--text); border-color: var(--dim); }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .action-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--dim);
+  }
+
+  .empty-state .icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  .empty-state p {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .export-row {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .note {
+    font-size: 10px;
+    color: #2a4a3a;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+
+  @media (max-width: 500px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .filter-tabs { display: none; }
+    .title-block h1 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">GENESIS<span>VAULT</span> // RECON</div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="main">
+  <div class="title-block">
+    <h1>SUBDOMAIN RECON</h1>
+    <p>// crt.sh · hackertarget · status probe · WAF detect</p>
+  </div>
+
+  <div class="input-panel">
+    <span class="input-label">// target domain</span>
+    <div class="input-row">
+      <input class="target-input" id="domainInput" type="text" placeholder="example.com" autocomplete="off" spellcheck="false">
+      <button class="btn" id="scanBtn" onclick="startScan()">[ SCAN ]</button>
+      <button class="btn btn-danger" id="stopBtn" onclick="stopScan()" disabled>[ STOP ]</button>
+    </div>
+    <div class="options-row">
+      <label class="checkbox-item">
+        <input type="checkbox" id="optCrt" checked> crt.sh
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="optHt" checked> hackertarget
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="optStatus" checked> status probe
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="optWaf"> WAF detect
+      </label>
+    </div>
+    <p class="note">// Note: status probe uses DNS lookup via public APIs. Some results may be limited by CORS.</p>
+  </div>
+
+  <div class="progress-block" id="progressBlock">
+    <div class="progress-label">
+      <span id="progressLabel">INITIALIZING...</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <div class="log-output" id="logOutput"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-num" id="statTotal">0</span>
+      <div class="stat-label">Found</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statAlive" style="color:var(--green)">0</span>
+      <div class="stat-label">Alive</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statProtected" style="color:var(--yellow)">0</span>
+      <div class="stat-label">Protected</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statOpen" style="color:var(--cyan)">0</span>
+      <div class="stat-label">No WAF</div>
+    </div>
+  </div>
+
+  <div class="results-panel">
+    <div class="results-header">
+      <span class="results-title">// RESULTS</span>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter('all', this)">ALL</button>
+        <button class="filter-tab" onclick="setFilter('200', this)">200</button>
+        <button class="filter-tab" onclick="setFilter('403', this)">403</button>
+        <button class="filter-tab" onclick="setFilter('401', this)">401</button>
+        <button class="filter-tab" onclick="setFilter('nowaf', this)">NO WAF</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Subdomain</th>
+            <th>IP</th>
+            <th>Status</th>
+            <th>WAF</th>
+            <th>Source</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="icon">◈</div>
+                <p>Enter a domain and hit scan</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="export-row">
+      <button class="btn" onclick="exportTxt()" style="font-size:9px;padding:8px 14px">[ EXPORT TXT ]</button>
+      <button class="btn" onclick="exportJson()" style="font-size:9px;padding:8px 14px">[ EXPORT JSON ]</button>
+      <button class="btn" onclick="copyAll()" style="font-size:9px;padding:8px 14px">[ COPY ALL ]</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let results = [];
+let filterMode = 'all';
+let scanning = false;
+let stopRequested = false;
+
+function log(msg, color) {
+  const out = document.getElementById('logOutput');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.style.color = color || '#8ba8c4';
+  line.textContent = '> ' + msg;
+  out.appendChild(line);
+  out.scrollTop = out.scrollHeight;
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  if (label) document.getElementById('progressLabel').textContent = label;
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = results.length;
+  document.getElementById('statAlive').textContent = results.filter(r => ['200','301','302'].includes(r.status)).length;
+  document.getElementById('statProtected').textContent = results.filter(r => r.waf && r.waf !== 'none' && r.waf !== '?').length;
+  document.getElementById('statOpen').textContent = results.filter(r => r.waf === 'none').length;
+}
+
+function setFilter(mode, el) {
+  filterMode = mode;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderTable();
+}
+
+function detectWaf(headers) {
+  const h = JSON.stringify(headers).toLowerCase();
+  if (h.includes('akamai') || h.includes('akamaighost') || h.includes('akamainetstorage')) return 'akamai';
+  if (h.includes('cloudflare') || h.includes('cf-ray')) return 'cloudflare';
+  if (h.includes('sucuri')) return 'sucuri';
+  if (h.includes('imperva') || h.includes('incapsula')) return 'imperva';
+  if (h.includes('x-reference-error')) return 'akamai';
+  return 'none';
+}
+
+function wafBadge(waf) {
+  if (!waf || waf === '?') return `<span class="waf-badge waf-unknown">?</span>`;
+  if (waf === 'none') return `<span class="waf-badge waf-none">NONE</span>`;
+  if (waf === 'akamai') return `<span class="waf-badge waf-akamai">AKAMAI</span>`;
+  if (waf === 'cloudflare') return `<span class="waf-badge waf-cloudflare">CLOUDFLARE</span>`;
+  return `<span class="waf-badge waf-unknown">${waf.toUpperCase()}</span>`;
+}
+
+function statusBadge(s) {
+  if (!s || s === 'ERR') return `<span class="badge badge-err">ERR</span>`;
+  return `<span class="badge badge-${s}">${s}</span>`;
+}
+
+function renderTable() {
+  const body = document.getElementById('resultsBody');
+  let filtered = results;
+  if (filterMode === '200') filtered = results.filter(r => r.status === '200');
+  else if (filterMode === '403') filtered = results.filter(r => r.status === '403');
+  else if (filterMode === '401') filtered = results.filter(r => r.status === '401');
+  else if (filterMode === 'nowaf') filtered = results.filter(r => r.waf === 'none');
+
+  if (filtered.length === 0) {
+    body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">◈</div><p>${results.length > 0 ? 'No results match filter' : 'Enter a domain and hit scan'}</p></div></td></tr>`;
+    return;
+  }
+
+  body.innerHTML = filtered.map((r, i) => `
+    <tr>
+      <td style="color:#2a5a4a;font-size:10px">${String(i+1).padStart(2,'0')}</td>
+      <td class="subdomain-cell">${r.sub}</td>
+      <td class="ip-cell">${r.ip || '—'}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${wafBadge(r.waf)}</td>
+      <td style="font-size:9px;color:#2a5a4a;letter-spacing:1px">${r.source}</td>
+      <td><button class="action-btn" onclick="copyText('${r.sub}')">COPY</button></td>
+    </tr>
+  `).join('');
+}
+
+async function fetchCrtSh(domain) {
+  log('Querying crt.sh...', '#00e5ff');
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://crt.sh/?q=%25.' + domain + '&output=json')}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const json = JSON.parse(data.contents);
+    const subs = new Set();
+    json.forEach(e => {
+      e.name_value.split('\n').forEach(s => {
+        s = s.trim().replace(/^\*\./, '');
+        if (s.endsWith(domain) && s !== domain) subs.add(s);
+      });
+    });
+    log(`crt.sh: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs);
+  } catch(e) {
+    log('crt.sh: failed or rate limited', '#ff3e3e');
+    return [];
+  }
+}
+
+async function fetchHackerTarget(domain) {
+  log('Querying HackerTarget...', '#00e5ff');
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://api.hackertarget.com/hostsearch/?q=' + domain)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const lines = data.contents.split('\n').filter(l => l.includes(','));
+    const entries = lines.map(l => {
+      const [sub, ip] = l.split(',');
+      return { sub: sub.trim(), ip: ip ? ip.trim() : '' };
+    });
+    log(`HackerTarget: found ${entries.length} entries`, '#00ff9d');
+    return entries;
+  } catch(e) {
+    log('HackerTarget: failed', '#ff3e3e');
+    return [];
+  }
+}
+
+async function probeStatus(sub) {
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://' + sub)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    // allorigins gives us status
+    if (data.status && data.status.http_code) {
+      return String(data.status.http_code);
+    }
+    return res.ok ? '200' : '???';
+  } catch(e) {
+    return 'ERR';
+  }
+}
+
+async function startScan() {
+  const domain = document.getElementById('domainInput').value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+  if (!domain || !domain.includes('.')) {
+    alert('Enter a valid domain like example.com');
+    return;
+  }
+
+  results = [];
+  stopRequested = false;
+  scanning = true;
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('progressBlock').classList.add('active');
+  document.getElementById('logOutput').innerHTML = '';
+  renderTable();
+  updateStats();
+
+  log(`Target: ${domain}`, '#00ff9d');
+
+  let allSubs = new Map(); // sub -> {ip, source}
+
+  // Step 1: crt.sh
+  if (document.getElementById('optCrt').checked) {
+    setProgress(10, 'QUERYING CRT.SH...');
+    const crtSubs = await fetchCrtSh(domain);
+    crtSubs.forEach(s => {
+      if (!allSubs.has(s)) allSubs.set(s, { ip: '', source: 'crt.sh' });
+    });
+    if (stopRequested) return finishScan();
+  }
+
+  // Step 2: HackerTarget
+  if (document.getElementById('optHt').checked) {
+    setProgress(30, 'QUERYING HACKERTARGET...');
+    const htEntries = await fetchHackerTarget(domain);
+    htEntries.forEach(e => {
+      if (!allSubs.has(e.sub)) {
+        allSubs.set(e.sub, { ip: e.ip, source: 'hackertarget' });
+      } else {
+        // update IP if we have it
+        if (e.ip) allSubs.get(e.sub).ip = e.ip;
+        allSubs.get(e.sub).source = 'both';
+      }
+    });
+    if (stopRequested) return finishScan();
+  }
+
+  const subList = Array.from(allSubs.entries());
+  log(`Total unique subdomains: ${subList.length}`, '#ffe600');
+
+  // Step 3: Status probe
+  if (document.getElementById('optStatus').checked && subList.length > 0) {
+    log('Probing status codes...', '#00e5ff');
+    for (let i = 0; i < subList.length; i++) {
+      if (stopRequested) break;
+      const [sub, info] = subList[i];
+      const pct = 40 + Math.floor((i / subList.length) * 55);
+      setProgress(pct, `PROBING ${i+1}/${subList.length}...`);
+
+      const status = await probeStatus(sub);
+      const entry = {
+        sub,
+        ip: info.ip,
+        status,
+        waf: document.getElementById('optWaf').checked ? await detectWafProbe(sub, status) : '?',
+        source: info.source
+      };
+      results.push(entry);
+      updateStats();
+      renderTable();
+
+      if (status !== 'ERR' && status !== '404') {
+        log(`${sub} → ${status}`, status === '200' ? '#00ff9d' : '#ffe600');
+      }
+      await sleep(300);
+    }
+  } else {
+    // No status probe, just add all
+    subList.forEach(([sub, info]) => {
+      results.push({ sub, ip: info.ip, status: '?', waf: '?', source: info.source });
+    });
+    renderTable();
+    updateStats();
+  }
+
+  finishScan();
+}
+
+async function detectWafProbe(sub, status) {
+  if (status === 'ERR' || status === '000') return '?';
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://' + sub)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    const body = data.contents || '';
+    if (body.includes('AkamaiGHost') || body.includes('x-reference-error') || body.includes('akamaiedge')) return 'akamai';
+    if (body.includes('cloudflare') || body.includes('cf-ray') || body.includes('Cloudflare')) return 'cloudflare';
+    if (body.includes('Sucuri')) return 'sucuri';
+    if (body.includes('Imperva') || body.includes('incapsula')) return 'imperva';
+    return 'none';
+  } catch(e) {
+    return '?';
+  }
+}
+
+function finishScan() {
+  scanning = false;
+  document.getElementById('scanBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  setProgress(100, 'SCAN COMPLETE');
+  log(`Done. ${results.length} subdomains. ${results.filter(r=>r.status==='200').length} alive.`, '#00ff9d');
+}
+
+function stopScan() {
+  stopRequested = true;
+  log('Stop requested...', '#ff3e3e');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  });
+}
+
+function exportTxt() {
+  const lines = results.map(r => `${r.sub}\t${r.ip || ''}\t${r.status}\t${r.waf}`).join('\n');
+  download('recon_results.txt', lines);
+}
+
+function exportJson() {
+  download('recon_results.json', JSON.stringify(results, null, 2));
+}
+
+function copyAll() {
+  const lines = results.map(r => r.sub).join('\n');
+  copyText(lines);
+}
+
+function download(filename, content) {
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+
+// Enter key support
+document.getElementById('domainInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startScan();
+});
+</script>
+</body>
+</html>
