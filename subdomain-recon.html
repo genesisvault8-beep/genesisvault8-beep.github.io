@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SUBDOMAIN RECON // GENESIS VAULT</title>
+<title>SUBDOMAIN RECON v2.0 // GENESIS VAULT</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -469,7 +469,7 @@
 <div class="main">
   <div class="title-block">
     <h1>SUBDOMAIN RECON</h1>
-    <p>// crt.sh · hackertarget · status probe · WAF detect</p>
+    <p>// crt.sh · hackertarget · alienvault · urlscan · status probe · WAF detect</p>
   </div>
 
   <div class="input-panel">
@@ -487,13 +487,19 @@
         <input type="checkbox" id="optHt" checked> hackertarget
       </label>
       <label class="checkbox-item">
+        <input type="checkbox" id="optOtx" checked> alienvault
+      </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="optUrlscan" checked> urlscan.io
+      </label>
+      <label class="checkbox-item">
         <input type="checkbox" id="optStatus" checked> status probe
       </label>
       <label class="checkbox-item">
         <input type="checkbox" id="optWaf"> WAF detect
       </label>
     </div>
-    <p class="note">// Note: status probe uses DNS lookup via public APIs. Some results may be limited by CORS.</p>
+    <p class="note">// Live data: crt.sh · HackerTarget · AlienVault OTX · urlscan.io · Cloudflare DoH resolver</p>
   </div>
 
   <div class="progress-block" id="progressBlock">
@@ -608,13 +614,15 @@ function setFilter(mode, el) {
   renderTable();
 }
 
-function detectWaf(headers) {
-  const h = JSON.stringify(headers).toLowerCase();
-  if (h.includes('akamai') || h.includes('akamaighost') || h.includes('akamainetstorage')) return 'akamai';
-  if (h.includes('cloudflare') || h.includes('cf-ray')) return 'cloudflare';
-  if (h.includes('sucuri')) return 'sucuri';
-  if (h.includes('imperva') || h.includes('incapsula')) return 'imperva';
-  if (h.includes('x-reference-error')) return 'akamai';
+function detectWafFromText(text) {
+  const t = text.toLowerCase();
+  if (t.includes('akamaighost') || t.includes('akamaiedge') || t.includes('x-reference-error')) return 'akamai';
+  if (t.includes('cloudflare') || t.includes('cf-ray') || t.includes('__cfduid')) return 'cloudflare';
+  if (t.includes('sucuri')) return 'sucuri';
+  if (t.includes('imperva') || t.includes('incapsula')) return 'imperva';
+  if (t.includes('x-sucuri-id') || t.includes('x-sucuri-cache')) return 'sucuri';
+  if (t.includes('x-cdn') && t.includes('fastly')) return 'fastly';
+  if (t.includes('server: awselb') || t.includes('x-amzn-requestid')) return 'aws';
   return 'none';
 }
 
@@ -623,6 +631,8 @@ function wafBadge(waf) {
   if (waf === 'none') return `<span class="waf-badge waf-none">NONE</span>`;
   if (waf === 'akamai') return `<span class="waf-badge waf-akamai">AKAMAI</span>`;
   if (waf === 'cloudflare') return `<span class="waf-badge waf-cloudflare">CLOUDFLARE</span>`;
+  if (waf === 'fastly') return `<span class="waf-badge" style="color:#ff79c6;border-color:#ff79c6">FASTLY</span>`;
+  if (waf === 'aws') return `<span class="waf-badge" style="color:#ff9900;border-color:#ff9900">AWS</span>`;
   return `<span class="waf-badge waf-unknown">${waf.toUpperCase()}</span>`;
 }
 
@@ -657,8 +667,9 @@ function renderTable() {
   `).join('');
 }
 
+// ── Source 1: crt.sh ──────────────────────────────────────────────
 async function fetchCrtSh(domain) {
-  log('Querying crt.sh...', '#00e5ff');
+  log('Querying crt.sh (certificate transparency)...', '#00e5ff');
   try {
     const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://crt.sh/?q=%25.' + domain + '&output=json')}`;
     const res = await fetch(url);
@@ -668,27 +679,32 @@ async function fetchCrtSh(domain) {
     json.forEach(e => {
       e.name_value.split('\n').forEach(s => {
         s = s.trim().replace(/^\*\./, '');
-        if (s.endsWith(domain) && s !== domain) subs.add(s);
+        if (s.endsWith('.' + domain) || s === domain) subs.add(s.toLowerCase());
       });
     });
     log(`crt.sh: found ${subs.size} entries`, '#00ff9d');
-    return Array.from(subs);
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'crt.sh' }));
   } catch(e) {
     log('crt.sh: failed or rate limited', '#ff3e3e');
     return [];
   }
 }
 
+// ── Source 2: HackerTarget ────────────────────────────────────────
 async function fetchHackerTarget(domain) {
   log('Querying HackerTarget...', '#00e5ff');
   try {
     const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://api.hackertarget.com/hostsearch/?q=' + domain)}`;
     const res = await fetch(url);
     const data = await res.json();
+    if (data.contents.includes('API count exceeded')) {
+      log('HackerTarget: rate limit hit', '#ffe600');
+      return [];
+    }
     const lines = data.contents.split('\n').filter(l => l.includes(','));
     const entries = lines.map(l => {
       const [sub, ip] = l.split(',');
-      return { sub: sub.trim(), ip: ip ? ip.trim() : '' };
+      return { sub: sub.trim().toLowerCase(), ip: ip ? ip.trim() : '', source: 'hackertarget' };
     });
     log(`HackerTarget: found ${entries.length} entries`, '#00ff9d');
     return entries;
@@ -698,23 +714,98 @@ async function fetchHackerTarget(domain) {
   }
 }
 
+// ── Source 3: AlienVault OTX (no API key needed) ──────────────────
+async function fetchAlienVault(domain) {
+  log('Querying AlienVault OTX...', '#00e5ff');
+  try {
+    const url = `https://otx.alienvault.com/api/v1/indicators/domain/${domain}/passive_dns`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error('OTX error');
+    const data = await res.json();
+    const subs = new Set();
+    (data.passive_dns || []).forEach(e => {
+      const h = (e.hostname || '').toLowerCase();
+      if (h.endsWith('.' + domain) || h === domain) subs.add(h);
+    });
+    log(`AlienVault OTX: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'alienvault' }));
+  } catch(e) {
+    log('AlienVault OTX: failed or blocked', '#ff3e3e');
+    return [];
+  }
+}
+
+// ── Source 4: urlscan.io (no API key needed) ─────────────────────
+async function fetchUrlscan(domain) {
+  log('Querying urlscan.io...', '#00e5ff');
+  try {
+    const url = `https://urlscan.io/api/v1/search/?q=domain:${domain}&size=100`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error('urlscan error');
+    const data = await res.json();
+    const subs = new Set();
+    (data.results || []).forEach(r => {
+      const h = (r.page?.domain || '').toLowerCase();
+      if (h.endsWith('.' + domain) || h === domain) subs.add(h);
+      // also check task URL
+      try {
+        const u = new URL(r.task?.url || '');
+        const d = u.hostname.toLowerCase();
+        if (d.endsWith('.' + domain) || d === domain) subs.add(d);
+      } catch(_) {}
+    });
+    log(`urlscan.io: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'urlscan' }));
+  } catch(e) {
+    log('urlscan.io: failed or rate limited', '#ff3e3e');
+    return [];
+  }
+}
+
+// ── IP resolver: Cloudflare DoH ───────────────────────────────────
+async function resolveIP(hostname) {
+  try {
+    const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${hostname}&type=A`, {
+      headers: { 'Accept': 'application/dns-json' }
+    });
+    const data = await res.json();
+    const answer = (data.Answer || []).find(a => a.type === 1);
+    return answer ? answer.data : '';
+  } catch(_) {
+    return '';
+  }
+}
+
+// ── Status probe via allorigins ───────────────────────────────────
 async function probeStatus(sub) {
   try {
     const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://' + sub)}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const data = await res.json();
-    // allorigins gives us status
-    if (data.status && data.status.http_code) {
-      return String(data.status.http_code);
-    }
+    if (data.status && data.status.http_code) return String(data.status.http_code);
     return res.ok ? '200' : '???';
   } catch(e) {
     return 'ERR';
   }
 }
 
+// ── WAF probe ─────────────────────────────────────────────────────
+async function detectWafProbe(sub, status) {
+  if (status === 'ERR' || status === '000') return '?';
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://' + sub)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    return detectWafFromText(data.contents || '');
+  } catch(e) {
+    return '?';
+  }
+}
+
+// ── Main scan ─────────────────────────────────────────────────────
 async function startScan() {
-  const domain = document.getElementById('domainInput').value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const domain = document.getElementById('domainInput').value.trim().toLowerCase()
+    .replace(/^https?:\/\//, '').replace(/\/$/, '');
   if (!domain || !domain.includes('.')) {
     alert('Enter a valid domain like example.com');
     return;
@@ -729,93 +820,93 @@ async function startScan() {
   document.getElementById('logOutput').innerHTML = '';
   renderTable();
   updateStats();
-
   log(`Target: ${domain}`, '#00ff9d');
 
-  let allSubs = new Map(); // sub -> {ip, source}
+  // Merge all sources into a map: sub -> { ip, source }
+  let allSubs = new Map();
+
+  function mergeSubs(entries) {
+    entries.forEach(e => {
+      if (!allSubs.has(e.sub)) {
+        allSubs.set(e.sub, { ip: e.ip || '', source: e.source });
+      } else {
+        const existing = allSubs.get(e.sub);
+        if (e.ip && !existing.ip) existing.ip = e.ip;
+        if (!existing.source.includes(e.source)) existing.source += '+' + e.source;
+      }
+    });
+  }
 
   // Step 1: crt.sh
   if (document.getElementById('optCrt').checked) {
-    setProgress(10, 'QUERYING CRT.SH...');
-    const crtSubs = await fetchCrtSh(domain);
-    crtSubs.forEach(s => {
-      if (!allSubs.has(s)) allSubs.set(s, { ip: '', source: 'crt.sh' });
-    });
+    setProgress(5, 'QUERYING CRT.SH...');
+    mergeSubs(await fetchCrtSh(domain));
     if (stopRequested) return finishScan();
   }
 
   // Step 2: HackerTarget
   if (document.getElementById('optHt').checked) {
-    setProgress(30, 'QUERYING HACKERTARGET...');
-    const htEntries = await fetchHackerTarget(domain);
-    htEntries.forEach(e => {
-      if (!allSubs.has(e.sub)) {
-        allSubs.set(e.sub, { ip: e.ip, source: 'hackertarget' });
-      } else {
-        // update IP if we have it
-        if (e.ip) allSubs.get(e.sub).ip = e.ip;
-        allSubs.get(e.sub).source = 'both';
-      }
-    });
+    setProgress(20, 'QUERYING HACKERTARGET...');
+    mergeSubs(await fetchHackerTarget(domain));
+    if (stopRequested) return finishScan();
+  }
+
+  // Step 3: AlienVault OTX
+  if (document.getElementById('optOtx').checked) {
+    setProgress(35, 'QUERYING ALIENVAULT OTX...');
+    mergeSubs(await fetchAlienVault(domain));
+    if (stopRequested) return finishScan();
+  }
+
+  // Step 4: urlscan.io
+  if (document.getElementById('optUrlscan').checked) {
+    setProgress(50, 'QUERYING URLSCAN.IO...');
+    mergeSubs(await fetchUrlscan(domain));
     if (stopRequested) return finishScan();
   }
 
   const subList = Array.from(allSubs.entries());
   log(`Total unique subdomains: ${subList.length}`, '#ffe600');
 
-  // Step 3: Status probe
-  if (document.getElementById('optStatus').checked && subList.length > 0) {
-    log('Probing status codes...', '#00e5ff');
+  // Step 5: IP resolution + status probe
+  if (subList.length > 0) {
+    const doStatus = document.getElementById('optStatus').checked;
+    const doWaf = document.getElementById('optWaf').checked;
+    log('Resolving IPs via Cloudflare DoH...', '#00e5ff');
+
     for (let i = 0; i < subList.length; i++) {
       if (stopRequested) break;
       const [sub, info] = subList[i];
-      const pct = 40 + Math.floor((i / subList.length) * 55);
+      const pct = 55 + Math.floor((i / subList.length) * 42);
       setProgress(pct, `PROBING ${i+1}/${subList.length}...`);
 
-      const status = await probeStatus(sub);
-      const entry = {
-        sub,
-        ip: info.ip,
-        status,
-        waf: document.getElementById('optWaf').checked ? await detectWafProbe(sub, status) : '?',
-        source: info.source
-      };
+      // Resolve IP if missing
+      let ip = info.ip;
+      if (!ip) ip = await resolveIP(sub);
+
+      let status = '?';
+      let waf = '?';
+
+      if (doStatus) {
+        status = await probeStatus(sub);
+        if (doWaf) waf = await detectWafProbe(sub, status);
+      }
+
+      const entry = { sub, ip, status, waf, source: info.source };
       results.push(entry);
       updateStats();
       renderTable();
 
-      if (status !== 'ERR' && status !== '404') {
-        log(`${sub} → ${status}`, status === '200' ? '#00ff9d' : '#ffe600');
+      if (status !== 'ERR' && status !== '404' && status !== '?') {
+        log(`${sub} → ${status}${ip ? ' [' + ip + ']' : ''}`, status === '200' ? '#00ff9d' : '#ffe600');
       }
-      await sleep(300);
+      await sleep(200);
     }
   } else {
-    // No status probe, just add all
-    subList.forEach(([sub, info]) => {
-      results.push({ sub, ip: info.ip, status: '?', waf: '?', source: info.source });
-    });
-    renderTable();
-    updateStats();
+    log('No subdomains found.', '#ff3e3e');
   }
 
   finishScan();
-}
-
-async function detectWafProbe(sub, status) {
-  if (status === 'ERR' || status === '000') return '?';
-  try {
-    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://' + sub)}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    const data = await res.json();
-    const body = data.contents || '';
-    if (body.includes('AkamaiGHost') || body.includes('x-reference-error') || body.includes('akamaiedge')) return 'akamai';
-    if (body.includes('cloudflare') || body.includes('cf-ray') || body.includes('Cloudflare')) return 'cloudflare';
-    if (body.includes('Sucuri')) return 'sucuri';
-    if (body.includes('Imperva') || body.includes('incapsula')) return 'imperva';
-    return 'none';
-  } catch(e) {
-    return '?';
-  }
 }
 
 function finishScan() {
@@ -823,7 +914,7 @@ function finishScan() {
   document.getElementById('scanBtn').disabled = false;
   document.getElementById('stopBtn').disabled = true;
   setProgress(100, 'SCAN COMPLETE');
-  log(`Done. ${results.length} subdomains. ${results.filter(r=>r.status==='200').length} alive.`, '#00ff9d');
+  log(`Done. ${results.length} subdomains found. ${results.filter(r=>r.status==='200').length} alive.`, '#00ff9d');
 }
 
 function stopScan() {
@@ -845,7 +936,7 @@ function copyText(text) {
 }
 
 function exportTxt() {
-  const lines = results.map(r => `${r.sub}\t${r.ip || ''}\t${r.status}\t${r.waf}`).join('\n');
+  const lines = results.map(r => `${r.sub}\t${r.ip || ''}\t${r.status}\t${r.waf}\t${r.source}`).join('\n');
   download('recon_results.txt', lines);
 }
 
@@ -854,8 +945,7 @@ function exportJson() {
 }
 
 function copyAll() {
-  const lines = results.map(r => r.sub).join('\n');
-  copyText(lines);
+  copyText(results.map(r => r.sub).join('\n'));
 }
 
 function download(filename, content) {
@@ -865,7 +955,6 @@ function download(filename, content) {
   a.click();
 }
 
-// Enter key support
 document.getElementById('domainInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') startScan();
 });
