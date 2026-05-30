@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SITE MONITOR // GENESIS VAULT</title>
+<title>SITE MONITOR v2.0 // GENESIS VAULT</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -316,7 +316,7 @@
   <header>
     <div class="logo">// GENESIS VAULT — TOOLS</div>
     <h1>SITE <span>MONITOR</span></h1>
-    <div class="subtitle">// DETECT WEBSITE CHANGES — DISCORD ALERTS</div>
+    <div class="subtitle">// DETECT WEBSITE CHANGES — KEYWORD WATCH — DISCORD ALERTS</div>
   </header>
 
   <!-- Status Bar -->
@@ -352,6 +352,18 @@
         </select>
       </div>
     </div>
+    <div class="row">
+      <div class="field">
+        <label>// KEYWORD WATCH <span style="color:#2a5a6a">(optional)</span></label>
+        <input type="text" id="keyword-input" placeholder="e.g. sold out, price, v2.0" />
+        <div class="tip">Alert only when this word appears or disappears</div>
+      </div>
+      <div class="field">
+        <label>// CSS SELECTOR <span style="color:#2a5a6a">(optional)</span></label>
+        <input type="text" id="selector-input" placeholder="e.g. .price, #stock, h1" />
+        <div class="tip">Monitor a specific element instead of full page</div>
+      </div>
+    </div>
     <div class="field">
       <label>// DISCORD WEBHOOK URL</label>
       <input type="url" id="webhook-input" placeholder="https://discord.com/api/webhooks/..." />
@@ -383,22 +395,17 @@
   let logCount = 0;
 
   function timestamp() {
-    const n = new Date();
-    return n.toTimeString().slice(0,8);
+    return new Date().toTimeString().slice(0,8);
   }
 
   function log(msg, type='') {
-    const log = document.getElementById('log');
+    const el = document.getElementById('log');
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     entry.innerHTML = `<span class="log-time">[${timestamp()}]</span><span class="log-msg ${type}">${msg}</span>`;
-    log.appendChild(entry);
-    log.scrollTop = log.scrollHeight;
-    logCount++;
-    if (logCount > 200) {
-      log.removeChild(log.firstChild);
-      logCount--;
-    }
+    el.appendChild(entry);
+    el.scrollTop = el.scrollHeight;
+    if (++logCount > 200) { el.removeChild(el.firstChild); logCount--; }
   }
 
   function updateStatus() {
@@ -427,14 +434,20 @@
     list.innerHTML = '';
     keys.forEach(id => {
       const m = monitors[id];
+      const tags = [];
+      if (m.keyword) tags.push(`<span style="color:var(--yellow);font-size:9px">KW:${m.keyword}</span>`);
+      if (m.selector) tags.push(`<span style="color:var(--accent);font-size:9px">SEL:${m.selector}</span>`);
       const item = document.createElement('div');
       item.className = 'monitor-item';
       item.id = `monitor-item-${id}`;
       item.innerHTML = `
         <div class="monitor-dot"></div>
-        <div class="monitor-url" title="${m.url}">${m.url}</div>
+        <div style="flex:1;overflow:hidden">
+          <div class="monitor-url" title="${m.url}">${m.url}</div>
+          ${tags.length ? `<div style="display:flex;gap:8px;margin-top:3px">${tags.join('')}</div>` : ''}
+        </div>
         <div class="monitor-interval">${formatInterval(m.interval)}</div>
-        <span class="change-count" id="count-${id}" title="Changes detected">0 CHG</span>
+        <span class="change-count" id="count-${id}" title="Alerts fired">0 CHG</span>
         <button class="monitor-remove" onclick="removeMonitor('${id}')" title="Remove">✕</button>
       `;
       list.appendChild(item);
@@ -447,22 +460,49 @@
     return `${ms/3600000}h`;
   }
 
-  async function fetchContent(url, mode) {
+  // Extract content from raw HTML using optional CSS selector
+  function extractContent(html, mode, selector) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+
+    let node = tmp;
+    if (selector) {
+      const found = tmp.querySelector(selector);
+      if (found) node = found;
+      else return '__SELECTOR_NOT_FOUND__';
+    }
+
+    if (mode === 'size') return String(html.length);
+    if (mode === 'text') return (node.textContent || node.innerText || '').replace(/\s+/g,' ').trim();
+    return node.innerHTML || node.textContent || '';
+  }
+
+  // Check if keyword is present in content
+  function keywordPresent(content, keyword) {
+    return content.toLowerCase().includes(keyword.toLowerCase());
+  }
+
+  // Build a short diff snippet showing ~300 chars around first change
+  function buildDiffSnippet(oldContent, newContent) {
+    const maxLen = 300;
+    // Find first differing char
+    let i = 0;
+    while (i < oldContent.length && i < newContent.length && oldContent[i] === newContent[i]) i++;
+    const start = Math.max(0, i - 60);
+    const oldSnip = oldContent.slice(start, start + maxLen).replace(/\s+/g,' ').trim();
+    const newSnip = newContent.slice(start, start + maxLen).replace(/\s+/g,' ').trim();
+    return { oldSnip, newSnip };
+  }
+
+  async function fetchRaw(url) {
     const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&timestamp=${Date.now()}`;
     const res = await fetch(proxy);
     if (!res.ok) throw new Error(`Proxy error ${res.status}`);
     const data = await res.json();
-    const content = data.contents || '';
-    if (mode === 'size') return String(content.length);
-    if (mode === 'text') {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = content;
-      return tmp.textContent || tmp.innerText || '';
-    }
-    return content;
+    return data.contents || '';
   }
 
-  async function sendDiscordAlert(webhook, url, changeInfo) {
+  async function sendDiscordAlert(webhook, url, fields) {
     if (!webhook) return;
     try {
       await fetch(webhook, {
@@ -473,18 +513,17 @@
           avatar_url: 'https://i.imgur.com/4M34hi2.png',
           embeds: [{
             title: '⚠️ CHANGE DETECTED',
-            description: `A change was detected on the monitored target.`,
             color: 0x00ffe7,
             fields: [
               { name: '🎯 Target', value: url, inline: false },
               { name: '🕒 Time', value: new Date().toUTCString(), inline: false },
-              { name: '📊 Info', value: changeInfo, inline: false }
+              ...fields
             ],
-            footer: { text: 'Genesis Vault Site Monitor' }
+            footer: { text: 'Genesis Vault Site Monitor v2.0' }
           }]
         })
       });
-      log(`Discord alert sent for ${url}`, 'info');
+      log(`Discord alert sent → ${url}`, 'info');
     } catch(e) {
       log(`Discord alert failed: ${e.message}`, 'error');
     }
@@ -495,21 +534,66 @@
     if (!m) return;
     try {
       log(`Checking ${m.url}...`);
-      const content = await fetchContent(m.url, m.mode);
-      if (m.lastContent === null) {
-        m.lastContent = content;
-        log(`Baseline captured for ${m.url}`, 'ok');
+      const raw = await fetchRaw(m.url);
+      const content = extractContent(raw, m.mode, m.selector);
+
+      if (content === '__SELECTOR_NOT_FOUND__') {
+        log(`Selector "${m.selector}" not found on ${m.url}`, 'error');
         return;
       }
+
+      // ── Baseline capture ──
+      if (m.lastContent === null) {
+        m.lastContent = content;
+        m.lastKeyword = m.keyword ? keywordPresent(content, m.keyword) : null;
+        const kwStatus = m.keyword
+          ? ` | keyword "${m.keyword}": ${m.lastKeyword ? 'PRESENT' : 'ABSENT'}`
+          : '';
+        log(`Baseline captured for ${m.url}${kwStatus}`, 'ok');
+        return;
+      }
+
+      // ── Keyword-only mode ──
+      if (m.keyword) {
+        const nowPresent = keywordPresent(content, m.keyword);
+        if (nowPresent !== m.lastKeyword) {
+          m.changeCount++;
+          const el = document.getElementById(`count-${id}`);
+          if (el) el.textContent = `${m.changeCount} CHG`;
+          const transition = nowPresent
+            ? `"${m.keyword}" APPEARED on page`
+            : `"${m.keyword}" DISAPPEARED from page`;
+          log(`⚠ KEYWORD CHANGE: ${transition} — ${m.url}`, 'change');
+          await sendDiscordAlert(m.webhook, m.url, [
+            { name: '🔑 Keyword Event', value: transition, inline: false }
+          ]);
+          m.lastKeyword = nowPresent;
+        } else {
+          log(`No keyword change on ${m.url} — "${m.keyword}" still ${nowPresent ? 'present' : 'absent'}`, 'ok');
+        }
+        // Still track full content diff below if no keyword mode only
+        return;
+      }
+
+      // ── Content diff mode ──
       if (content !== m.lastContent) {
         m.changeCount++;
         const el = document.getElementById(`count-${id}`);
         if (el) el.textContent = `${m.changeCount} CHG`;
-        const info = m.mode === 'size'
-          ? `Size changed: ${m.lastContent} → ${content} bytes`
-          : `Content differs from last snapshot`;
         log(`⚠ CHANGE DETECTED on ${m.url}`, 'change');
-        await sendDiscordAlert(m.webhook, m.url, info);
+
+        const alertFields = [];
+
+        if (m.mode === 'size') {
+          alertFields.push({ name: '📏 Size Change', value: `${m.lastContent} → ${content} bytes`, inline: false });
+        } else {
+          const { oldSnip, newSnip } = buildDiffSnippet(m.lastContent, content);
+          if (m.selector) alertFields.push({ name: '🎯 Selector', value: `\`${m.selector}\``, inline: false });
+          alertFields.push({ name: '📄 Before', value: `\`\`\`${oldSnip.slice(0,200) || '(empty)'}\`\`\``, inline: false });
+          alertFields.push({ name: '📄 After', value: `\`\`\`${newSnip.slice(0,200) || '(empty)'}\`\`\``, inline: false });
+        }
+
+        await sendDiscordAlert(m.webhook, m.url, alertFields);
         m.lastContent = content;
       } else {
         log(`No change on ${m.url}`, 'ok');
@@ -520,29 +604,37 @@
   }
 
   async function addMonitor() {
-    const url = document.getElementById('url-input').value.trim();
+    const url      = document.getElementById('url-input').value.trim();
     const interval = parseInt(document.getElementById('interval-select').value);
-    const mode = document.getElementById('mode-select').value;
-    const webhook = document.getElementById('webhook-input').value.trim();
+    const mode     = document.getElementById('mode-select').value;
+    const webhook  = document.getElementById('webhook-input').value.trim();
+    const keyword  = document.getElementById('keyword-input').value.trim();
+    const selector = document.getElementById('selector-input').value.trim();
 
     if (!url) { log('No URL provided', 'error'); return; }
     if (!url.startsWith('http')) { log('Invalid URL — must start with http/https', 'error'); return; }
 
     const id = Date.now().toString();
     monitors[id] = {
-      url, interval, mode, webhook,
+      url, interval, mode, webhook, keyword, selector,
       lastContent: null,
+      lastKeyword: null,
       changeCount: 0,
       timer: null
     };
 
-    log(`Monitor added: ${url} [${formatInterval(interval)}]`, 'info');
+    const extras = [];
+    if (keyword) extras.push(`keyword:"${keyword}"`);
+    if (selector) extras.push(`selector:"${selector}"`);
+    log(`Monitor added: ${url} [${formatInterval(interval)}]${extras.length ? ' | ' + extras.join(' ') : ''}`, 'info');
 
     await checkSite(id);
     monitors[id].timer = setInterval(() => checkSite(id), interval);
 
     document.getElementById('url-input').value = '';
     document.getElementById('webhook-input').value = '';
+    document.getElementById('keyword-input').value = '';
+    document.getElementById('selector-input').value = '';
 
     renderMonitors();
     updateStatus();
@@ -557,7 +649,7 @@
     updateStatus();
   }
 
-  log('// Genesis Vault Site Monitor initialized', 'info');
+  log('// Genesis Vault Site Monitor v2.0 initialized', 'info');
   log('// Add a target URL to begin monitoring', 'info');
 </script>
 </body>
