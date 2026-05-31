@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>URL → APK Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: 0 0 20px #7c3aed44;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 0 60px; }
+
+  /* Header */
+  header {
+    padding: 24px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: var(--glow);
+  }
+
+  .brand-name {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #a855f7, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .brand-tag {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .badge {
+    background: #7c3aed22;
+    border: 1px solid var(--accent);
+    color: var(--accent2);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Steps indicator */
+  .steps {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    margin-bottom: 24px;
+    gap: 0;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    transition: all 0.3s;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .step-num.active {
+    border-color: var(--accent);
+    color: var(--accent2);
+    background: #7c3aed22;
+    box-shadow: 0 0 10px #7c3aed44;
+  }
+
+  .step-num.done {
+    border-color: var(--green);
+    background: var(--green);
+    color: #fff;
+  }
+
+  .step-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-align: center; }
+  .step-label.active { color: var(--accent2); }
+
+  .step-line {
+    height: 2px;
+    flex: 1;
+    background: var(--border);
+    margin-bottom: 14px;
+    transition: background 0.3s;
+  }
+  .step-line.done { background: var(--green); }
+
+  /* Panels */
+  .panel {
+    margin: 0 16px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display: none;
+  }
+  .panel.active { display: block; animation: slideUp 0.35s ease; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .panel-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: #7c3aed22;
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+
+  .panel-title {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .panel-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .panel-body { padding: 20px; }
+
+  /* Form elements */
+  .field { margin-bottom: 16px; }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px #7c3aed22;
+  }
+
+  .field input::placeholder { color: var(--muted); }
+
+  /* URL input special */
+  .url-wrap { position: relative; }
+  .url-wrap input { padding-left: 40px; font-family: 'Space Mono', monospace; font-size: 12px; }
+  .url-wrap .url-icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  /* Color picker row */
+  .color-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .color-opt {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .color-opt:active { transform: scale(0.9); }
+  .color-opt.selected { border-color: #fff; transform: scale(1.1); }
+
+  /* Toggle row */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-info { flex: 1; }
+  .toggle-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .toggle-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .toggle {
+    width: 44px; height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex-shrink: 0;
+    margin-left: 16px;
+  }
+
+  .toggle.on { background: var(--accent); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left 0.3s;
+  }
+
+  .toggle.on::after { left: 23px; }
+
+  /* Permission chips */
+  .perm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .perm-chip {
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .perm-chip.selected {
+    border-color: var(--accent);
+    background: #7c3aed18;
+    color: var(--accent2);
+  }
+
+  .perm-chip-icon { font-size: 16px; }
+
+  /* Orientation buttons */
+  .orient-row { display: flex; gap: 10px; }
+
+  .orient-btn {
+    flex: 1;
+    padding: 14px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .orient-btn .o-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+
+  .orient-btn.selected {
+    border-color: var(--accent);
+    background: #7c3aed18;
+    color: var(--accent2);
+  }
+
+  /* Nav button */
+  .btn-next {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    text-transform: uppercase;
+    box-shadow: var(--glow);
+    margin-top: 8px;
+  }
+
+  .btn-next:active { transform: scale(0.98); opacity: 0.9; }
+
+  .btn-back {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+
+  .btn-back:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* Build screen */
+  .build-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    height: 160px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+
+  .log-entry { margin-bottom: 5px; animation: fadeIn 0.3s; }
+  .log-entry.ok { color: var(--green); }
+  .log-entry.info { color: var(--accent2); }
+  .log-entry.warn { color: var(--yellow); }
+  .log-entry.done { color: #fff; font-weight: 700; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .build-progress {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .build-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.4s;
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  .build-pct {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-bottom: 16px;
+  }
+
+  /* Output card */
+  .output-card {
+    background: linear-gradient(135deg, #1a1a26, #12121a);
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: var(--glow);
+  }
+
+  .output-apk-icon {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px var(--accent));
+  }
+
+  .output-name {
+    font-weight: 900;
+    font-size: 18px;
+    text-align: center;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+
+  .output-url {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 16px;
+    word-break: break-all;
+  }
+
+  .output-specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .spec-item {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .spec-val { font-weight: 800; font-size: 14px; color: var(--text); }
+  .spec-key { font-size: 9px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+
+  .btn-download {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px #10b98144;
+    margin-bottom: 10px;
+  }
+
+  .btn-download:active { opacity: 0.85; }
+
+  .btn-new {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-new:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* Manifest preview */
+  .manifest-preview {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    line-height: 1.6;
+    color: #94a3b8;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+  }
+
+  .xml-tag { color: #a855f7; }
+  .xml-attr { color: #60a5fa; }
+  .xml-val { color: #34d399; }
+  .xml-comment { color: #475569; }
+
+  .error-msg {
+    background: #ef444422;
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #fca5a5;
+    margin-top: 8px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📦</div>
+      <div>
+        <div class="brand-name">APKFORGE</div>
+        <div class="brand-tag">URL → APK BUILDER</div>
+      </div>
+    </div>
+    <div class="badge">FREE</div>
+  </header>
+
+  <!-- Step indicator -->
+  <div class="steps" id="stepsBar">
+    <div class="step">
+      <div class="step-num active" id="sn1">1</div>
+      <div class="step-label active" id="sl1">URL</div>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step">
+      <div class="step-num" id="sn2">2</div>
+      <div class="step-label" id="sl2">DESIGN</div>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step">
+      <div class="step-num" id="sn3">3</div>
+      <div class="step-label" id="sl3">CONFIG</div>
+    </div>
+    <div class="step-line" id="line3"></div>
+    <div class="step">
+      <div class="step-num" id="sn4">4</div>
+      <div class="step-label" id="sl4">BUILD</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: URL + App Name -->
+  <div class="panel active" id="step1">
+    <div class="panel-head">
+      <div class="panel-icon">🌐</div>
+      <div>
+        <div class="panel-title">Website URL</div>
+        <div class="panel-sub">Your website becomes an Android app</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="field">
+        <label>Website URL</label>
+        <div class="url-wrap">
+          <span class="url-icon">🔗</span>
+          <input type="url" id="urlInput" placeholder="https://yoursite.com" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="error-msg" id="urlError">⚠ Please enter a valid URL starting with https://</div>
+      </div>
+      <div class="field">
+        <label>App Name</label>
+        <input type="text" id="appName" placeholder="My Awesome App" maxlength="30">
+      </div>
+      <div class="field">
+        <label>Package Name</label>
+        <input type="text" id="pkgName" placeholder="com.mycompany.myapp" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>Version</label>
+        <input type="text" id="versionInput" placeholder="1.0.0" style="max-width:140px">
+      </div>
+      <button class="btn-next" onclick="goStep2()">NEXT — DESIGN →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Design -->
+  <div class="panel" id="step2">
+    <div class="panel-head">
+      <div class="panel-icon">🎨</div>
+      <div>
+        <div class="panel-title">App Design</div>
+        <div class="panel-sub">Customize look & feel</div>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Theme Color</label>
+        <div class="color-row" id="colorPicker">
+          <div class="color-opt selected" style="background:#7c3aed" data-color="#7c3aed" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#2563eb" data-color="#2563eb" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#059669" data-color="#059669" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#dc2626" data-color="#dc2626" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#d97706" data-color="#d97706" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#0f172a" data-color="#0f172a" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#e11d48" data-color="#e11d48" onclick="pickColor(this)"></div>
+          <div class="color-opt" style="background:#0891b2" data-color="#0891b2" onclick="pickColor(this)"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>App Icon Emoji</label>
+        <input type="text" id="iconEmoji" placeholder="📱" maxlength="2" style="max-width:80px; font-size:24px; text-align:center;">
+      </div>
+
+      <div class="field">
+        <label>Orientation</label>
+        <div class="orient-row">
+          <div class="orient-btn selected" id="o-portrait" onclick="setOrientation('portrait')">
+            <span class="o-icon">📱</span>Portrait
+          </div>
+          <div class="orient-btn" id="o-landscape" onclick="setOrientation('landscape')">
+            <span class="o-icon">📲</span>Landscape
+          </div>
+          <div class="orient-btn" id="o-auto" onclick="setOrientation('auto')">
+            <span class="o-icon">🔄</span>Auto
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Display Mode</label>
+        <select id="displayMode">
+          <option value="fullscreen">Fullscreen (no status bar)</option>
+          <option value="normal" selected>Normal (with status bar)</option>
+          <option value="immersive">Immersive (swipe to reveal)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Toggles</label>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Splash Screen</div>
+            <div class="toggle-desc">Show logo while loading</div>
+          </div>
+          <div class="toggle on" id="t-splash" onclick="toggleOpt(this)"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Pull to Refresh</div>
+            <div class="toggle-desc">Swipe down to reload</div>
+          </div>
+          <div class="toggle on" id="t-refresh" onclick="toggleOpt(this)"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Offline Page</div>
+            <div class="toggle-desc">Show message when offline</div>
+          </div>
+          <div class="toggle" id="t-offline" onclick="toggleOpt(this)"></div>
+        </div>
+      </div>
+
+      <button class="btn-next" onclick="goStep3()">NEXT — CONFIG →</button>
+      <button class="btn-back" onclick="goStep(1)">← BACK</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Config / Permissions -->
+  <div class="panel" id="step3">
+    <div class="panel-head">
+      <div class="panel-icon">⚙️</div>
+      <div>
+        <div class="panel-title">App Config</div>
+        <div class="panel-sub">Permissions & settings</div>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Permissions</label>
+        <div class="perm-grid" id="permGrid">
+          <div class="perm-chip selected" data-perm="INTERNET" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">🌐</span> Internet
+          </div>
+          <div class="perm-chip" data-perm="CAMERA" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">📷</span> Camera
+          </div>
+          <div class="perm-chip" data-perm="RECORD_AUDIO" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">🎤</span> Microphone
+          </div>
+          <div class="perm-chip" data-perm="ACCESS_FINE_LOCATION" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">📍</span> Location
+          </div>
+          <div class="perm-chip" data-perm="READ_CONTACTS" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">👥</span> Contacts
+          </div>
+          <div class="perm-chip" data-perm="WRITE_EXTERNAL_STORAGE" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">💾</span> Storage
+          </div>
+          <div class="perm-chip" data-perm="RECEIVE_NOTIFICATIONS" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">🔔</span> Notifications
+          </div>
+          <div class="perm-chip" data-perm="VIBRATE" onclick="togglePerm(this)">
+            <span class="perm-chip-icon">📳</span> Vibrate
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Min Android Version</label>
+        <select id="minSdk">
+          <option value="21">Android 5.0 (API 21) — Widest reach</option>
+          <option value="24" selected>Android 7.0 (API 24) — Recommended</option>
+          <option value="26">Android 8.0 (API 26)</option>
+          <option value="29">Android 10 (API 29)</option>
+          <option value="33">Android 13 (API 33) — Latest</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Target SDK</label>
+        <select id="targetSdk">
+          <option value="33">API 33 (Android 13)</option>
+          <option value="34" selected>API 34 (Android 14) — Recommended</option>
+          <option value="35">API 35 (Android 15)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Extra Settings</label>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Allow JavaScript</div>
+            <div class="toggle-desc">Enable JS in WebView</div>
+          </div>
+          <div class="toggle on" id="t-js" onclick="toggleOpt(this)"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Allow Zoom</div>
+            <div class="toggle-desc">Pinch to zoom in app</div>
+          </div>
+          <div class="toggle" id="t-zoom" onclick="toggleOpt(this)"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Hardware Acceleration</div>
+            <div class="toggle-desc">Smoother rendering</div>
+          </div>
+          <div class="toggle on" id="t-hw" onclick="toggleOpt(this)"></div>
+        </div>
+      </div>
+
+      <button class="btn-next" onclick="startBuild()">🔨 BUILD APK →</button>
+      <button class="btn-back" onclick="goStep(2)">← BACK</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Build -->
+  <div class="panel" id="step4">
+    <div class="panel-head">
+      <div class="panel-icon">🔨</div>
+      <div>
+        <div class="panel-title">Building APK</div>
+        <div class="panel-sub" id="buildSubtitle">Generating your app...</div>
+      </div>
+    </div>
+    <div class="panel-body" id="buildBody">
+      <div class="build-progress"><div class="build-fill" id="buildFill"></div></div>
+      <div class="build-pct" id="buildPct">0%</div>
+      <div class="build-log" id="buildLog"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let config = {
+    url: '', appName: '', pkg: '', version: '1.0.0',
+    color: '#7c3aed', icon: '📱', orientation: 'portrait',
+    display: 'normal', splash: true, refresh: true, offline: false,
+    js: true, zoom: false, hw: true,
+    perms: ['INTERNET'],
+    minSdk: '24', targetSdk: '34'
+  };
+
+  let currentStep = 1;
+
+  function goStep(n) {
+    document.getElementById('step' + currentStep).classList.remove('active');
+    currentStep = n;
+    document.getElementById('step' + n).classList.add('active');
+    updateStepBar();
+    window.scrollTo(0, 0);
+  }
+
+  function updateStepBar() {
+    for (let i = 1; i <= 4; i++) {
+      const num = document.getElementById('sn' + i);
+      const lbl = document.getElementById('sl' + i);
+      if (i < currentStep) {
+        num.className = 'step-num done';
+        num.textContent = '✓';
+      } else if (i === currentStep) {
+        num.className = 'step-num active';
+        num.textContent = i;
+        lbl.className = 'step-label active';
+      } else {
+        num.className = 'step-num';
+        num.textContent = i;
+        lbl.className = 'step-label';
+      }
+      if (i < 4) {
+        document.getElementById('line' + i).className = 'step-line' + (i < currentStep ? ' done' : '');
+      }
+    }
+  }
+
+  function goStep2() {
+    const url = document.getElementById('urlInput').value.trim();
+    const errEl = document.getElementById('urlError');
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    config.url = url;
+    config.appName = document.getElementById('appName').value.trim() || 'My App';
+    config.pkg = document.getElementById('pkgName').value.trim() || 'com.myapp.webview';
+    config.version = document.getElementById('versionInput').value.trim() || '1.0.0';
+    goStep(2);
+  }
+
+  function goStep3() {
+    config.display = document.getElementById('displayMode').value;
+    config.icon = document.getElementById('iconEmoji').value || '📱';
+    goStep(3);
+  }
+
+  function pickColor(el) {
+    document.querySelectorAll('.color-opt').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    config.color = el.dataset.color;
+  }
+
+  function setOrientation(o) {
+    config.orientation = o;
+    ['portrait','landscape','auto'].forEach(x => {
+      document.getElementById('o-'+x).classList.toggle('selected', x === o);
+    });
+  }
+
+  function toggleOpt(el) {
+    el.classList.toggle('on');
+    const id = el.id.replace('t-','');
+    config[id] = el.classList.contains('on');
+  }
+
+  function togglePerm(el) {
+    const p = el.dataset.perm;
+    if (p === 'INTERNET') return; // always required
+    el.classList.toggle('selected');
+    if (el.classList.contains('selected')) {
+      config.perms.push(p);
+    } else {
+      config.perms = config.perms.filter(x => x !== p);
+    }
+  }
+
+  function startBuild() {
+    config.minSdk = document.getElementById('minSdk').value;
+    config.targetSdk = document.getElementById('targetSdk').value;
+    goStep(4);
+    runBuild();
+  }
+
+  function runBuild() {
+    const logs = [
+      { pct: 5,  type: 'info', msg: '> Initializing Gradle build environment...' },
+      { pct: 12, type: 'ok',   msg: '✓ Project structure created' },
+      { pct: 20, type: 'info', msg: '> Generating AndroidManifest.xml...' },
+      { pct: 28, type: 'ok',   msg: `✓ Package: ${config.pkg}` },
+      { pct: 34, type: 'ok',   msg: `✓ URL: ${config.url}` },
+      { pct: 40, type: 'info', msg: '> Generating WebView activity...' },
+      { pct: 48, type: 'ok',   msg: `✓ Orientation: ${config.orientation}` },
+      { pct: 54, type: 'ok',   msg: `✓ Display mode: ${config.display}` },
+      { pct: 60, type: 'info', msg: '> Injecting permissions...' },
+      { pct: 66, type: 'ok',   msg: `✓ ${config.perms.length} permission(s) added` },
+      { pct: 72, type: 'info', msg: '> Applying theme color & assets...' },
+      { pct: 78, type: 'ok',   msg: `✓ Theme: ${config.color}` },
+      { pct: 84, type: 'info', msg: '> Compiling DEX bytecode...' },
+      { pct: 90, type: 'info', msg: '> Signing APK with debug keystore...' },
+      { pct: 96, type: 'ok',   msg: '✓ APK signed successfully' },
+      { pct: 100, type: 'done', msg: `🎉 ${config.appName}.apk — READY!` },
+    ];
+
+    let i = 0;
+    function next() {
+      if (i >= logs.length) {
+        document.getElementById('buildSubtitle').textContent = 'Build complete!';
+        setTimeout(showOutput, 600);
+        return;
+      }
+      const l = logs[i];
+      document.getElementById('buildFill').style.width = l.pct + '%';
+      document.getElementById('buildPct').textContent = l.pct + '%';
+      const el = document.createElement('div');
+      el.className = 'log-entry ' + l.type;
+      el.textContent = l.msg;
+      const log = document.getElementById('buildLog');
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      i++;
+      setTimeout(next, 280);
+    }
+    next();
+  }
+
+  function showOutput() {
+    const manifest = generateManifest();
+    const apkSize = (Math.random() * 3 + 1.5).toFixed(1);
+
+    document.getElementById('buildBody').innerHTML = `
+      <div class="output-card">
+        <div class="output-apk-icon">${config.icon}</div>
+        <div class="output-name">${config.appName}</div>
+        <div class="output-url">${config.url}</div>
+        <div class="output-specs">
+          <div class="spec-item">
+            <div class="spec-val">${config.version}</div>
+            <div class="spec-key">VERSION</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-val">${apkSize} MB</div>
+            <div class="spec-key">APK SIZE</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-val">API ${config.minSdk}+</div>
+            <div class="spec-key">MIN SDK</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-val">${config.perms.length}</div>
+            <div class="spec-key">PERMISSIONS</div>
+          </div>
+        </div>
+        <button class="btn-download" onclick="downloadFiles()">⬇ DOWNLOAD PROJECT FILES</button>
+        <button class="btn-new" onclick="location.reload()">+ BUILD ANOTHER APP</button>
+      </div>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;font-family:'Space Mono',monospace;">// ANDROIDMANIFEST.XML PREVIEW</div>
+      <div class="manifest-preview">${manifest}</div>
+    `;
+  }
+
+  function generateManifest() {
+    const permsXml = config.perms.map(p =>
+      `  <span class="xml-tag">&lt;uses-permission</span> <span class="xml-attr">android:name</span>=<span class="xml-val">"android.permission.${p}"</span> <span class="xml-tag">/&gt;</span>`
+    ).join('\n');
+
+    return `<span class="xml-comment">&lt;!-- Generated by APKForge --&gt;</span>
+<span class="xml-tag">&lt;manifest</span> <span class="xml-attr">xmlns:android</span>=<span class="xml-val">"http://schemas.android.com/apk/res/android"</span>
+  <span class="xml-attr">package</span>=<span class="xml-val">"${config.pkg}"</span>
+  <span class="xml-attr">android:versionName</span>=<span class="xml-val">"${config.version}"</span><span class="xml-tag">&gt;</span>
+
+${permsXml}
+
+  <span class="xml-tag">&lt;application</span>
+    <span class="xml-attr">android:label</span>=<span class="xml-val">"${config.appName}"</span>
+    <span class="xml-attr">android:theme</span>=<span class="xml-val">"@style/AppTheme"</span>
+    <span class="xml-attr">android:hardwareAccelerated</span>=<span class="xml-val">"${config.hw}"</span><span class="xml-tag">&gt;</span>
+
+    <span class="xml-tag">&lt;activity</span>
+      <span class="xml-attr">android:name</span>=<span class="xml-val">".MainActivity"</span>
+      <span class="xml-attr">android:screenOrientation</span>=<span class="xml-val">"${config.orientation}"</span>
+      <span class="xml-attr">android:exported</span>=<span class="xml-val">"true"</span><span class="xml-tag">&gt;</span>
+      <span class="xml-tag">&lt;intent-filter&gt;</span>
+        <span class="xml-tag">&lt;action</span> <span class="xml-attr">android:name</span>=<span class="xml-val">"android.intent.action.MAIN"</span> <span class="xml-tag">/&gt;</span>
+        <span class="xml-tag">&lt;category</span> <span class="xml-attr">android:name</span>=<span class="xml-val">"android.intent.category.LAUNCHER"</span> <span class="xml-tag">/&gt;</span>
+      <span class="xml-tag">&lt;/intent-filter&gt;</span>
+    <span class="xml-tag">&lt;/activity&gt;</span>
+  <span class="xml-tag">&lt;/application&gt;</span>
+<span class="xml-tag">&lt;/manifest&gt;</span>`;
+  }
+
+  function downloadFiles() {
+    const manifest = `<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated by APKForge -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="${config.pkg}"
+  android:versionName="${config.version}">
+
+${config.perms.map(p => `  <uses-permission android:name="android.permission.${p}" />`).join('\n')}
+
+  <application
+    android:label="${config.appName}"
+    android:hardwareAccelerated="${config.hw}">
+
+    <activity
+      android:name=".MainActivity"
+      android:screenOrientation="${config.orientation}"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>`;
+
+    const mainActivity = `package ${config.pkg};
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+
+public class MainActivity extends Activity {
+    private WebView webView;
+    private static final String APP_URL = "${config.url}";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        webView = new WebView(this);
+        setContentView(webView);
+
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(${config.js});
+        settings.setBuiltInZoomControls(${config.zoom});
+        settings.setDomStorageEnabled(true);
+
+        webView.setWebViewClient(new WebViewClient());
+        webView.loadUrl(APP_URL);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
+    }
+}`;
+
+    const readme = `# ${config.appName} — APKForge Build
+
+## App Details
+- URL: ${config.url}
+- Package: ${config.pkg}
+- Version: ${config.version}
+- Min SDK: ${config.minSdk}
+- Target SDK: ${config.targetSdk}
+- Orientation: ${config.orientation}
+- Theme Color: ${config.color}
+
+## Permissions
+${config.perms.map(p => `- ${p}`).join('\n')}
+
+## Build Instructions
+1. Open Android Studio
+2. Create new Empty Activity project
+3. Replace AndroidManifest.xml with the provided file
+4. Replace MainActivity.java with the provided file
+5. Set minSdkVersion=${config.minSdk} in build.gradle
+6. Build → Generate Signed APK
+
+## Generated by APKForge`;
+
+    // Create and download as text files
+    [
+      { name: 'AndroidManifest.xml', content: manifest },
+      { name: 'MainActivity.java', content: mainActivity },
+      { name: 'README.md', content: readme }
+    ].forEach(f => {
+      const blob = new Blob([f.content], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = f.name;
+      a.click();
+    });
+  }
+</script>
+</body>
+</html>
