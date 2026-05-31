@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>APK Analyzer — CyberDroid</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;600;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020b0f;
+    --panel: #061218;
+    --border: #0d3040;
+    --accent: #00ffe0;
+    --danger: #ff2e5b;
+    --warn: #ffb300;
+    --safe: #00e676;
+    --text: #b0d8e8;
+    --dim: #3a6070;
+    --glow: 0 0 12px #00ffe066;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      rgba(0,255,224,0.015) 2px,
+      rgba(0,255,224,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(90deg, #020b0f 60%, #001a20);
+  }
+
+  .logo-icon {
+    width: 38px; height: 38px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--glow);
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-shadow: var(--glow);
+  }
+
+  .logo-sub {
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .status-dot {
+    margin-left: auto;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--safe);
+    box-shadow: 0 0 8px var(--safe);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .container { padding: 20px 16px; max-width: 480px; margin: 0 auto; }
+
+  /* Drop Zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: var(--panel);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .drop-zone:active, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: #001820;
+    box-shadow: var(--glow);
+  }
+
+  .drop-zone input { display: none; }
+
+  .drop-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+
+  .drop-title {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 15px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .drop-sub { font-size: 11px; color: var(--dim); }
+
+  .btn-analyze {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    box-shadow: var(--glow);
+    margin-bottom: 20px;
+  }
+
+  .btn-analyze:hover { background: var(--accent); color: var(--bg); }
+  .btn-analyze:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+
+  /* Progress */
+  .progress-wrap {
+    display: none;
+    margin-bottom: 20px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar-bg {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffe0, #00b4ff);
+    width: 0%;
+    transition: width 0.3s;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .progress-log {
+    font-size: 10px;
+    color: var(--dim);
+    height: 60px;
+    overflow: hidden;
+  }
+
+  .log-line { margin-bottom: 3px; animation: fadeIn 0.3s; }
+  .log-line.ok { color: var(--safe); }
+  .log-line.warn { color: var(--warn); }
+  .log-line.bad { color: var(--danger); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* Results */
+  .results { display: none; }
+
+  .risk-badge {
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .risk-badge.high { border-color: var(--danger); background: #1a0010; }
+  .risk-badge.medium { border-color: var(--warn); background: #1a1000; }
+  .risk-badge.low { border-color: var(--safe); background: #001a0a; }
+
+  .risk-score {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .risk-badge.high .risk-score { color: var(--danger); text-shadow: 0 0 20px var(--danger); }
+  .risk-badge.medium .risk-score { color: var(--warn); text-shadow: 0 0 20px var(--warn); }
+  .risk-badge.low .risk-score { color: var(--safe); text-shadow: 0 0 20px var(--safe); }
+
+  .risk-label {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    letter-spacing: 4px;
+    opacity: 0.7;
+  }
+
+  /* Info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .info-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .info-card-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; margin-bottom: 4px; }
+  .info-card-value { font-size: 13px; color: var(--text); }
+
+  /* Sections */
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+
+  .section-head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .section-body { padding: 14px 16px; }
+
+  /* Permission items */
+  .perm-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #0a1e28;
+    font-size: 11px;
+  }
+
+  .perm-item:last-child { border-bottom: none; }
+
+  .perm-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .perm-dot.danger { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+  .perm-dot.warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+  .perm-dot.safe { background: var(--safe); box-shadow: 0 0 6px var(--safe); }
+
+  .perm-name { color: var(--text); margin-bottom: 2px; }
+  .perm-desc { color: var(--dim); font-size: 10px; }
+
+  /* Threat items */
+  .threat-item {
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border-left: 3px solid;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .threat-item.high { border-color: var(--danger); background: #150008; color: #ffb3c1; }
+  .threat-item.medium { border-color: var(--warn); background: #150f00; color: #ffe082; }
+  .threat-item.low { border-color: var(--safe); background: #001508; color: #a5d6a7; }
+
+  .threat-tag {
+    font-size: 9px;
+    letter-spacing: 2px;
+    opacity: 0.6;
+    margin-bottom: 3px;
+    font-family: 'Exo 2', sans-serif;
+  }
+
+  /* Cert info */
+  .cert-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #0a1e28;
+    font-size: 11px;
+  }
+  .cert-row:last-child { border-bottom: none; }
+  .cert-key { color: var(--dim); }
+  .cert-val { color: var(--text); text-align: right; max-width: 55%; word-break: break-all; }
+
+  /* Action buttons */
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-secondary {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Scanner line animation */
+  @keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    top: 0;
+    animation: scan 1.5s linear infinite;
+    opacity: 0;
+  }
+
+  .scanning .scan-line { opacity: 1; }
+
+  /* Sample APK buttons */
+  .sample-apks {
+    margin-bottom: 16px;
+  }
+
+  .sample-label { font-size: 10px; color: var(--dim); margin-bottom: 8px; letter-spacing: 1px; }
+
+  .sample-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .sample-btn {
+    padding: 6px 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sample-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sample-btn.selected { border-color: var(--accent); color: var(--accent); background: #001820; }
+
+  #fileName {
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 8px;
+    min-height: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">⬡</div>
+  <div>
+    <div class="logo-text">CYBERDROID</div>
+    <div class="logo-sub">APK THREAT ANALYZER v2.4</div>
+  </div>
+  <div class="status-dot"></div>
+</header>
+
+<div class="container">
+
+  <!-- Drop zone -->
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="scan-line"></div>
+    <input type="file" id="fileInput" accept=".apk">
+    <div class="drop-icon">📦</div>
+    <div class="drop-title">DROP APK FILE</div>
+    <div class="drop-sub">tap to browse · supports .apk files</div>
+    <div id="fileName"></div>
+  </div>
+
+  <!-- Sample APKs -->
+  <div class="sample-apks">
+    <div class="sample-label">// QUICK DEMO — SELECT A SAMPLE:</div>
+    <div class="sample-row">
+      <div class="sample-btn" onclick="selectSample(this, 'banking_app_v3.apk', 'high')">banking_app_v3.apk</div>
+      <div class="sample-btn" onclick="selectSample(this, 'vpn_free_mod.apk', 'high')">vpn_free_mod.apk</div>
+      <div class="sample-btn" onclick="selectSample(this, 'game_launcher.apk', 'medium')">game_launcher.apk</div>
+      <div class="sample-btn" onclick="selectSample(this, 'camera_util.apk', 'low')">camera_util.apk</div>
+    </div>
+  </div>
+
+  <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()" disabled>
+    ▶ &nbsp; ANALYZE APK
+  </button>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label">
+      <span id="progressStep">INITIALIZING...</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-log" id="progressLog"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+
+</div>
+
+<script>
+let selectedSample = null;
+
+function selectSample(el, name, risk) {
+  document.querySelectorAll('.sample-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSample = { name, risk };
+  document.getElementById('fileName').textContent = '▸ ' + name;
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+const fileInput = document.getElementById('fileInput');
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) {
+    document.querySelectorAll('.sample-btn').forEach(b => b.classList.remove('selected'));
+    selectedSample = { name: fileInput.files[0].name, risk: randomRisk() };
+    document.getElementById('fileName').textContent = '▸ ' + fileInput.files[0].name;
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+});
+
+function randomRisk() {
+  const r = Math.random();
+  return r < 0.4 ? 'high' : r < 0.7 ? 'medium' : 'low';
+}
+
+// Drag and drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) {
+    selectedSample = { name: f.name, risk: randomRisk() };
+    document.getElementById('fileName').textContent = '▸ ' + f.name;
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+});
+
+const steps = [
+  { label: 'EXTRACTING MANIFEST', pct: 10, logs: [
+    { t: 'ok', m: '> Unpacking APK archive...' },
+    { t: 'ok', m: '> AndroidManifest.xml found' },
+  ]},
+  { label: 'SCANNING PERMISSIONS', pct: 28, logs: [
+    { t: 'warn', m: '> READ_CONTACTS detected' },
+    { t: 'warn', m: '> CAMERA access requested' },
+    { t: 'bad', m: '! RECORD_AUDIO — elevated risk' },
+  ]},
+  { label: 'ANALYZING DEX BYTECODE', pct: 48, logs: [
+    { t: 'ok', m: '> 42 classes loaded' },
+    { t: 'warn', m: '> Obfuscated method names found' },
+    { t: 'bad', m: '! Reflection API calls detected' },
+  ]},
+  { label: 'CHECKING NETWORK CALLS', pct: 65, logs: [
+    { t: 'ok', m: '> Parsing endpoints...' },
+    { t: 'bad', m: '! Unencrypted HTTP endpoint found' },
+    { t: 'bad', m: '! Unknown C2 domain pattern' },
+  ]},
+  { label: 'VERIFYING CERTIFICATE', pct: 80, logs: [
+    { t: 'ok', m: '> Cert chain validated' },
+    { t: 'warn', m: '> Self-signed cert detected' },
+  ]},
+  { label: 'RUNNING THREAT HEURISTICS', pct: 95, logs: [
+    { t: 'ok', m: '> Cross-referencing CVE database...' },
+    { t: 'bad', m: '! 2 critical patterns matched' },
+    { t: 'ok', m: '> Generating risk report...' },
+  ]},
+  { label: 'COMPLETE', pct: 100, logs: [
+    { t: 'ok', m: '✓ Analysis complete' },
+  ]},
+];
+
+function startAnalysis() {
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('progressLog').innerHTML = '';
+  document.getElementById('dropZone').classList.add('scanning');
+
+  let stepIdx = 0;
+
+  function runStep() {
+    if (stepIdx >= steps.length) {
+      document.getElementById('dropZone').classList.remove('scanning');
+      setTimeout(showResults, 400);
+      return;
+    }
+    const s = steps[stepIdx];
+    document.getElementById('progressStep').textContent = s.label;
+    document.getElementById('progressPct').textContent = s.pct + '%';
+    document.getElementById('progressFill').style.width = s.pct + '%';
+
+    let logIdx = 0;
+    function addLog() {
+      if (logIdx >= s.logs.length) {
+        stepIdx++;
+        setTimeout(runStep, 300);
+        return;
+      }
+      const l = s.logs[logIdx];
+      const el = document.createElement('div');
+      el.className = 'log-line ' + l.t;
+      el.textContent = l.m;
+      const log = document.getElementById('progressLog');
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      logIdx++;
+      setTimeout(addLog, 220);
+    }
+    addLog();
+  }
+
+  runStep();
+}
+
+function showResults() {
+  const risk = selectedSample?.risk || 'medium';
+  const name = selectedSample?.name || 'unknown.apk';
+
+  const data = {
+    high: {
+      score: 87, label: 'HIGH RISK',
+      size: '14.2 MB', sdk: 'API 21+', version: '3.1.4',
+      sha: 'a3f9c2...b84d',
+      perms: [
+        { level: 'danger', name: 'RECORD_AUDIO', desc: 'Can record microphone without user seeing' },
+        { level: 'danger', name: 'READ_CALL_LOG', desc: 'Accesses all call history' },
+        { level: 'warn', name: 'READ_CONTACTS', desc: 'Access to all contacts' },
+        { level: 'warn', name: 'ACCESS_FINE_LOCATION', desc: 'Precise GPS tracking' },
+        { level: 'safe', name: 'INTERNET', desc: 'Standard network access' },
+      ],
+      threats: [
+        { level: 'high', tag: 'SPYWARE PATTERN', msg: 'Bytecode matches known audio-exfiltration library. Data may be sent to external server.' },
+        { level: 'high', tag: 'NETWORK RISK', msg: 'Unencrypted HTTP endpoint detected. Data transmitted without SSL/TLS.' },
+        { level: 'medium', tag: 'OBFUSCATION', msg: 'Heavy ProGuard obfuscation found. Could be hiding malicious routines.' },
+        { level: 'medium', tag: 'SELF-SIGNED CERT', msg: 'App certificate is not issued by a trusted CA.' },
+      ],
+      cert: { alg: 'SHA-256 with RSA', issuer: 'SELF-SIGNED', expiry: '2025-12-01', trusted: '✗ NO' }
+    },
+    medium: {
+      score: 54, label: 'MEDIUM RISK',
+      size: '32.8 MB', sdk: 'API 26+', version: '1.8.0',
+      sha: '7bc1e4...f20a',
+      perms: [
+        { level: 'warn', name: 'READ_CONTACTS', desc: 'Access to all contacts' },
+        { level: 'warn', name: 'CAMERA', desc: 'Camera access' },
+        { level: 'warn', name: 'ACCESS_COARSE_LOCATION', desc: 'Approximate location' },
+        { level: 'safe', name: 'INTERNET', desc: 'Standard network access' },
+        { level: 'safe', name: 'VIBRATE', desc: 'Haptic feedback only' },
+      ],
+      threats: [
+        { level: 'medium', tag: 'AD SDK', msg: 'Third-party ad SDK detected with broad data collection capabilities.' },
+        { level: 'medium', tag: 'ANALYTICS', msg: 'Firebase + 2 additional trackers found in bytecode.' },
+        { level: 'low', tag: 'OUTDATED LIBS', msg: 'OkHttp 3.x detected — known vulnerabilities in older builds.' },
+      ],
+      cert: { alg: 'SHA-256 with RSA', issuer: 'Google Play Signing', expiry: '2027-06-15', trusted: '✓ YES' }
+    },
+    low: {
+      score: 12, label: 'LOW RISK',
+      size: '8.1 MB', sdk: 'API 24+', version: '2.0.1',
+      sha: 'f04a8b...c91e',
+      perms: [
+        { level: 'safe', name: 'CAMERA', desc: 'Required for photo capture feature' },
+        { level: 'safe', name: 'INTERNET', desc: 'Standard network access' },
+        { level: 'safe', name: 'WRITE_EXTERNAL_STORAGE', desc: 'Save photos to gallery' },
+      ],
+      threats: [
+        { level: 'low', tag: 'MINOR NOTE', msg: 'Write storage permission could allow overwriting user files, though usage appears legitimate.' },
+      ],
+      cert: { alg: 'SHA-256 with RSA', issuer: 'Verified Publisher CA', expiry: '2028-03-20', trusted: '✓ YES' }
+    }
+  };
+
+  const d = data[risk];
+
+  const html = `
+    <div class="risk-badge ${risk}">
+      <div class="risk-score">${d.score}</div>
+      <div class="risk-label">THREAT SCORE · ${d.label}</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-label">FILE</div>
+        <div class="info-card-value">${name}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">SIZE</div>
+        <div class="info-card-value">${d.size}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">MIN SDK</div>
+        <div class="info-card-value">${d.sdk}</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">VERSION</div>
+        <div class="info-card-value">${d.version}</div>
+      </div>
+      <div class="info-card" style="grid-column: span 2">
+        <div class="info-card-label">SHA-256</div>
+        <div class="info-card-value">${d.sha}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">⚠ THREAT ANALYSIS</div>
+      <div class="section-body">
+        ${d.threats.map(t => `
+          <div class="threat-item ${t.level}">
+            <div class="threat-tag">${t.tag}</div>
+            ${t.msg}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">🔐 PERMISSIONS (${d.perms.length})</div>
+      <div class="section-body">
+        ${d.perms.map(p => `
+          <div class="perm-item">
+            <div class="perm-dot ${p.level}"></div>
+            <div>
+              <div class="perm-name">${p.name}</div>
+              <div class="perm-desc">${p.desc}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">🔏 CERTIFICATE</div>
+      <div class="section-body">
+        <div class="cert-row"><span class="cert-key">Algorithm</span><span class="cert-val">${d.cert.alg}</span></div>
+        <div class="cert-row"><span class="cert-key">Issuer</span><span class="cert-val">${d.cert.issuer}</span></div>
+        <div class="cert-row"><span class="cert-key">Expires</span><span class="cert-val">${d.cert.expiry}</span></div>
+        <div class="cert-row"><span class="cert-key">Trusted CA</span><span class="cert-val">${d.cert.trusted}</span></div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-secondary" onclick="resetAnalyzer()">↺ NEW SCAN</button>
+      <button class="btn-secondary" onclick="exportReport()">↓ EXPORT</button>
+    </div>
+  `;
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = html;
+  resultsEl.style.display = 'block';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+function resetAnalyzer() {
+  selectedSample = null;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.querySelectorAll('.sample-btn').forEach(b => b.classList.remove('selected'));
+  window.scrollTo(0, 0);
+}
+
+function exportReport() {
+  alert('[ CYBERDROID ] Report export would save as PDF in your platform. Connect your backend to enable.');
+}
+</script>
+</body>
+</html>
