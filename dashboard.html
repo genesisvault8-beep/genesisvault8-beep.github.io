@@ -1070,37 +1070,34 @@
         </div>
       </div>
 
-      <div class="tool-card" onclick="location.href='bridge.html'" style="border-left:3px solid var(--accent);">
+      <div class="tool-card" onclick="location.href='apk-analyzer.html'" style="border-left:3px solid var(--accent);">
         <h3>
-          <!-- Bridge: two nodes connected by a pulsing signal line -->
           <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="5" cy="14" r="3" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
-            <circle cx="23" cy="14" r="3" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
-            <circle cx="5" cy="14" r="1.2" fill="#00f5c4"/>
-            <circle cx="23" cy="14" r="1.2" fill="#00f5c4"/>
-            <line x1="8" y1="14" x2="20" y2="14" stroke="#00f5c4" stroke-width="1" stroke-dasharray="3 2" style="animation:bridgePulse 1.5s linear infinite"/>
-            <polyline points="12,10 16,14 12,18" fill="none" stroke="#00a8ff" stroke-width="1.2" filter="drop-shadow(0 0 2px #00a8ff)"/>
+            <rect x="8" y="2" width="12" height="24" rx="2" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
+            <line x1="11" y1="6" x2="17" y2="6" stroke="#00f5c4" stroke-width="1"/>
+            <circle cx="14" cy="22" r="1.2" fill="#00f5c4"/>
+            <line x1="10" y1="10" x2="18" y2="10" stroke="rgba(0,245,196,0.5)" stroke-width="1"/>
+            <line x1="10" y1="13" x2="16" y2="13" stroke="rgba(0,245,196,0.5)" stroke-width="1"/>
+            <line x1="10" y1="16" x2="17" y2="16" stroke="rgba(0,245,196,0.5)" stroke-width="1"/>
           </svg>
-          BRIDGE NETWORK
+          APK ANALYZER
         </h3>
-        <p>Connect your device to the Vault network. Generate your bridge token and run recon from Termux or Linux.</p>
+        <p>Drop any APK file and get a full security risk analysis — permissions, threats, and malware indicators.</p>
         <span class="tool-tag">LIVE</span>
       </div>
-      <div class="tool-card" onclick="location.href='vault-ai.html'">
+      <div class="tool-card" onclick="location.href='dna-of-a-hack.html'">
         <h3>
-          <!-- AI Terminal: screen with scanning line -->
-          <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" style="overflow:hidden">
-            <rect x="3" y="5" width="22" height="16" rx="2" fill="none" stroke="#00f5c4" stroke-width="1.5" filter="drop-shadow(0 0 3px #00f5c4)"/>
-            <line x1="9" y1="24" x2="19" y2="24" stroke="#00f5c4" stroke-width="1.5"/>
-            <line x1="14" y1="21" x2="14" y2="24" stroke="#00f5c4" stroke-width="1"/>
-            <clipPath id="screenClip"><rect x="3" y="5" width="22" height="16" rx="2"/></clipPath>
-            <line x1="3" y1="14" x2="25" y2="14" stroke="rgba(0,245,196,0.5)" stroke-width="1.5" clip-path="url(#screenClip)" style="animation:aiScan 1.2s ease-in-out infinite alternate"/>
-            <text x="7" y="12" font-family="monospace" font-size="4" fill="#00f5c4" opacity="0.8">&gt;_</text>
+          <svg class="tool-icon" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 4 Q14 10 8 14 Q14 18 8 24" fill="none" stroke="#ff2244" stroke-width="1.5" filter="drop-shadow(0 0 3px #ff2244)"/>
+            <path d="M20 4 Q14 10 20 14 Q14 18 20 24" fill="none" stroke="#ff2244" stroke-width="1.5" filter="drop-shadow(0 0 3px #ff2244)"/>
+            <line x1="8" y1="9" x2="20" y2="9" stroke="rgba(255,34,68,0.5)" stroke-width="1"/>
+            <line x1="8" y1="14" x2="20" y2="14" stroke="rgba(255,34,68,0.5)" stroke-width="1"/>
+            <line x1="8" y1="19" x2="20" y2="19" stroke="rgba(255,34,68,0.5)" stroke-width="1"/>
           </svg>
-          AI TERMINAL
+          DNA OF A HACK
         </h3>
-        <p>Launch the Genesis Vault secure terminal. Run recon, scan targets, query the AI.</p>
-        <span class="tool-tag">LIVE</span>
+        <p>Interactive cinematic breakdown of real-world cyberattacks. Learn how breaches actually happen.</p>
+        <span class="tool-tag" style="background:rgba(255,34,68,0.15);color:#ff2244;border-color:#ff2244;">LIVE</span>
       </div>
       <div class="tool-card" onclick="location.href='learn.html'">
         <h3>
@@ -1137,27 +1134,17 @@
       </div>
     </div>
 
-    <p class="section-title">// AI Tools</p>
+    <p class="section-title">// Mobile Security Tools</p>
     <div class="ai-tools-grid">
-      <div class="tool-card" onclick="openModal('modal-report')">
-        <h3>REPORT WRITER</h3>
-        <p>Generate professional HackerOne bug bounty reports from your findings instantly.</p>
-        <span class="tool-tag">AI POWERED</span>
+      <div class="tool-card" onclick="location.href='apk-permission-extractor.html'">
+        <h3>APK PERMISSION EXTRACTOR</h3>
+        <p>Extract and analyze Android app permissions. Flag suspicious combos that indicate privacy risks.</p>
+        <span class="tool-tag">LIVE</span>
       </div>
-      <div class="tool-card" onclick="openModal('modal-recon')">
-        <h3>RECON ANALYZER</h3>
-        <p>Paste your recon output and get AI-powered attack surface analysis.</p>
-        <span class="tool-tag">AI POWERED</span>
-      </div>
-      <div class="tool-card" onclick="openModal('modal-xss')">
-        <h3>XSS TRIAGE</h3>
-        <p>Feed URLs and get ranked XSS candidates with suggested payloads.</p>
-        <span class="tool-tag">AI POWERED</span>
-      </div>
-      <div class="tool-card" onclick="location.href='cold-email.html'">
-        <h3>COLD EMAIL GENERATOR</h3>
-        <p>Describe your offer and target — get ready-to-send cold emails that convert instantly.</p>
-        <span class="tool-tag">AI POWERED</span>
+      <div class="tool-card" onclick="location.href='url-to-apk.html'">
+        <h3>URL → APK BUILDER</h3>
+        <p>Convert any website into an Android APK instantly. Perfect for mobile bug bounty testing.</p>
+        <span class="tool-tag">LIVE</span>
       </div>
     </div>
   </div>
