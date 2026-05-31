@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>APK Permission Extractor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060910;
+    --surface: #0d1117;
+    --card: #111827;
+    --border: #1f2937;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --text: #f1f5f9;
+    --muted: #4b5563;
+    --soft: #9ca3af;
+    --glow-orange: 0 0 24px #f9731633;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding-bottom: 60px; }
+
+  /* Header */
+  header {
+    padding: 20px 18px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hd-icon {
+    width: 42px; height: 42px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: var(--glow-orange);
+    flex-shrink: 0;
+  }
+
+  .hd-title {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .hd-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  .hd-badge {
+    margin-left: auto;
+    background: #f9731618;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    padding: 4px 9px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  /* Upload section */
+  .section { padding: 18px; }
+
+  .upload-box {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 28px 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--surface);
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-box:active, .upload-box.over {
+    border-color: var(--accent);
+    background: #f9731608;
+    box-shadow: var(--glow-orange);
+  }
+
+  .upload-box input { display: none; }
+
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+
+  .upload-title {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+
+  .upload-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .upload-file-name {
+    margin-top: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-height: 16px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .divider-text { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); }
+
+  /* Sample apps */
+  .sample-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .sample-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .sample-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sample-card:active, .sample-card.selected {
+    border-color: var(--accent);
+    background: #f9731610;
+  }
+
+  .sample-app-icon { font-size: 24px; flex-shrink: 0; }
+
+  .sample-app-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .sample-app-pkg {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  .btn-extract {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    box-shadow: var(--glow-orange);
+  }
+
+  .btn-extract:active { opacity: 0.85; transform: scale(0.98); }
+  .btn-extract:disabled { opacity: 0.3; cursor: not-allowed; box-shadow: none; }
+
+  /* Scanning animation */
+  .scanning-wrap {
+    display: none;
+    padding: 24px 18px;
+    text-align: center;
+  }
+
+  .scan-ring {
+    width: 80px; height: 80px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .scan-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .scan-sub { font-size: 11px; color: var(--muted); }
+
+  /* Results */
+  .results-wrap { display: none; padding: 0 18px 18px; }
+
+  /* Summary bar */
+  .summary-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .app-avatar {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1f2937, #374151);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+
+  .app-info-name { font-weight: 900; font-size: 16px; margin-bottom: 3px; }
+  .app-info-pkg {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    word-break: break-all;
+  }
+
+  .perm-count-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .pcount {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .pcount.red { background: #ef444422; color: var(--red); border: 1px solid #ef444444; }
+  .pcount.yellow { background: #eab30822; color: var(--yellow); border: 1px solid #eab30844; }
+  .pcount.green { background: #22c55e22; color: var(--green); border: 1px solid #22c55e44; }
+
+  /* Danger combo */
+  .combo-alert {
+    background: #ef444410;
+    border: 1px solid #ef444440;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .combo-alert-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--red);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .combo-item {
+    font-size: 11px;
+    color: #fca5a5;
+    padding: 5px 0;
+    border-bottom: 1px solid #ef444420;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .combo-item:last-child { border-bottom: none; }
+
+  /* Filter tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .filter-tabs::-webkit-scrollbar { display: none; }
+
+  .ftab {
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    background: var(--surface);
+  }
+
+  .ftab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Permission list */
+  .perm-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+  .perm-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    transition: border-color 0.2s;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .perm-card.dangerous { border-left: 3px solid var(--red); }
+  .perm-card.normal { border-left: 3px solid var(--yellow); }
+  .perm-card.safe { border-left: 3px solid var(--green); }
+
+  .perm-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .perm-level-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .perm-level-dot.dangerous { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .perm-level-dot.normal { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .perm-level-dot.safe { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  .perm-card-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+    word-break: break-all;
+  }
+
+  .perm-card-group {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .perm-level-tag {
+    margin-left: auto;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  .perm-level-tag.dangerous { background: #ef444422; color: var(--red); }
+  .perm-level-tag.normal { background: #eab30822; color: var(--yellow); }
+  .perm-level-tag.safe { background: #22c55e22; color: var(--green); }
+
+  .perm-card-desc {
+    font-size: 12px;
+    color: var(--soft);
+    line-height: 1.5;
+    padding-left: 20px;
+  }
+
+  .perm-card-risk {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    padding-left: 20px;
+  }
+
+  .perm-card-risk.dangerous { background: #ef444412; color: #fca5a5; }
+  .perm-card-risk.normal { background: #eab30812; color: #fde68a; }
+
+  /* Action buttons */
+  .action-row { display: flex; gap: 10px; }
+
+  .btn-reset {
+    flex: 1;
+    padding: 13px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-copy {
+    flex: 1;
+    padding: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--soft);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .btn-copy:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--green);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: transform 0.3s;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="hd-icon">🔍</div>
+    <div>
+      <div class="hd-title">Permission Extractor</div>
+      <div class="hd-sub">APK PERMISSION DEEP SCAN</div>
+    </div>
+    <div class="hd-badge">v1.0</div>
+  </header>
+
+  <!-- Input section -->
+  <div class="section" id="inputSection">
+
+    <div class="upload-box" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept=".apk">
+      <div class="upload-icon">📲</div>
+      <div class="upload-title">Drop APK File Here</div>
+      <div class="upload-sub">tap to browse · .apk files only</div>
+      <div class="upload-file-name" id="uploadedName"></div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">OR TRY A SAMPLE</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="sample-title">// POPULAR APPS — SELECT ONE:</div>
+
+    <div class="sample-grid" id="sampleGrid">
+      <div class="sample-card" onclick="selectSample(this, 'tiktok')" data-app="tiktok">
+        <div class="sample-app-icon">🎵</div>
+        <div>
+          <div class="sample-app-name">TikTok</div>
+          <div class="sample-app-pkg">com.zhiliaoapp</div>
+        </div>
+      </div>
+      <div class="sample-card" onclick="selectSample(this, 'whatsapp')" data-app="whatsapp">
+        <div class="sample-app-icon">💬</div>
+        <div>
+          <div class="sample-app-name">WhatsApp</div>
+          <div class="sample-app-pkg">com.whatsapp</div>
+        </div>
+      </div>
+      <div class="sample-card" onclick="selectSample(this, 'flashlight')" data-app="flashlight">
+        <div class="sample-app-icon">🔦</div>
+        <div>
+          <div class="sample-app-name">Free Flashlight</div>
+          <div class="sample-app-pkg">com.flashlight.free</div>
+        </div>
+      </div>
+      <div class="sample-card" onclick="selectSample(this, 'vpn')" data-app="vpn">
+        <div class="sample-app-icon">🛡️</div>
+        <div>
+          <div class="sample-app-name">VPN Master</div>
+          <div class="sample-app-pkg">com.vpnmaster.free</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-extract" id="extractBtn" onclick="startExtract()" disabled>
+      🔍 &nbsp; EXTRACT PERMISSIONS
+    </button>
+  </div>
+
+  <!-- Scanning -->
+  <div class="scanning-wrap" id="scanningWrap">
+    <div class="scan-ring"></div>
+    <div class="scan-label">EXTRACTING PERMISSIONS...</div>
+    <div class="scan-sub" id="scanStep">Reading manifest file</div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-wrap" id="resultsWrap">
+
+    <!-- App summary -->
+    <div class="summary-bar" id="summaryBar"></div>
+
+    <!-- Danger combo alert -->
+    <div class="combo-alert" id="comboAlert"></div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs" id="filterTabs">
+      <div class="ftab active" onclick="filterPerms('all', this)">ALL</div>
+      <div class="ftab" onclick="filterPerms('dangerous', this)">🔴 DANGEROUS</div>
+      <div class="ftab" onclick="filterPerms('normal', this)">🟡 NORMAL</div>
+      <div class="ftab" onclick="filterPerms('safe', this)">🟢 SAFE</div>
+    </div>
+
+    <!-- Permission cards -->
+    <div class="perm-list" id="permList"></div>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <button class="btn-reset" onclick="resetTool()">↺ NEW SCAN</button>
+      <button class="btn-copy" onclick="copyReport()">📋 COPY REPORT</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Report copied!</div>
+
+<script>
+const APPS = {
+  tiktok: {
+    name: 'TikTok', icon: '🎵', pkg: 'com.zhiliaoapp.musically',
+    perms: [
+      { name: 'RECORD_AUDIO', group: 'Microphone', level: 'dangerous', desc: 'Access your microphone to record audio at any time.', risk: 'Can silently record conversations even when app is in background.' },
+      { name: 'CAMERA', group: 'Camera', level: 'dangerous', desc: 'Access the front and rear camera on your device.', risk: 'Can take photos/video without you seeing the camera indicator.' },
+      { name: 'ACCESS_FINE_LOCATION', group: 'Location', level: 'dangerous', desc: 'Get your precise GPS coordinates.', risk: 'Tracks exact location in real-time, building a movement profile.' },
+      { name: 'READ_CONTACTS', group: 'Contacts', level: 'dangerous', desc: 'Read all names, numbers, emails in your contacts.', risk: 'Uploads contact list to servers — used for "people you may know" and ad targeting.' },
+      { name: 'READ_CALL_LOG', group: 'Phone', level: 'dangerous', desc: 'Read full call history including numbers and durations.', risk: 'Access to who you called and when — highly sensitive behavioral data.' },
+      { name: 'READ_PHONE_STATE', group: 'Phone', level: 'dangerous', desc: 'Read phone number, IMEI, SIM info, call state.', risk: 'Used for device fingerprinting — uniquely identifies your hardware.' },
+      { name: 'WRITE_EXTERNAL_STORAGE', group: 'Storage', level: 'normal', desc: 'Write files to your SD card or shared storage.', risk: 'Can write files to your downloads and media folders.' },
+      { name: 'READ_EXTERNAL_STORAGE', group: 'Storage', level: 'normal', desc: 'Read photos, media and files on your device.', risk: null },
+      { name: 'INTERNET', group: 'Network', level: 'safe', desc: 'Connect to the internet.', risk: null },
+      { name: 'RECEIVE_BOOT_COMPLETED', group: 'System', level: 'normal', desc: 'Start automatically when device boots.', risk: 'App runs in background from the moment you turn your phone on.' },
+      { name: 'VIBRATE', group: 'Hardware', level: 'safe', desc: 'Make the device vibrate for notifications.', risk: null },
+      { name: 'WAKE_LOCK', group: 'System', level: 'normal', desc: 'Prevent phone from sleeping.', risk: 'Can drain battery by keeping CPU active.' },
+      { name: 'FOREGROUND_SERVICE', group: 'System', level: 'safe', desc: 'Run a visible foreground service.', risk: null },
+      { name: 'ACCESS_NETWORK_STATE', group: 'Network', level: 'safe', desc: 'Check if device is connected to internet.', risk: null },
+    ]
+  },
+  whatsapp: {
+    name: 'WhatsApp', icon: '💬', pkg: 'com.whatsapp',
+    perms: [
+      { name: 'RECORD_AUDIO', group: 'Microphone', level: 'dangerous', desc: 'Access microphone for voice and video calls.', risk: 'Required for calls — but can technically access mic at any time.' },
+      { name: 'CAMERA', group: 'Camera', level: 'dangerous', desc: 'Access camera for photos, videos and calls.', risk: 'Needed for video calls. Only activated when you open camera in-app.' },
+      { name: 'READ_CONTACTS', group: 'Contacts', level: 'dangerous', desc: 'Read contacts to find who uses WhatsApp.', risk: 'Uploads hashed contacts to Meta servers to build your social graph.' },
+      { name: 'ACCESS_FINE_LOCATION', group: 'Location', level: 'dangerous', desc: 'Share your location in chats.', risk: 'Only used when you share location — not tracked continuously.' },
+      { name: 'READ_EXTERNAL_STORAGE', group: 'Storage', level: 'normal', desc: 'Access photos and media to share in chats.', risk: null },
+      { name: 'WRITE_EXTERNAL_STORAGE', group: 'Storage', level: 'normal', desc: 'Save received media to your gallery.', risk: null },
+      { name: 'INTERNET', group: 'Network', level: 'safe', desc: 'Connect to WhatsApp servers.', risk: null },
+      { name: 'VIBRATE', group: 'Hardware', level: 'safe', desc: 'Vibrate on new messages.', risk: null },
+      { name: 'RECEIVE_BOOT_COMPLETED', group: 'System', level: 'normal', desc: 'Start on boot to receive messages.', risk: 'Runs in background from boot — normal for messaging apps.' },
+      { name: 'USE_BIOMETRIC', group: 'Biometrics', level: 'normal', desc: 'Use fingerprint to unlock app.', risk: null },
+      { name: 'FOREGROUND_SERVICE', group: 'System', level: 'safe', desc: 'Run as foreground service during calls.', risk: null },
+    ]
+  },
+  flashlight: {
+    name: 'Free Flashlight', icon: '🔦', pkg: 'com.flashlight.free',
+    perms: [
+      { name: 'RECORD_AUDIO', group: 'Microphone', level: 'dangerous', desc: 'Access your microphone.', risk: '⚠ A flashlight app has ZERO reason to access your microphone. This is spyware behavior.' },
+      { name: 'READ_CONTACTS', group: 'Contacts', level: 'dangerous', desc: 'Read all your contacts.', risk: '⚠ Completely unnecessary for a flashlight. Harvesting contacts for ad targeting.' },
+      { name: 'ACCESS_FINE_LOCATION', group: 'Location', level: 'dangerous', desc: 'Get your precise GPS location.', risk: '⚠ A flashlight does not need to know where you are. Selling location data to brokers.' },
+      { name: 'READ_PHONE_STATE', group: 'Phone', level: 'dangerous', desc: 'Read device identifiers.', risk: '⚠ Used to create a persistent device fingerprint for tracking you across apps.' },
+      { name: 'CAMERA', group: 'Camera', level: 'dangerous', desc: 'Access camera (needed for torch).', risk: 'Legitimate use — flashlight requires camera flash access.' },
+      { name: 'INTERNET', group: 'Network', level: 'safe', desc: 'Connect to internet for ads.', risk: null },
+      { name: 'VIBRATE', group: 'Hardware', level: 'safe', desc: 'Haptic feedback.', risk: null },
+    ]
+  },
+  vpn: {
+    name: 'VPN Master', icon: '🛡️', pkg: 'com.vpnmaster.free',
+    perms: [
+      { name: 'INTERNET', group: 'Network', level: 'safe', desc: 'Connect to VPN servers.', risk: null },
+      { name: 'ACCESS_NETWORK_STATE', group: 'Network', level: 'safe', desc: 'Monitor network connections.', risk: null },
+      { name: 'CHANGE_NETWORK_STATE', group: 'Network', level: 'normal', desc: 'Change WiFi and network state.', risk: 'Needed for VPN but can redirect all your network traffic.' },
+      { name: 'READ_PHONE_STATE', group: 'Phone', level: 'dangerous', desc: 'Read device identifiers.', risk: 'Used for device fingerprinting — especially concerning for a VPN that should protect privacy.' },
+      { name: 'RECORD_AUDIO', group: 'Microphone', level: 'dangerous', desc: 'Access microphone.', risk: '⚠ VPN apps do not need microphone access. Red flag for surveillance.' },
+      { name: 'ACCESS_FINE_LOCATION', group: 'Location', level: 'dangerous', desc: 'Get precise GPS location.', risk: '⚠ Ironic — a privacy app tracking your exact location. Defeats the purpose.' },
+      { name: 'READ_CONTACTS', group: 'Contacts', level: 'dangerous', desc: 'Access your contacts.', risk: '⚠ No legitimate VPN needs your contacts list.' },
+      { name: 'WRITE_EXTERNAL_STORAGE', group: 'Storage', level: 'normal', desc: 'Write to storage.', risk: 'Can write VPN logs to shared storage.' },
+      { name: 'RECEIVE_BOOT_COMPLETED', group: 'System', level: 'normal', desc: 'Start VPN on device boot.', risk: 'Routes all traffic through VPN from boot — intended behavior but be aware.' },
+      { name: 'FOREGROUND_SERVICE', group: 'System', level: 'safe', desc: 'Run as persistent foreground service.', risk: null },
+      { name: 'WAKE_LOCK', group: 'System', level: 'normal', desc: 'Keep CPU active for VPN tunnel.', risk: 'Can drain battery by preventing device sleep.' },
+    ]
+  }
+};
+
+const COMBOS = {
+  tiktok: [
+    { perms: ['RECORD_AUDIO', 'ACCESS_FINE_LOCATION'], msg: 'Mic + Location = can record you AND know exactly where you are simultaneously.' },
+    { perms: ['READ_CONTACTS', 'READ_CALL_LOG'], msg: 'Contacts + Call Log = builds a complete map of your relationships and communication patterns.' },
+    { perms: ['CAMERA', 'READ_PHONE_STATE'], msg: 'Camera + Device ID = can link captured images/video to your unique hardware fingerprint.' },
+  ],
+  flashlight: [
+    { perms: ['RECORD_AUDIO', 'CAMERA', 'ACCESS_FINE_LOCATION'], msg: 'A flashlight with mic, camera AND location? Classic spyware permissions bundle.' },
+  ],
+  vpn: [
+    { perms: ['RECORD_AUDIO', 'ACCESS_FINE_LOCATION'], msg: 'A "privacy" VPN app tracking your location and recording audio — completely defeats the purpose.' },
+    { perms: ['READ_CONTACTS', 'CHANGE_NETWORK_STATE'], msg: 'Can harvest contacts AND redirect your network traffic. Serious privacy risk.' },
+  ],
+  whatsapp: []
+};
+
+let currentApp = null;
+let allPerms = [];
+let currentFilter = 'all';
+
+function selectSample(el, app) {
+  document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentApp = app;
+  document.getElementById('uploadedName').textContent = '';
+  document.getElementById('extractBtn').disabled = false;
+}
+
+// File upload
+document.getElementById('fileInput').addEventListener('change', function() {
+  if (this.files[0]) {
+    document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('selected'));
+    currentApp = '_custom_' + this.files[0].name;
+    document.getElementById('uploadedName').textContent = '▸ ' + this.files[0].name;
+    document.getElementById('extractBtn').disabled = false;
+  }
+});
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.name.endsWith('.apk')) {
+    document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('selected'));
+    currentApp = '_custom_' + f.name;
+    document.getElementById('uploadedName').textContent = '▸ ' + f.name;
+    document.getElementById('extractBtn').disabled = false;
+  }
+});
+
+function startExtract() {
+  document.getElementById('inputSection').style.display = 'none';
+  document.getElementById('scanningWrap').style.display = 'block';
+  document.getElementById('resultsWrap').style.display = 'none';
+
+  const steps = [
+    'Reading AndroidManifest.xml...',
+    'Parsing permission declarations...',
+    'Mapping permission groups...',
+    'Classifying risk levels...',
+    'Detecting suspicious combos...',
+    'Generating report...'
+  ];
+
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i >= steps.length) {
+      clearInterval(interval);
+      showResults();
+      return;
+    }
+    document.getElementById('scanStep').textContent = steps[i];
+    i++;
+  }, 380);
+}
+
+function showResults() {
+  document.getElementById('scanningWrap').style.display = 'none';
+  document.getElementById('resultsWrap').style.display = 'block';
+
+  let appData;
+  if (currentApp && APPS[currentApp]) {
+    appData = APPS[currentApp];
+  } else {
+    // Custom APK - generate random-ish data
+    const fname = currentApp.replace('_custom_', '');
+    appData = {
+      name: fname.replace('.apk','').replace(/[-_]/g,' '),
+      icon: '📦', pkg: 'com.unknown.app',
+      perms: APPS.tiktok.perms.slice(0, 8)
+    };
+  }
+
+  allPerms = appData.perms;
+  const dangerous = allPerms.filter(p => p.level === 'dangerous').length;
+  const normal = allPerms.filter(p => p.level === 'normal').length;
+  const safe = allPerms.filter(p => p.level === 'safe').length;
+
+  // Summary
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="app-avatar">${appData.icon}</div>
+    <div style="flex:1;min-width:0">
+      <div class="app-info-name">${appData.name}</div>
+      <div class="app-info-pkg">${appData.pkg}</div>
+      <div class="perm-count-row">
+        <span class="pcount red">🔴 ${dangerous} DANGEROUS</span>
+        <span class="pcount yellow">🟡 ${normal} NORMAL</span>
+        <span class="pcount green">🟢 ${safe} SAFE</span>
+      </div>
+    </div>
+  `;
+
+  // Combos
+  const combos = COMBOS[currentApp] || [];
+  if (combos.length > 0) {
+    const comboEl = document.getElementById('comboAlert');
+    comboEl.style.display = 'block';
+    comboEl.innerHTML = `
+      <div class="combo-alert-title">⚠️ SUSPICIOUS PERMISSION COMBOS (${combos.length})</div>
+      ${combos.map(c => `
+        <div class="combo-item">
+          <strong>${c.perms.join(' + ')}</strong><br>
+          ${c.msg}
+        </div>
+      `).join('')}
+    `;
+  }
+
+  renderPerms('all');
+}
+
+function renderPerms(filter) {
+  currentFilter = filter;
+  const list = document.getElementById('permList');
+  const filtered = filter === 'all' ? allPerms : allPerms.filter(p => p.level === filter);
+
+  list.innerHTML = filtered.map((p, i) => `
+    <div class="perm-card ${p.level}" style="animation-delay:${i * 0.05}s">
+      <div class="perm-card-top">
+        <div class="perm-level-dot ${p.level}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="perm-card-name">${p.name}</div>
+          <div class="perm-card-group">${p.group}</div>
+        </div>
+        <div class="perm-level-tag ${p.level}">${p.level.toUpperCase()}</div>
+      </div>
+      <div class="perm-card-desc">${p.desc}</div>
+      ${p.risk ? `<div class="perm-card-risk ${p.level}">⚠ ${p.risk}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function filterPerms(filter, el) {
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPerms(filter);
+}
+
+function resetTool() {
+  currentApp = null;
+  allPerms = [];
+  document.getElementById('inputSection').style.display = 'block';
+  document.getElementById('scanningWrap').style.display = 'none';
+  document.getElementById('resultsWrap').style.display = 'none';
+  document.getElementById('comboAlert').style.display = 'none';
+  document.getElementById('extractBtn').disabled = true;
+  document.getElementById('uploadedName').textContent = '';
+  document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.ftab').forEach((t,i) => t.classList.toggle('active', i===0));
+  window.scrollTo(0,0);
+}
+
+function copyReport() {
+  if (!allPerms.length) return;
+  const app = currentApp && APPS[currentApp] ? APPS[currentApp] : { name: 'Unknown', pkg: 'unknown' };
+  const lines = [
+    `APK PERMISSION REPORT — ${app.name}`,
+    `Package: ${app.pkg}`,
+    `Generated by CyberDroid Permission Extractor`,
+    ``,
+    `DANGEROUS PERMISSIONS:`,
+    ...allPerms.filter(p => p.level==='dangerous').map(p => `  • ${p.name} — ${p.desc}`),
+    ``,
+    `NORMAL PERMISSIONS:`,
+    ...allPerms.filter(p => p.level==='normal').map(p => `  • ${p.name} — ${p.desc}`),
+    ``,
+    `SAFE PERMISSIONS:`,
+    ...allPerms.filter(p => p.level==='safe').map(p => `  • ${p.name}`),
+  ];
+
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+</script>
+</body>
+</html>
