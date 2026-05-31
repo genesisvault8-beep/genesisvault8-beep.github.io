@@ -263,6 +263,90 @@
 </div>
 
 <script>
+async function fetchFromIpwho(ip) {
+  const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`);
+  const d = await res.json();
+  if (!d.success) throw new Error(d.message || 'Lookup failed');
+  return {
+    ip: d.ip,
+    hostname: d.hostname || '—',
+    isp: d.connection?.isp || d.org || '—',
+    asn: d.connection?.asn ? `AS${d.connection.asn}` : '—',
+    type: d.type || '—',
+    country: d.country ? `${d.flag?.emoji || ''} ${d.country}` : '—',
+    region: d.region || '—',
+    city: d.city || '—',
+    postal: d.postal || '—',
+    lat: d.latitude ?? null,
+    lon: d.longitude ?? null,
+    tz: d.timezone?.id || '—',
+    source: 'ipwho.is'
+  };
+}
+
+async function fetchFromIpapi(ip) {
+  const res = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+  const d = await res.json();
+  if (d.error) throw new Error(d.reason || 'Lookup failed');
+  return {
+    ip: d.ip,
+    hostname: d.hostname || '—',
+    isp: d.org || '—',
+    asn: d.asn || '—',
+    type: '—',
+    country: d.country_name ? `${d.country_name}` : '—',
+    region: d.region || '—',
+    city: d.city || '—',
+    postal: d.postal || '—',
+    lat: d.latitude ?? null,
+    lon: d.longitude ?? null,
+    tz: d.timezone || '—',
+    source: 'ipapi.co'
+  };
+}
+
+async function fetchFromFreeipapi(ip) {
+  const res = await fetch(`https://freeipapi.com/api/json/${encodeURIComponent(ip)}`);
+  const d = await res.json();
+  if (!d.ipAddress) throw new Error('Lookup failed');
+  return {
+    ip: d.ipAddress,
+    hostname: '—',
+    isp: d.ispName || '—',
+    asn: '—',
+    type: d.ipType || '—',
+    country: d.countryName ? `${d.countryName}` : '—',
+    region: d.regionName || '—',
+    city: d.cityName || '—',
+    postal: d.zipCode || '—',
+    lat: d.latitude ?? null,
+    lon: d.longitude ?? null,
+    tz: d.timeZone || '—',
+    source: 'freeipapi.com'
+  };
+}
+
+function renderData(d) {
+  document.getElementById('r-ip').textContent = d.ip || '—';
+  document.getElementById('r-hostname').textContent = d.hostname;
+  document.getElementById('r-isp').textContent = d.isp;
+  document.getElementById('r-asn').textContent = d.asn;
+  document.getElementById('r-type').textContent = d.type;
+  document.getElementById('r-country').textContent = d.country;
+  document.getElementById('r-region').textContent = d.region;
+  document.getElementById('r-city').textContent = d.city;
+  document.getElementById('r-postal').textContent = d.postal;
+  document.getElementById('r-lat').textContent = d.lat ?? '—';
+  document.getElementById('r-lon').textContent = d.lon ?? '—';
+  document.getElementById('r-tz').textContent = d.tz;
+
+  if (d.lat && d.lon) {
+    document.getElementById('mapFrame').src =
+      `https://www.openstreetmap.org/export/embed.html?bbox=${d.lon-0.5},${d.lat-0.5},${d.lon+0.5},${d.lat+0.5}&layer=mapnik&marker=${d.lat},${d.lon}`;
+    document.getElementById('mapCoords').textContent = `${d.lat}, ${d.lon}`;
+  }
+}
+
 async function lookup() {
   const input = document.getElementById('ipInput').value.trim();
   const err = document.getElementById('errorMsg');
@@ -278,37 +362,27 @@ async function lookup() {
   btn.disabled = true;
   loading.style.display = 'block';
 
-  try {
-    const res = await fetch(`https://ipwho.is/${encodeURIComponent(input)}`);
-    const d = await res.json();
+  const sources = [fetchFromIpwho, fetchFromIpapi, fetchFromFreeipapi];
+  let data = null;
+  let lastError = '';
 
-    if (!d.success) throw new Error(d.message || 'Lookup failed');
-
-    document.getElementById('r-ip').textContent = d.ip || '—';
-    document.getElementById('r-hostname').textContent = d.hostname || '—';
-    document.getElementById('r-isp').textContent = d.connection?.isp || d.org || '—';
-    document.getElementById('r-asn').textContent = d.connection?.asn ? `AS${d.connection.asn}` : '—';
-    document.getElementById('r-type').textContent = d.type || '—';
-    document.getElementById('r-country').textContent = d.country ? `${d.flag?.emoji || ''} ${d.country}` : '—';
-    document.getElementById('r-region').textContent = d.region || '—';
-    document.getElementById('r-city').textContent = d.city || '—';
-    document.getElementById('r-postal').textContent = d.postal || '—';
-    document.getElementById('r-lat').textContent = d.latitude ?? '—';
-    document.getElementById('r-lon').textContent = d.longitude ?? '—';
-    document.getElementById('r-tz').textContent = d.timezone?.id || '—';
-
-    if (d.latitude && d.longitude) {
-      const lat = d.latitude, lon = d.longitude;
-      document.getElementById('mapFrame').src =
-        `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.5},${lat-0.5},${lon+0.5},${lat+0.5}&layer=mapnik&marker=${lat},${lon}`;
-      document.getElementById('mapCoords').textContent = `${lat}, ${lon}`;
+  for (const source of sources) {
+    try {
+      data = await source(input);
+      break;
+    } catch(e) {
+      lastError = e.message;
+      continue;
     }
+  }
 
-    loading.style.display = 'none';
+  loading.style.display = 'none';
+
+  if (data) {
+    renderData(data);
     results.style.display = 'block';
-  } catch(e) {
-    loading.style.display = 'none';
-    err.textContent = `// ERROR: ${e.message.toUpperCase()}`;
+  } else {
+    err.textContent = `// ALL SOURCES FAILED: ${lastError.toUpperCase()}`;
     err.style.display = 'block';
   }
 
