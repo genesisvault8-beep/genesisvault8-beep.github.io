@@ -480,10 +480,45 @@ main { padding-top:112px; padding-bottom:40px; position:relative; z-index:1; }
       <div class="download-label">FORENSIC EVIDENCE — HANDLE WITH CARE</div>
       <div class="download-filename">wraith_disk.img</div>
       <div class="download-size">40 KB · RAW DISK IMAGE · SHA256 VERIFIED</div>
-      <button class="download-btn" onclick="downloadImg()">[ DOWNLOAD IMAGE ]</button>
+      <button class="download-btn" id="load-img-btn" onclick="loadDiskImage()">[ LOAD DISK IMAGE ]</button>
       <div class="sha-box">
         <div class="sha-label">SHA256 CHECKSUM</div>
         <div class="sha-val" id="sha-display">computing...</div>
+      </div>
+    </div>
+
+    <!-- ANALYZER UI -->
+    <div id="analyzer" style="display:none;">
+      <p class="section-title">// DISK ANALYZER</p>
+      <div style="display:flex;gap:0;border:1px solid var(--border);margin-bottom:12px;">
+        <button onclick="switchAnalyzer('hex')" id="atab-hex" style="flex:1;background:var(--red);color:white;border:none;padding:10px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;">HEX VIEW</button>
+        <button onclick="switchAnalyzer('strings')" id="atab-strings" style="flex:1;background:var(--bg2);color:var(--dim);border:none;border-left:1px solid var(--border);padding:10px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;">STRINGS</button>
+        <button onclick="switchAnalyzer('carve')" id="atab-carve" style="flex:1;background:var(--bg2);color:var(--dim);border:none;border-left:1px solid var(--border);padding:10px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;">FILE CARVE</button>
+        <button onclick="switchAnalyzer('sectors')" id="atab-sectors" style="flex:1;background:var(--bg2);color:var(--dim);border:none;border-left:1px solid var(--border);padding:10px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:2px;cursor:pointer;">SECTORS</button>
+      </div>
+      <div id="apanel-hex">
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);letter-spacing:1px;">SECTOR</span>
+          <input type="number" id="hex-sector" value="0" min="0" max="80" style="width:70px;background:var(--bg3);border:1px solid var(--border);color:var(--teal);font-family:'Share Tech Mono',monospace;font-size:0.75rem;padding:4px 8px;outline:none;" onchange="renderHex()">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);">/ 80</span>
+          <button onclick="prevSector()" style="background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.7rem;padding:4px 10px;cursor:pointer;">◀</button>
+          <button onclick="nextSector()" style="background:var(--bg2);border:1px solid var(--border);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.7rem;padding:4px 10px;cursor:pointer;">▶</button>
+          <span id="hex-sector-label" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--red);margin-left:auto;"></span>
+        </div>
+        <div id="hex-output" style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--blue);padding:12px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;line-height:1.8;color:var(--blue);overflow-x:auto;max-height:320px;overflow-y:auto;white-space:pre;"></div>
+      </div>
+      <div id="apanel-strings" style="display:none;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="strings-filter" placeholder="filter strings... e.g. GV, WRAITH" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--teal);font-family:'Share Tech Mono',monospace;font-size:0.75rem;padding:6px 10px;outline:none;" oninput="renderStrings()">
+          <span id="strings-count" style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);align-self:center;white-space:nowrap;"></span>
+        </div>
+        <div id="strings-output" style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--teal);padding:12px;font-family:'Share Tech Mono',monospace;font-size:0.72rem;line-height:1.9;overflow-y:auto;max-height:320px;white-space:pre-wrap;word-break:break-all;"></div>
+      </div>
+      <div id="apanel-carve" style="display:none;">
+        <div id="carve-output" style="font-family:'Share Tech Mono',monospace;font-size:0.75rem;"></div>
+      </div>
+      <div id="apanel-sectors" style="display:none;">
+        <div id="sectors-output" style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;"></div>
       </div>
     </div>
 
@@ -762,8 +797,14 @@ function downloadImg() {
   const blob = new Blob([total], {type:'application/octet-stream'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url; a.download = 'wraith_disk.img'; a.click();
-  URL.revokeObjectURL(url);
+  a.href     = url;
+  a.download = 'wraith_disk.img';
+  a.target   = '_top';
+  a.rel      = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 function setUint32LE(arr, offset, val) {
@@ -862,6 +903,183 @@ function showSuccess() {
 function closeSuccess() {
   document.getElementById('success-overlay').classList.remove('open');
 }
+
+/* ── DISK ANALYZER ── */
+let diskImage = null;
+
+function buildDiskImage() {
+  const SECTOR = 512;
+  const sectors = [];
+  const mbr = new Uint8Array(512);
+  mbr[0]=0xeb; mbr[1]=0x3c; mbr[2]=0x90;
+  const oem = 'WRAITH  ';
+  for(let i=0;i<8;i++) mbr[3+i]=oem.charCodeAt(i);
+  mbr[510]=0x55; mbr[511]=0xaa;
+  mbr[446]=0x80; mbr[450]=0x0b;
+  setUint32LE(mbr,454,1); setUint32LE(mbr,458,8191);
+  sectors.push(mbr);
+  const fat=new Uint8Array(512);
+  fat[0]=0xf8;fat[1]=0xff;fat[2]=0xff;fat[3]=0x0f;
+  sectors.push(fat);
+  for(let i=2;i<11;i++) sectors.push(noiseSector(i*7));
+  const jpeg = makeJPEG();
+  const jpegPad = new Uint8Array(20*SECTOR);
+  jpegPad.set(jpeg,0);
+  for(let i=0;i<20;i++) sectors.push(jpegPad.slice(i*SECTOR,(i+1)*SECTOR));
+  for(let i=31;i<51;i++) sectors.push(noiseSector(i*13));
+  const hidden = makeHidden();
+  const hiddenPad = new Uint8Array(10*SECTOR);
+  hiddenPad.set(hidden,0);
+  for(let i=0;i<10;i++) sectors.push(hiddenPad.slice(i*SECTOR,(i+1)*SECTOR));
+  for(let i=61;i<81;i++) sectors.push(noiseSector(i*17));
+  const total = new Uint8Array(sectors.length * SECTOR);
+  sectors.forEach((s,i) => total.set(s.slice(0,SECTOR), i*SECTOR));
+  return total;
+}
+
+async function loadDiskImage() {
+  const btn = document.getElementById('load-img-btn');
+  btn.textContent = '[ LOADING... ]';
+  btn.disabled = true;
+  await new Promise(r => setTimeout(r, 600));
+  diskImage = buildDiskImage();
+  // Compute real SHA256
+  const hash = await crypto.subtle.digest('SHA-256', diskImage);
+  const hex = Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  document.getElementById('sha-display').textContent = hex;
+  btn.textContent = '[ IMAGE LOADED ✓ ]';
+  btn.style.background = 'var(--teal)';
+  btn.style.color = 'var(--bg)';
+  document.getElementById('analyzer').style.display = 'block';
+  renderHex();
+  updateProgress('evidence');
+}
+
+function switchAnalyzer(tab) {
+  ['hex','strings','carve','sectors'].forEach(t => {
+    document.getElementById('apanel-'+t).style.display = t===tab ? 'block' : 'none';
+    const btn = document.getElementById('atab-'+t);
+    btn.style.background = t===tab ? 'var(--red)' : 'var(--bg2)';
+    btn.style.color = t===tab ? 'white' : 'var(--dim)';
+  });
+  if(tab==='strings') renderStrings();
+  if(tab==='carve') renderCarve();
+  if(tab==='sectors') renderSectors();
+}
+
+function renderHex() {
+  if(!diskImage) return;
+  const sector = parseInt(document.getElementById('hex-sector').value) || 0;
+  const offset = sector * 512;
+  const slice = diskImage.slice(offset, offset + 512);
+  const labels = {0:'MBR', 1:'FAT', 11:'JPEG START', 51:'HIDDEN FILE'};
+  document.getElementById('hex-sector-label').textContent = labels[sector] ? '[ '+labels[sector]+' ]' : '';
+  let out = '';
+  for(let i=0; i<slice.length; i+=16) {
+    const row = slice.slice(i, i+16);
+    const addr = (offset+i).toString(16).padStart(8,'0');
+    const hex = Array.from(row).map(b=>b.toString(16).padStart(2,'0')).join(' ');
+    const ascii = Array.from(row).map(b=>(b>=32&&b<127)?String.fromCharCode(b):'.').join('');
+    out += addr + ':  ' + hex.padEnd(47,' ') + '  ' + ascii + '\n';
+  }
+  document.getElementById('hex-output').textContent = out;
+}
+
+function prevSector() {
+  const inp = document.getElementById('hex-sector');
+  if(parseInt(inp.value) > 0) { inp.value = parseInt(inp.value)-1; renderHex(); }
+}
+function nextSector() {
+  const inp = document.getElementById('hex-sector');
+  if(parseInt(inp.value) < 80) { inp.value = parseInt(inp.value)+1; renderHex(); }
+}
+
+function renderStrings() {
+  if(!diskImage) return;
+  const filter = document.getElementById('strings-filter').value.toLowerCase();
+  const strings = [];
+  let current = '';
+  for(let i=0; i<diskImage.length; i++) {
+    const b = diskImage[i];
+    if(b>=32 && b<127) { current += String.fromCharCode(b); }
+    else {
+      if(current.length >= 4) strings.push({str:current, offset:i-current.length});
+      current = '';
+    }
+  }
+  const filtered = filter ? strings.filter(s=>s.str.toLowerCase().includes(filter)) : strings;
+  document.getElementById('strings-count').textContent = filtered.length+' strings';
+  const out = document.getElementById('strings-output');
+  out.innerHTML = '';
+  filtered.slice(0,200).forEach(s => {
+    const line = document.createElement('div');
+    const offsetStr = s.offset.toString(16).padStart(8,'0');
+    const isFlag = s.str.includes('GV{') || s.str.includes('WRAITH') || s.str.includes('GV::');
+    line.style.color = isFlag ? 'var(--red)' : s.str.includes('JFIF') || s.str.includes('SESSION') ? 'var(--teal)' : 'var(--dim)';
+    if(isFlag) line.style.fontWeight = 'bold';
+    line.textContent = offsetStr + '  ' + s.str;
+    out.appendChild(line);
+  });
+}
+
+function renderCarve() {
+  if(!diskImage) return;
+  const signatures = [
+    {name:'JPEG', magic:[0xFF,0xD8,0xFF], color:'var(--teal)'},
+    {name:'PNG',  magic:[0x89,0x50,0x4E,0x47], color:'var(--blue)'},
+    {name:'ZIP',  magic:[0x50,0x4B,0x03,0x04], color:'var(--yellow)'},
+  ];
+  let html = '<p style="color:var(--dim);font-size:0.65rem;letter-spacing:2px;margin-bottom:12px;">// SCANNING FOR FILE SIGNATURES...</p>';
+  let found = 0;
+  signatures.forEach(sig => {
+    for(let i=0; i<diskImage.length-sig.magic.length; i++) {
+      if(sig.magic.every((b,j)=>diskImage[i+j]===b)) {
+        found++;
+        const sector = Math.floor(i/512);
+        html += `<div style="background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${sig.color};padding:12px 14px;margin-bottom:8px;">
+          <div style="color:${sig.color};font-size:0.7rem;letter-spacing:2px;margin-bottom:4px;">${sig.name} FILE DETECTED</div>
+          <div style="color:var(--text);font-size:0.8rem;">Offset: <span style="color:var(--teal)">0x${i.toString(16).padStart(8,'0')}</span> (${i} bytes)</div>
+          <div style="color:var(--text);font-size:0.8rem;">Sector: <span style="color:var(--teal)">${sector}</span></div>
+          <div style="color:var(--dim);font-size:0.7rem;margin-top:4px;">Magic bytes: ${sig.magic.map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' ')}</div>
+          <button onclick="document.getElementById('hex-sector').value=${sector};switchAnalyzer('hex');renderHex();" 
+            style="margin-top:8px;background:none;border:1px solid ${sig.color};color:${sig.color};font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:4px 10px;cursor:pointer;letter-spacing:1px;">
+            [ VIEW IN HEX ]
+          </button>
+        </div>`;
+      }
+    }
+  });
+  if(!found) html += '<div style="color:var(--dim);">No known file signatures found</div>';
+  html += `<div style="background:var(--bg3);border:1px solid var(--border);padding:12px;margin-top:12px;font-size:0.7rem;color:var(--dim);">
+    // Scan complete — ${found} file signature(s) found in ${diskImage.length} bytes across ${Math.ceil(diskImage.length/512)} sectors
+  </div>`;
+  document.getElementById('carve-output').innerHTML = html;
+}
+
+function renderSectors() {
+  if(!diskImage) return;
+  const sectorLabels = {0:'MBR — Boot Record',1:'FAT — File Allocation Table',11:'JPEG Header (Sector 11)',51:'Hidden File (Sector 51)'};
+  let html = '';
+  for(let s=0; s<81; s++) {
+    const offset = s*512;
+    const slice = diskImage.slice(offset, offset+16);
+    const preview = Array.from(slice).map(b=>b.toString(16).padStart(2,'0')).join(' ');
+    const ascii = Array.from(slice).map(b=>(b>=32&&b<127)?String.fromCharCode(b):'.').join('');
+    const label = sectorLabels[s] || '';
+    const isInteresting = !!label;
+    html += `<div onclick="document.getElementById('hex-sector').value=${s};switchAnalyzer('hex');renderHex();"
+      style="display:flex;gap:10px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--border);cursor:pointer;background:${isInteresting?'rgba(255,0,60,0.05)':'transparent'};transition:background 0.15s;"
+      onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='${isInteresting?'rgba(255,0,60,0.05)':'transparent'}'">
+      <span style="color:var(--red);font-size:0.65rem;min-width:28px;">${String(s).padStart(2,'0')}</span>
+      <span style="color:var(--dim);font-size:0.6rem;min-width:50px;">${offset.toString(16).padStart(6,'0')}</span>
+      <span style="color:var(--blue);font-size:0.65rem;flex:1;overflow:hidden;">${preview}</span>
+      <span style="color:var(--teal);font-size:0.6rem;min-width:60px;">${ascii}</span>
+      ${label ? `<span style="color:var(--red);font-size:0.6rem;letter-spacing:1px;white-space:nowrap;">${label}</span>` : ''}
+    </div>`;
+  }
+  document.getElementById('sectors-output').innerHTML = html;
+}
+
 </script>
 </body>
 </html>
