@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNA of a Hack</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #060708;
+  --s1:     #0a0c0f;
+  --s2:     #0e1115;
+  --s3:     #13161c;
+  --border: #1a1f28;
+  --red:    #ff2244;
+  --red2:   #ff4466;
+  --green:  #00ff88;
+  --green2: #00cc66;
+  --amber:  #ffaa00;
+  --blue:   #0088ff;
+  --cyan:   #00ccff;
+  --purple: #aa55ff;
+  --text:   #c8d8e8;
+  --muted:  #3a4858;
+  --muted2: #5a6878;
+  --mono:   'Share Tech Mono', monospace;
+  --display:'Bebas Neue', sans-serif;
+  --ui:     'Rajdhani', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ══════════════════════════════════════════
+   SELECTION SCREEN
+══════════════════════════════════════════ */
+#screen-select {
+  padding:2rem 1.5rem 3rem;
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+}
+#screen-select::before {
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,34,68,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(26,31,40,0.4) 60px,rgba(26,31,40,0.4) 61px),
+    repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(26,31,40,0.4) 60px,rgba(26,31,40,0.4) 61px);
+  pointer-events:none;
+}
+
+.sel-header{text-align:center;padding:2rem 0 2.5rem;position:relative;}
+.sel-eyebrow{
+  font-family:var(--mono);font-size:0.62rem;
+  letter-spacing:0.3em;color:var(--red);
+  text-transform:uppercase;margin-bottom:0.8rem;
+  animation:fadeIn 0.8s ease;
+}
+.sel-title{
+  font-family:var(--display);
+  font-size:clamp(2.5rem,8vw,5rem);
+  letter-spacing:0.05em;color:#fff;
+  line-height:1;margin-bottom:0.5rem;
+  animation:fadeIn 0.8s ease 0.2s both;
+}
+.sel-title span{color:var(--red);text-shadow:0 0 40px rgba(255,34,68,0.5);}
+.sel-sub{
+  font-size:0.9rem;color:var(--muted2);
+  max-width:480px;margin:0 auto;line-height:1.7;
+  animation:fadeIn 0.8s ease 0.4s both;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.breach-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;
+  position:relative;
+  max-width:960px;margin:0 auto;
+}
+
+.breach-card{
+  background:var(--s1);
+  padding:1.4rem 1.6rem;
+  cursor:pointer;
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+  animation:fadeIn 0.5s ease both;
+}
+.breach-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  transition:background 0.2s;
+}
+.breach-card:hover{background:var(--s2);}
+.breach-card:hover::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,34,68,0.04) 0%,transparent 60%);
+  pointer-events:none;
+}
+
+.bc-year{
+  font-family:var(--mono);font-size:0.58rem;
+  letter-spacing:0.15em;color:var(--muted2);
+  margin-bottom:0.4rem;text-transform:uppercase;
+}
+.bc-title{
+  font-family:var(--display);font-size:1.4rem;
+  letter-spacing:0.05em;color:#fff;
+  margin-bottom:0.3rem;line-height:1.1;
+}
+.bc-victim{font-family:var(--mono);font-size:0.65rem;color:var(--muted2);margin-bottom:0.7rem;}
+.bc-desc{font-size:0.78rem;color:var(--muted2);line-height:1.6;margin-bottom:0.8rem;}
+.bc-tags{display:flex;flex-wrap:wrap;gap:0.3rem;}
+.bc-tag{
+  font-family:var(--mono);font-size:0.58rem;
+  padding:2px 7px;border-radius:2px;
+  border:1px solid;letter-spacing:0.06em;
+}
+.bc-severity{
+  position:absolute;top:1rem;right:1rem;
+  font-family:var(--mono);font-size:0.55rem;
+  padding:2px 6px;border-radius:2px;
+  letter-spacing:0.1em;font-weight:600;
+}
+.sev-critical{background:rgba(255,34,68,0.15);color:var(--red);border:1px solid rgba(255,34,68,0.3);}
+.sev-high{background:rgba(255,170,0,0.12);color:var(--amber);border:1px solid rgba(255,170,0,0.25);}
+
+/* ══════════════════════════════════════════
+   MOVIE SCREEN
+══════════════════════════════════════════ */
+#screen-movie{
+  background:var(--bg);
+  padding:0;
+}
+
+/* top bar */
+.movie-topbar{
+  display:flex;align-items:center;
+  padding:0.8rem 1.5rem;
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  gap:1rem;flex-shrink:0;
+  position:relative;
+}
+.movie-topbar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+  opacity:0.3;
+}
+.mtb-back{
+  font-family:var(--mono);font-size:0.65rem;
+  color:var(--muted2);cursor:pointer;
+  padding:0.3rem 0.7rem;border:1px solid var(--border);
+  border-radius:2px;transition:all 0.15s;flex-shrink:0;
+}
+.mtb-back:hover{border-color:var(--red);color:var(--red);}
+.mtb-title{
+  font-family:var(--display);font-size:1.1rem;
+  letter-spacing:0.08em;color:#fff;flex:1;
+}
+.mtb-stage{
+  font-family:var(--mono);font-size:0.62rem;
+  color:var(--muted2);letter-spacing:0.1em;
+  flex-shrink:0;
+}
+
+/* progress timeline */
+.timeline-bar{
+  display:flex;gap:1px;background:var(--border);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.tb-stage{
+  flex:1;padding:0.5rem 0.4rem;
+  text-align:center;
+  background:var(--s1);
+  font-family:var(--mono);font-size:0.52rem;
+  color:var(--muted);letter-spacing:0.06em;
+  text-transform:uppercase;
+  transition:all 0.4s;cursor:pointer;
+  border-bottom:2px solid transparent;
+  line-height:1.3;
+}
+.tb-stage:hover{background:var(--s2);}
+.tb-stage.active{
+  background:var(--s2);
+  color:var(--text);
+  border-bottom-color:var(--red);
+}
+.tb-stage.done{
+  color:var(--green2);
+  border-bottom-color:var(--green2);
+}
+.tb-stage-num{font-size:0.65rem;font-weight:700;display:block;margin-bottom:1px;}
+
+/* scene area */
+.scene-area{
+  flex:1;
+  overflow-y:auto;
+  padding:2rem 1.5rem;
+  scroll-behavior:smooth;
+}
+.scene-area::-webkit-scrollbar{width:3px;}
+.scene-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* scene */
+.scene{
+  max-width:760px;margin:0 auto;
+  opacity:0;transform:translateY(16px);
+  transition:opacity 0.5s ease,transform 0.5s ease;
+}
+.scene.visible{opacity:1;transform:translateY(0);}
+
+.scene-stamp{
+  font-family:var(--mono);font-size:0.6rem;
+  letter-spacing:0.2em;color:var(--red);
+  text-transform:uppercase;margin-bottom:0.6rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.scene-stamp::after{content:'';flex:1;height:1px;background:rgba(255,34,68,0.2);}
+
+.scene-title{
+  font-family:var(--display);
+  font-size:clamp(1.4rem,4vw,2rem);
+  letter-spacing:0.05em;color:#fff;
+  margin-bottom:0.8rem;line-height:1.1;
+}
+
+/* typewriter narrative */
+.narrative{
+  font-family:var(--mono);font-size:0.78rem;
+  color:var(--muted2);line-height:2;
+  margin-bottom:1.5rem;
+  min-height:2rem;
+}
+.narrative .cursor{
+  display:inline-block;width:8px;height:14px;
+  background:var(--red);vertical-align:middle;
+  animation:blink-cursor 0.7s infinite;
+  margin-left:2px;
+}
+@keyframes blink-cursor{0%,100%{opacity:1}50%{opacity:0}}
+
+/* attack diagram */
+.diagram{
+  margin:1.5rem 0;
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:1.2rem;
+  position:relative;
+  overflow:hidden;
+}
+.diagram::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+  opacity:0.3;
+}
+.diag-label{
+  font-family:var(--mono);font-size:0.55rem;
+  letter-spacing:0.15em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:1rem;
+}
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0.5rem;}
+.flow-node{
+  padding:0.4rem 0.8rem;
+  border-radius:3px;
+  font-family:var(--mono);font-size:0.7rem;
+  border:1px solid;
+  opacity:0;transform:scale(0.8);
+  transition:opacity 0.4s ease,transform 0.4s ease;
+  line-height:1.3;text-align:center;
+}
+.flow-node.show{opacity:1;transform:scale(1);}
+.flow-node.attacker{background:rgba(255,34,68,0.1);border-color:rgba(255,34,68,0.4);color:var(--red2);}
+.flow-node.victim{background:rgba(0,136,255,0.08);border-color:rgba(0,136,255,0.3);color:#44aaff;}
+.flow-node.data{background:rgba(255,170,0,0.08);border-color:rgba(255,170,0,0.25);color:var(--amber);}
+.flow-node.system{background:rgba(0,255,136,0.06);border-color:rgba(0,255,136,0.2);color:var(--green);}
+.flow-node.tool{background:rgba(170,85,255,0.08);border-color:rgba(170,85,255,0.25);color:var(--purple);}
+.flow-arrow{
+  color:var(--muted);font-size:1rem;
+  opacity:0;transition:opacity 0.4s ease 0.2s;
+  flex-shrink:0;
+}
+.flow-arrow.show{opacity:1;}
+
+/* quote block */
+.quote-block{
+  margin:1rem 0;
+  padding:1rem 1.2rem;
+  background:rgba(0,0,0,0.3);
+  border-left:3px solid var(--amber);
+  border-radius:0 4px 4px 0;
+  font-family:var(--mono);font-size:0.73rem;
+  color:var(--amber);line-height:1.8;
+  opacity:0;transform:translateX(-8px);
+  transition:opacity 0.4s ease,transform 0.4s ease;
+}
+.quote-block.show{opacity:1;transform:translateX(0);}
+.quote-block em{display:block;font-size:0.6rem;color:var(--muted2);margin-top:0.4rem;font-style:normal;}
+
+/* impact box */
+.impact-box{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:4px;
+  overflow:hidden;margin:1rem 0;
+}
+.ib-item{
+  background:var(--s2);padding:0.8rem;text-align:center;
+  opacity:0;transform:translateY(8px);
+  transition:opacity 0.4s ease,transform 0.4s ease;
+}
+.ib-item.show{opacity:1;transform:translateY(0);}
+.ib-val{
+  font-family:var(--display);font-size:1.5rem;
+  letter-spacing:0.05em;margin-bottom:0.2rem;
+}
+.ib-label{font-family:var(--mono);font-size:0.58rem;color:var(--muted2);letter-spacing:0.1em;}
+
+/* defense box */
+.defense-box{
+  background:rgba(0,255,136,0.04);
+  border:1px solid rgba(0,255,136,0.2);
+  border-radius:4px;padding:1rem 1.2rem;
+  margin:1rem 0;
+  opacity:0;transition:opacity 0.5s ease;
+}
+.defense-box.show{opacity:1;}
+.db-title{
+  font-family:var(--mono);font-size:0.6rem;
+  letter-spacing:0.15em;color:var(--green);
+  text-transform:uppercase;margin-bottom:0.7rem;
+}
+.db-item{
+  display:flex;align-items:flex-start;gap:0.5rem;
+  font-size:0.75rem;color:var(--muted2);
+  margin-bottom:0.4rem;line-height:1.5;
+}
+.db-item::before{content:'✓';color:var(--green);flex-shrink:0;font-family:var(--mono);}
+
+/* nav buttons */
+.scene-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:2rem;padding-top:1.5rem;
+  border-top:1px solid var(--border);
+}
+.nav-btn{
+  font-family:var(--ui);font-weight:700;
+  font-size:0.8rem;letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:0.65rem 1.5rem;
+  border-radius:3px;cursor:pointer;
+  transition:all 0.2s;border:1px solid;
+}
+.nav-next{
+  background:var(--red);border-color:var(--red);
+  color:#fff;box-shadow:0 0 16px rgba(255,34,68,0.3);
+}
+.nav-next:hover{box-shadow:0 0 28px rgba(255,34,68,0.5);transform:translateY(-1px);}
+.nav-prev{background:transparent;border-color:var(--border);color:var(--muted2);}
+.nav-prev:hover{border-color:var(--muted2);color:var(--text);}
+.nav-finish{
+  background:var(--green2);border-color:var(--green2);
+  color:#000;box-shadow:0 0 16px rgba(0,204,102,0.3);
+}
+.nav-finish:hover{box-shadow:0 0 28px rgba(0,204,102,0.5);}
+
+/* stage label */
+.stage-label{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  font-family:var(--mono);font-size:0.6rem;
+  padding:0.3rem 0.7rem;border-radius:2px;
+  margin-bottom:0.8rem;letter-spacing:0.1em;
+  text-transform:uppercase;border:1px solid;
+}
+
+/* ══════════════════════════════════════════
+   CREDITS SCREEN
+══════════════════════════════════════════ */
+#screen-credits{
+  padding:3rem 1.5rem;
+  text-align:center;
+  justify-content:center;align-items:center;gap:1.5rem;
+}
+.cred-title{
+  font-family:var(--display);
+  font-size:clamp(1.5rem,5vw,3rem);
+  letter-spacing:0.1em;color:var(--green);
+  text-shadow:0 0 30px rgba(0,255,136,0.4);
+}
+.cred-sub{font-family:var(--mono);font-size:0.75rem;color:var(--muted2);letter-spacing:0.1em;}
+.cred-lesson{
+  max-width:500px;
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:5px;padding:1.5rem;
+  font-size:0.85rem;color:var(--text);line-height:1.8;
+  text-align:left;
+}
+.cred-lesson strong{color:var(--green);}
+.btn-restart{
+  font-family:var(--display);font-size:0.9rem;
+  letter-spacing:0.15em;padding:0.7rem 2rem;
+  background:transparent;border:1px solid var(--green2);
+  border-radius:3px;color:var(--green2);cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-restart:hover{background:rgba(0,204,102,0.1);}
+.btn-select-more{
+  font-family:var(--mono);font-size:0.68rem;
+  letter-spacing:0.1em;padding:0.5rem 1.2rem;
+  background:transparent;border:1px solid var(--border);
+  border-radius:3px;color:var(--muted2);cursor:pointer;
+  transition:all 0.2s;margin-top:0.5rem;
+}
+.btn-select-more:hover{border-color:var(--muted2);color:var(--text);}
+</style>
+</head>
+<body>
+
+<!-- ── SELECTION SCREEN ── -->
+<div class="screen active" id="screen-select">
+  <div class="sel-header">
+    <div class="sel-eyebrow">● Documentary Series</div>
+    <div class="sel-title">DNA OF A <span>HACK</span></div>
+    <div class="sel-sub">Real world breaches. Animated step by step. Understand exactly how it happened — and what could have stopped it.</div>
+  </div>
+  <div class="breach-grid" id="breach-grid"></div>
+</div>
+
+<!-- ── MOVIE SCREEN ── -->
+<div class="screen" id="screen-movie">
+  <div class="movie-topbar">
+    <div class="mtb-back" onclick="goBack()">← BACK</div>
+    <div class="mtb-title" id="mtb-title">—</div>
+    <div class="mtb-stage" id="mtb-stage">Stage 1 of 6</div>
+  </div>
+  <div class="timeline-bar" id="timeline-bar"></div>
+  <div class="scene-area" id="scene-area"></div>
+</div>
+
+<!-- ── CREDITS SCREEN ── -->
+<div class="screen" id="screen-credits">
+  <div class="cred-title" id="cred-title">BREACH COMPLETE</div>
+  <div class="cred-sub" id="cred-sub">—</div>
+  <div class="cred-lesson" id="cred-lesson"></div>
+  <button class="btn-restart" onclick="replayBreach()">↺ REPLAY</button>
+  <button class="btn-select-more" onclick="goBack()">← Choose Another Breach</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// BREACH DATABASE
+// ══════════════════════════════════════════
+const BREACHES = [
+  {
+    id:'twitter2020',
+    year:'JULY 2020',
+    title:'TWITTER',
+    victim:'Twitter / X Corp',
+    color:'#1da1f2',
+    severity:'critical',
+    tags:['Social Engineering','Insider Threat','Crypto Scam'],
+    desc:'Hackers hijacked Barack Obama, Elon Musk, Apple and 130 other high-profile accounts to run a Bitcoin scam — netting $120,000 in hours.',
+    impact:{ records:'130 Accounts', loss:'$120,000', duration:'24 Hours', method:'Phone Spear-Phishing' },
+    lesson:'A single phished employee with enough access can compromise the accounts of world leaders. Privileged access management and 2FA on internal tools are non-negotiable.',
+    stages:[
+      {
+        label:'RECONNAISSANCE', labelColor:'#ff2244',
+        title:'Finding the Weakest Link',
+        narrative:"It's July 15, 2020. Three young hackers — including a 17-year-old from Florida — begin mapping Twitter's internal infrastructure. Their target isn't a server. It's a person. They scan LinkedIn, find Twitter employees in IT support and internal tools teams. Phone numbers are found via social media and public records.",
+        diagram:{
+          label:'Attack Vector — Social Graph Mapping',
+          nodes:[
+            {t:'Hackers',c:'attacker'},{a:true},
+            {t:'LinkedIn Recon',c:'tool'},{a:true},
+            {t:'Twitter IT Staff',c:'victim'},{a:true},
+            {t:'Phone Numbers',c:'data'}
+          ]
+        },
+        quote:{ text:'"We found a way to get to the employees — we didn\'t need to hack Twitter directly. We hacked the humans."', src:'— Reconstructed from court documents' },
+        defense:['Limit employee personal information indexed publicly','Implement social engineering awareness training','Remove personal contact info from internal directories']
+      },
+      {
+        label:'SOCIAL ENGINEERING', labelColor:'#ffaa00',
+        title:'The Phone Call',
+        narrative:"The attackers call Twitter employees posing as IT staff. They claim there's a VPN issue and need the employee to verify credentials through a fake internal portal. The employees, trained to be helpful, comply. Within hours, the hackers have credentials to Twitter's internal admin tools — including \"God Mode\": a panel that can access any account.",
+        diagram:{
+          label:'Vishing Attack Chain',
+          nodes:[
+            {t:'Fake IT Call',c:'attacker'},{a:true},
+            {t:'Twitter Employee',c:'victim'},{a:true},
+            {t:'Fake VPN Portal',c:'tool'},{a:true},
+            {t:'Credentials Stolen',c:'data'},{a:true},
+            {t:'Admin Access',c:'system'}
+          ]
+        },
+        quote:{ text:'"Hi, this is the IT helpdesk. We\'re seeing issues with your VPN token. Can you verify through our portal?"', src:'— Reconstructed phishing script' },
+        defense:['Verify all IT requests through official ticketing systems','Never provide credentials over the phone','Implement callback verification for sensitive requests']
+      },
+      {
+        label:'INITIAL ACCESS', labelColor:'#aa55ff',
+        title:'Inside God Mode',
+        narrative:"With stolen credentials, the attackers log into Twitter's internal admin panel — nicknamed 'God Mode' by employees. This tool was originally built for customer support. It could: change email addresses, disable 2FA, and control any account on the platform. The hackers now had full control of every account on Twitter.",
+        diagram:{
+          label:'Internal Tool Access',
+          nodes:[
+            {t:'Stolen Creds',c:'data'},{a:true},
+            {t:'"God Mode" Panel',c:'system'},{a:true},
+            {t:'Any Twitter Account',c:'victim'},{a:true},
+            {t:'Full Control',c:'attacker'}
+          ]
+        },
+        defense:['Restrict internal admin tools with hardware MFA','Implement break-glass access logging','Require multi-person approval for high-privilege actions','Alert on unusual admin panel activity patterns']
+      },
+      {
+        label:'EXPLOITATION', labelColor:'#ff2244',
+        title:'Hijacking World Leaders',
+        narrative:"The hackers target the highest-profile accounts: Barack Obama (126M followers), Elon Musk (36M), Apple, Jeff Bezos, Bill Gates, Kanye West. Each account posts the same message: 'I am giving back to my community due to COVID-19. Send $1,000 and I'll send $2,000 back.' Within 30 minutes, the Bitcoin wallet receives over $120,000.",
+        diagram:{
+          label:'Compromised Accounts → Scam Posts',
+          nodes:[
+            {t:'Obama (126M)',c:'victim'},{a:true},
+            {t:'Musk (36M)',c:'victim'},{a:true},
+            {t:'Apple, Gates...',c:'victim'},{a:true},
+            {t:'Bitcoin Wallet',c:'data'},{a:true},
+            {t:'$120,000',c:'attacker'}
+          ]
+        },
+        quote:{ text:'"Everyone is asking me to give back. I am doubling all payments sent to my BTC address!"', src:'— Posted from @elonmusk, @BarackObama, @Apple' },
+        defense:['Rate-limit mass account modifications','Auto-detect coordinated identical posts','Implement emergency account freeze protocols']
+      },
+      {
+        label:'DETECTION', labelColor:'#00ccff',
+        title:'Twitter Goes Dark',
+        narrative:"Twitter's security team notices the coordinated activity. With no way to quickly revoke the compromised admin access, they make a drastic decision: disable tweet posting for ALL verified accounts globally. For 3 hours, no verified account on Twitter could post. The platform goes into crisis mode. Twitter never publicly confirmed exactly which internal tools were used.",
+        diagram:{
+          label:'Incident Response',
+          nodes:[
+            {t:'Security Alert',c:'system'},{a:true},
+            {t:'Kill Verified Posts',c:'tool'},{a:true},
+            {t:'Revoke Admin Access',c:'system'},{a:true},
+            {t:'FBI Investigation',c:'data'}
+          ]
+        },
+        defense:['Have an incident response runbook ready','Pre-define emergency access revocation procedures','Practice breach simulation drills regularly']
+      },
+      {
+        label:'AFTERMATH', labelColor:'#00ff88',
+        title:'Arrests & Lessons',
+        narrative:"Within weeks, the FBI traces the Bitcoin transactions. Graham Ivan Clark, 17, of Tampa Florida — along with two accomplices — is arrested. Clark is sentenced to 3 years in juvenile detention. Twitter overhauled its internal access controls, implemented hardware security keys for all employees, and restricted internal admin tool access to a much smaller team.",
+        diagram:{
+          label:'What Was Changed After',
+          nodes:[
+            {t:'Hardware Keys',c:'system'},{a:true},
+            {t:'Access Reviews',c:'system'},{a:true},
+            {t:'Admin Restrictions',c:'tool'},{a:true},
+            {t:'3 Arrested',c:'data'}
+          ]
+        },
+        defense:['Hardware security keys (YubiKey) for all employees','Quarterly privileged access reviews','Zero trust: no implicit trust even for internal tools','Regular red team social engineering tests']
+      }
+    ]
+  },
+  {
+    id:'colonial2021',
+    year:'MAY 2021',
+    title:'COLONIAL PIPELINE',
+    victim:'Colonial Pipeline Co.',
+    color:'#ff8800',
+    severity:'critical',
+    tags:['Ransomware','DarkSide','Critical Infrastructure'],
+    desc:'A single compromised VPN password shut down the largest fuel pipeline in the US for 6 days, causing fuel shortages across the East Coast and a $4.4M ransom payment.',
+    impact:{ records:'$4.4M Ransom', loss:'Billions (economy)', duration:'6 Days Offline', method:'VPN Credential Stuffing' },
+    lesson:'Critical infrastructure running on legacy systems with poor credential hygiene is catastrophically vulnerable. A single reused password with no MFA was all it took.',
+    stages:[
+      {
+        label:'INITIAL ACCESS', labelColor:'#ff2244',
+        title:'One Password. That\'s All.',
+        narrative:"May 6, 2021. The DarkSide ransomware group obtains a single VPN password for a Colonial Pipeline account. The password was likely obtained from a dark web credential dump — the same password used elsewhere, leaked in a previous breach. The account had no multi-factor authentication. No one noticed the login.",
+        diagram:{
+          label:'Credential Stuffing Attack',
+          nodes:[
+            {t:'Dark Web Leak',c:'data'},{a:true},
+            {t:'Password Reuse',c:'attacker'},{a:true},
+            {t:'VPN Login',c:'tool'},{a:true},
+            {t:'Legacy Network',c:'victim'},{a:true},
+            {t:'Full Access',c:'attacker'}
+          ]
+        },
+        quote:{ text:'"The password for the compromised VPN account was found in a batch of leaked passwords on the dark web."', src:'— FBI Director Christopher Wray' },
+        defense:['Enable MFA on ALL remote access (VPN, RDP)','Audit for password reuse across services','Subscribe to credential leak monitoring (HaveIBeenPwned)']
+      },
+      {
+        label:'LATERAL MOVEMENT', labelColor:'#ffaa00',
+        title:'Spreading Through the Network',
+        narrative:"DarkSide spends days quietly moving through Colonial's network undetected. They map file servers, backups, and critical operational systems. The group exfiltrates nearly 100 gigabytes of data before deploying their ransomware payload — ensuring they have leverage even if Colonial could restore from backup.",
+        diagram:{
+          label:'Network Reconnaissance & Data Theft',
+          nodes:[
+            {t:'VPN Entry',c:'attacker'},{a:true},
+            {t:'Network Scan',c:'tool'},{a:true},
+            {t:'File Servers',c:'victim'},{a:true},
+            {t:'100GB Stolen',c:'data'},{a:true},
+            {t:'Ransomware Ready',c:'attacker'}
+          ]
+        },
+        defense:['Network segmentation — IT vs OT systems must be isolated','Deploy EDR (Endpoint Detection & Response)','Monitor for unusual lateral movement and data exfiltration']
+      },
+      {
+        label:'RANSOMWARE DEPLOYED', labelColor:'#ff2244',
+        title:'The Kill Switch',
+        narrative:"May 7, 2021. DarkSide deploys their ransomware across Colonial's IT network. Over 100 systems are encrypted within hours. Colonial's billing and business systems go dark. Fearing the ransomware could spread to operational technology (OT) controlling the actual pipeline, Colonial makes the decision to shut down 5,500 miles of pipeline — proactively.",
+        diagram:{
+          label:'Ransomware Execution',
+          nodes:[
+            {t:'DarkSide Payload',c:'attacker'},{a:true},
+            {t:'100+ Systems',c:'victim'},{a:true},
+            {t:'Files Encrypted',c:'data'},{a:true},
+            {t:'Pipeline Shutdown',c:'victim'},{a:true},
+            {t:'East Coast Crisis',c:'data'}
+          ]
+        },
+        quote:{ text:'"Colonial Pipeline has determined that it was the victim of a cybersecurity attack. We proactively took certain systems offline to contain the threat."', src:'— Colonial Pipeline statement, May 8 2021' },
+        defense:['Isolate IT from OT/SCADA systems with air gaps','Maintain tested offline backups','Create incident response playbook for ransomware scenarios']
+      },
+      {
+        label:'CRISIS', labelColor:'#ff8800',
+        title:'17 States in Emergency',
+        narrative:"Within 24 hours, fuel shortages begin spreading across the US East Coast. 17 states declare a state of emergency. Gas stations run dry. Panic buying causes lines stretching miles. Jet fuel supplies at major airports become critical. The Colonial Pipeline supplies 45% of all fuel to the East Coast — from Houston to New York.",
+        diagram:{
+          label:'Real World Impact',
+          nodes:[
+            {t:'Pipeline Offline',c:'attacker'},{a:true},
+            {t:'45% Fuel Supply',c:'data'},{a:true},
+            {t:'17 States',c:'victim'},{a:true},
+            {t:'Gas Shortages',c:'victim'},{a:true},
+            {t:'National Emergency',c:'data'}
+          ]
+        },
+        defense:['Critical infrastructure needs hardened cyber resilience','Coordinate with CISA for threat intelligence sharing','Maintain emergency fuel reserves and supply chain alternatives']
+      },
+      {
+        label:'RANSOM PAID', labelColor:'#aa55ff',
+        title:'$4.4 Million in Bitcoin',
+        narrative:"Facing a national crisis, Colonial Pipeline pays DarkSide 75 Bitcoin — worth $4.4 million — within hours of the attack. DarkSide provides a decryption tool but it was so slow that Colonial used their own backups to restore. The FBI later recovered $2.3 million of the ransom by seizing DarkSide's Bitcoin wallet private key.",
+        diagram:{
+          label:'Ransom Transaction',
+          nodes:[
+            {t:'Colonial',c:'victim'},{a:true},
+            {t:'75 BTC ($4.4M)',c:'data'},{a:true},
+            {t:'DarkSide Wallet',c:'attacker'},{a:true},
+            {t:'FBI Seizure',c:'system'},{a:true},
+            {t:'$2.3M Recovered',c:'system'}
+          ]
+        },
+        defense:['Never assume paying ransom restores operations quickly','Maintain tested, air-gapped backups to avoid paying','Notify FBI immediately — they may have decryption keys']
+      },
+      {
+        label:'LESSONS LEARNED', labelColor:'#00ff88',
+        title:'What One Password Cost',
+        narrative:"A single reused password with no MFA caused: 6 days of pipeline shutdown, $4.4M ransom, billions in economic damage, and a national fuel crisis. Congress held emergency hearings. CISA issued new critical infrastructure security guidelines. Colonial spent millions on security upgrades. DarkSide disappeared shortly after — pressure from US government forced them offline.",
+        diagram:{
+          label:'Security Improvements Mandated',
+          nodes:[
+            {t:'MFA Everywhere',c:'system'},{a:true},
+            {t:'IT/OT Separation',c:'tool'},{a:true},
+            {t:'CISA Guidelines',c:'data'},{a:true},
+            {t:'Incident Response',c:'system'}
+          ]
+        },
+        defense:['MFA on ALL remote access — no exceptions','Separate IT and operational technology networks completely','Credential leak monitoring and password policies','Offline, tested backups for all critical systems','Regular third-party penetration testing']
+      }
+    ]
+  },
+  {
+    id:'solarwinds2020',
+    year:'DEC 2020',
+    title:'SOLARWINDS',
+    victim:'18,000+ Organizations incl. US Gov',
+    color:'#aa55ff',
+    severity:'critical',
+    tags:['Supply Chain','Nation State','APT29'],
+    desc:'Russian intelligence (APT29) hid malware inside a software update deployed to 18,000 organizations including the US Treasury, Pentagon, and Fortune 500 companies. Undetected for 9 months.',
+    impact:{ records:'18,000+ Orgs', loss:'$100M+ (US Gov)', duration:'9 Months Undetected', method:'Supply Chain Backdoor' },
+    lesson:'When you trust a vendor, you trust everything they deploy. Supply chain attacks bypass all perimeter security. Assume breach and monitor internal traffic.',
+    stages:[
+      {
+        label:'SUPPLY CHAIN ENTRY', labelColor:'#aa55ff',
+        title:'Infecting the Water Supply',
+        narrative:"2019. Russian intelligence group APT29 (Cozy Bear) gains access to SolarWinds' development environment. SolarWinds makes Orion — an IT monitoring platform used by 33,000 organizations including NASA, the Pentagon, and the US Treasury. Rather than attacking each target directly, APT29 plants a backdoor inside the Orion software build pipeline itself.",
+        diagram:{
+          label:'Supply Chain Attack Vector',
+          nodes:[
+            {t:'APT29 (Russia)',c:'attacker'},{a:true},
+            {t:'SolarWinds Dev',c:'victim'},{a:true},
+            {t:'Build Pipeline',c:'tool'},{a:true},
+            {t:'Orion Update',c:'system'},{a:true},
+            {t:'18,000 Targets',c:'data'}
+          ]
+        },
+        quote:{ text:'"This is the largest and most sophisticated attack the world has ever seen."', src:'— Microsoft President Brad Smith' },
+        defense:['Implement software supply chain security (SLSA framework)','Sign all build artifacts cryptographically','Monitor build pipelines for unauthorized changes']
+      },
+      {
+        label:'BACKDOOR PLANTED', labelColor:'#ff2244',
+        title:'SUNBURST: The Perfect Backdoor',
+        narrative:"APT29 modifies the SolarWinds Orion source code to include a backdoor called SUNBURST. The malware is masterfully disguised — it uses legitimate SolarWinds code patterns, communicates over standard HTTP to blend with normal traffic, waits 12-14 days before activating, and impersonates legitimate Orion processes. It passes all code review checks.",
+        diagram:{
+          label:'SUNBURST Malware Architecture',
+          nodes:[
+            {t:'Orion Source',c:'victim'},{a:true},
+            {t:'SUNBURST Injected',c:'attacker'},{a:true},
+            {t:'Signed by SolarWinds',c:'tool'},{a:true},
+            {t:'Trusted Update',c:'system'},{a:true},
+            {t:'Silent Backdoor',c:'attacker'}
+          ]
+        },
+        defense:['Reproducible builds — rebuild from source and compare hashes','Implement 4-eyes principle on all source code commits','Use dependency scanning tools on all third-party code']
+      },
+      {
+        label:'GLOBAL DEPLOYMENT', labelColor:'#ffaa00',
+        title:'Trusted Into Every Network',
+        narrative:"March 2020. SolarWinds releases Orion version 2019.4 through 2020.2.1. 18,000 organizations download and install the update — trusting it completely because it carries SolarWinds' official digital signature. The update installs SUNBURST silently on networks belonging to: US Treasury, US Dept of Justice, US Dept of Homeland Security, Microsoft, Intel, Cisco, FireEye.",
+        diagram:{
+          label:'Victims Unknowingly Installing Backdoor',
+          nodes:[
+            {t:'US Treasury',c:'victim'},{a:true},
+            {t:'US DoD',c:'victim'},{a:true},
+            {t:'Microsoft',c:'victim'},{a:true},
+            {t:'FireEye',c:'victim'},{a:true},
+            {t:'18,000 Others',c:'data'}
+          ]
+        },
+        defense:['Zero trust even for signed vendor software','Network segmentation to limit blast radius','Behavioral monitoring of all installed software']
+      },
+      {
+        label:'9 MONTHS SILENT', labelColor:'#0088ff',
+        title:'Living Off the Land',
+        narrative:"For 9 months, APT29 operates silently inside some of the world's most secure networks. They move carefully, using legitimate admin tools to avoid detection. They access emails, steal encryption keys, and exfiltrate classified data. The SolarWinds backdoor had a genius feature: if it detected security scanning software, it would go dormant for weeks.",
+        diagram:{
+          label:'Stealth Operations Inside Networks',
+          nodes:[
+            {t:'SUNBURST Active',c:'attacker'},{a:true},
+            {t:'Admin Tools Used',c:'tool'},{a:true},
+            {t:'Email Access',c:'data'},{a:true},
+            {t:'Classified Data',c:'data'},{a:true},
+            {t:'9 Months Silent',c:'attacker'}
+          ]
+        },
+        quote:{ text:'"They were inside and watching. Patient, methodical, and silent for nine months."', src:'— CISA incident analysis' },
+        defense:['Deploy anomaly detection on internal east-west traffic','Hunt for threats proactively — don\'t wait for alerts','Monitor privileged account behavior with UBA tools']
+      },
+      {
+        label:'DISCOVERY', labelColor:'#00ccff',
+        title:'FireEye Notices Something Wrong',
+        narrative:"December 2020. FireEye — a top cybersecurity firm and itself a victim — notices an unusual second device registering on an employee's MFA account. Investigating, they discover their own red team tools were stolen. Pulling the thread, they trace it back to SolarWinds Orion. FireEye immediately alerts the US government and publishes the SUNBURST indicators publicly.",
+        diagram:{
+          label:'Discovery Chain',
+          nodes:[
+            {t:'Unusual MFA Login',c:'system'},{a:true},
+            {t:'FireEye Investigates',c:'tool'},{a:true},
+            {t:'SUNBURST Found',c:'data'},{a:true},
+            {t:'US Gov Alerted',c:'system'},{a:true},
+            {t:'Public Disclosure',c:'data'}
+          ]
+        },
+        defense:['MFA anomaly detection saved the day here','Threat hunting teams are worth their cost','Responsible disclosure sharing benefits everyone']
+      },
+      {
+        label:'GLOBAL RESPONSE', labelColor:'#00ff88',
+        title:'The Biggest Cleanup in History',
+        narrative:"The US government declares a national security emergency. SolarWinds stock drops 40%. Congress holds emergency hearings. Microsoft seizes the SUNBURST command and control domain. 18,000 organizations scramble to audit their networks. The attack is attributed to Russia's SVR intelligence agency. Total remediation cost exceeds $100 million for the US government alone.",
+        diagram:{
+          label:'Aftermath & Attribution',
+          nodes:[
+            {t:'Microsoft Seizes C2',c:'system'},{a:true},
+            {t:'SVR Attributed',c:'data'},{a:true},
+            {t:'$100M+ Cleanup',c:'data'},{a:true},
+            {t:'New EO on Cyber',c:'system'}
+          ]
+        },
+        defense:['Software Bill of Materials (SBOM) now mandatory for US Gov vendors','Executive Order 14028 — new US federal cybersecurity standards','Zero trust architecture mandated across federal agencies','Supply chain security is now a national security priority']
+      }
+    ]
+  },
+  {
+    id:'uber2022',
+    year:'SEPT 2022',
+    title:'UBER',
+    victim:'Uber Technologies',
+    color:'#00cc44',
+    severity:'high',
+    tags:['Social Engineering','MFA Fatigue','Lapsus$'],
+    desc:'An 18-year-old hacker gained complete admin access to Uber\'s internal systems by texting an employee pretending to be IT support — bypassing MFA through sheer persistence.',
+    impact:{ records:'Full Internal Access', loss:'Reputation & Legal', duration:'Hours', method:'MFA Fatigue Attack' },
+    lesson:'MFA can be bypassed through social engineering. Training employees to recognize MFA fatigue attacks is as important as having MFA in the first place.',
+    stages:[
+      {
+        label:'CREDENTIAL PURCHASE', labelColor:'#ff2244',
+        title:'$20 on the Dark Web',
+        narrative:"September 2022. An 18-year-old hacker affiliated with the Lapsus$ group purchases an Uber contractor's credentials from the dark web for approximately $20. The username and password are real and valid. But there's an obstacle: Uber has multi-factor authentication. The attacker needs to get past it.",
+        diagram:{
+          label:'Dark Web Credential Purchase',
+          nodes:[
+            {t:'Attacker (18yr old)',c:'attacker'},{a:true},
+            {t:'Dark Web Market',c:'tool'},{a:true},
+            {t:'Uber Contractor Creds',c:'data'},{a:true},
+            {t:'MFA Blocker',c:'system'}
+          ]
+        },
+        defense:['Monitor dark web for your company\'s credentials','Use phishing-resistant MFA (hardware keys, passkeys)','Audit contractor access regularly']
+      },
+      {
+        label:'MFA FATIGUE', labelColor:'#ffaa00',
+        title:'Bombing the Phone',
+        narrative:"The attacker logs in repeatedly with the stolen credentials, triggering dozens of MFA push notifications to the contractor's phone. For over an hour, the employee receives constant approval requests they didn't initiate. Eventually — late at night — the employee approves one just to make the notifications stop. The attacker is in.",
+        diagram:{
+          label:'MFA Fatigue Attack',
+          nodes:[
+            {t:'Repeated Login Attempts',c:'attacker'},{a:true},
+            {t:'30+ MFA Pushes',c:'tool'},{a:true},
+            {t:'Exhausted Employee',c:'victim'},{a:true},
+            {t:'Accidental Approval',c:'data'},{a:true},
+            {t:'Full VPN Access',c:'attacker'}
+          ]
+        },
+        quote:{ text:'"I kept getting the notifications. I approved one thinking it would stop."', src:'— Reconstructed from incident analysis' },
+        defense:['Use number-matching MFA (employee must enter code from screen)','Set MFA push limits — lock after 5 failed attempts','Train staff to NEVER approve unexpected MFA requests']
+      },
+      {
+        label:'LATERAL MOVEMENT', labelColor:'#aa55ff',
+        title:'Finding the Keys to the Kingdom',
+        narrative:"Inside the VPN, the attacker finds a network share with PowerShell scripts. Inside one script: hardcoded admin credentials for Uber's privileged access management (PAM) tool — Thycotic. With PAM access, the attacker can now access virtually every system Uber runs: AWS, GCP, Google Workspace, Slack, HackerOne, SentinelOne, and more.",
+        diagram:{
+          label:'Credential Escalation Chain',
+          nodes:[
+            {t:'VPN Access',c:'attacker'},{a:true},
+            {t:'Network Shares',c:'tool'},{a:true},
+            {t:'Hardcoded Creds',c:'data'},{a:true},
+            {t:'PAM Tool (Thycotic)',c:'system'},{a:true},
+            {t:'ALL Systems',c:'attacker'}
+          ]
+        },
+        defense:['NEVER hardcode credentials in scripts — use secrets managers','Scan internal file shares for credential leaks regularly','Implement least-privilege on all shared network drives']
+      },
+      {
+        label:'FULL COMPROMISE', labelColor:'#ff2244',
+        title:'Complete Access',
+        narrative:"The attacker now has admin access to Uber's entire infrastructure. They screenshot everything: the AWS console, Google Workspace admin, Slack, the internal HackerOne vulnerability reports (including unpatched bugs), the SentinelOne security dashboard — which they disable. They post screenshots to Uber's own Slack channel announcing the breach.",
+        diagram:{
+          label:'Systems Compromised',
+          nodes:[
+            {t:'AWS Console',c:'victim'},{a:true},
+            {t:'G Suite Admin',c:'victim'},{a:true},
+            {t:'HackerOne Reports',c:'data'},{a:true},
+            {t:'Slack Announcement',c:'attacker'},{a:true},
+            {t:'Security Disabled',c:'attacker'}
+          ]
+        },
+        quote:{ text:'"I announce I am a hacker and Uber has suffered a data breach." — Posted to #general on Uber\'s Slack', src:'— The attacker\'s actual Slack message' },
+        defense:['Alert on admin console access from unexpected locations','Implement privileged access workstations (PAWs)','Monitor for unusual Slack bot or webhook activity']
+      },
+      {
+        label:'RESPONSE', labelColor:'#00ccff',
+        title:'Taking Everything Offline',
+        narrative:"Uber engineers see the Slack message and initially think it's a joke. When they realize it's real, they take Uber's internal systems offline. The attacker is locked out. No customer data appears to have been exfiltrated — but the breach exposed critical infrastructure access, unpatched vulnerabilities from HackerOne, and significant gaps in Uber's security posture.",
+        diagram:{
+          label:'Incident Response',
+          nodes:[
+            {t:'Slack Alert',c:'system'},{a:true},
+            {t:'Systems Offline',c:'tool'},{a:true},
+            {t:'FBI Notified',c:'data'},{a:true},
+            {t:'Attacker Locked Out',c:'system'}
+          ]
+        },
+        defense:['Have a kill switch for internal systems during active breach','Practice breach drills so staff recognize real incidents','Establish clear communication protocols during incidents']
+      },
+      {
+        label:'LESSONS', labelColor:'#00ff88',
+        title:'$20 and a Text Message',
+        narrative:"An 18-year-old with $20 and a WhatsApp account gained complete admin access to one of the world's largest tech companies. The root causes: credential reuse found on dark web, MFA push notifications with no number matching, hardcoded passwords in scripts, and no anomaly detection on PAM tool access. The attacker was later arrested in the UK.",
+        diagram:{
+          label:'Root Cause Analysis',
+          nodes:[
+            {t:'Dark Web Creds',c:'data'},{a:true},
+            {t:'MFA Fatigue',c:'attacker'},{a:true},
+            {t:'Hardcoded Secrets',c:'data'},{a:true},
+            {t:'No Anomaly Detection',c:'victim'}
+          ]
+        },
+        defense:['Number-matching MFA eliminates fatigue attacks','Secrets scanner in CI/CD pipeline catches hardcoded credentials','Dark web monitoring for leaked employee credentials','Behavioral analytics on privileged account usage']
+      }
+    ]
+  },
+  {
+    id:'equifax2017',
+    year:'SEPT 2017',
+    title:'EQUIFAX',
+    victim:'Equifax Credit Bureau',
+    color:'#ff4400',
+    severity:'critical',
+    tags:['Unpatched CVE','Apache Struts','Data Exfiltration'],
+    desc:'A known vulnerability that had a patch available for 2 months went unpatched at one of America\'s largest credit bureaus — exposing the personal data of 147 million Americans.',
+    impact:{ records:'147.9 Million', loss:'$575M Settlement', duration:'76 Days Undetected', method:'Apache Struts CVE-2017-5638' },
+    lesson:'Patch management is not optional. CVE-2017-5638 had a patch available March 7. Equifax was breached on May 13 — 66 days after the patch was released. There is no excuse.',
+    stages:[
+      {
+        label:'VULNERABILITY PUBLISHED', labelColor:'#ff2244',
+        title:'The Patch That Was Ignored',
+        narrative:"March 7, 2017. Apache publishes a critical vulnerability in Apache Struts 2 — CVE-2017-5638. It allows remote code execution via a malicious Content-Type header. The CVSS score is 10.0 — the highest possible. A patch is released the same day. US-CERT issues an emergency alert. Equifax receives the notification. They begin patching... but miss one server.",
+        diagram:{
+          label:'Vulnerability Disclosure Timeline',
+          nodes:[
+            {t:'CVE-2017-5638',c:'data'},{a:true},
+            {t:'CVSS 10.0',c:'attacker'},{a:true},
+            {t:'Patch Released',c:'system'},{a:true},
+            {t:'US-CERT Alert',c:'tool'},{a:true},
+            {t:'Equifax Notified',c:'victim'}
+          ]
+        },
+        quote:{ text:'"Equifax was aware of the vulnerability. They chose not to apply the patch."', src:'— US Congressional Report, 2018' },
+        defense:['Automated vulnerability scanning after every CVE publication','Patch critical (CVSS 9+) vulnerabilities within 24 hours','Maintain complete asset inventory — know every server you run']
+      },
+      {
+        label:'EXPLOITATION', labelColor:'#ff2244',
+        title:'66 Days Later',
+        narrative:"May 13, 2017 — 66 days after the patch was available. Attackers scan the internet for unpatched Apache Struts servers. They find Equifax's online dispute portal. A single malicious HTTP request is sent. The server executes the injected command. The attackers have a shell on a server containing access to one of the largest collections of personal financial data in America.",
+        diagram:{
+          label:'Remote Code Execution via HTTP Header',
+          nodes:[
+            {t:'Attacker',c:'attacker'},{a:true},
+            {t:'Malicious HTTP Header',c:'tool'},{a:true},
+            {t:'Equifax Dispute Portal',c:'victim'},{a:true},
+            {t:'RCE Shell',c:'attacker'},{a:true},
+            {t:'Database Access',c:'data'}
+          ]
+        },
+        defense:['Web Application Firewall (WAF) blocks Struts exploit patterns','Virtual patching while waiting for official patch deployment','Network segmentation — web servers should NOT touch database directly']
+      },
+      {
+        label:'DATA DISCOVERY', labelColor:'#ffaa00',
+        title:'Finding the Treasure',
+        narrative:"Inside the network, attackers discover a goldmine. Worse: database credentials are stored in plaintext in a configuration file on the web server. They gain direct access to databases containing: full names, Social Security Numbers, birth dates, addresses, driver\'s license numbers, and credit card numbers for 147.9 million Americans.",
+        diagram:{
+          label:'Data Discovery',
+          nodes:[
+            {t:'Web Server Shell',c:'attacker'},{a:true},
+            {t:'Plaintext DB Creds',c:'data'},{a:true},
+            {t:'147M Records DB',c:'victim'},{a:true},
+            {t:'SSNs, DOBs, CCNs',c:'data'}
+          ]
+        },
+        defense:['NEVER store credentials in plaintext config files','Encrypt databases at rest with key management','Implement database activity monitoring (DAM) for unusual queries']
+      },
+      {
+        label:'76 DAYS EXFILTRATION', labelColor:'#aa55ff',
+        title:'Stealing in Silence',
+        narrative:"Over 76 days, attackers make 9,000 separate queries to 51 databases. They carefully package data into small encrypted archives to avoid detection. They route exfiltration through 20 different countries to mask their origin. Equifax's SSL inspection was disabled — so the exfiltrated data passed through their own security tools completely invisible.",
+        diagram:{
+          label:'Stealth Data Exfiltration',
+          nodes:[
+            {t:'9,000 DB Queries',c:'attacker'},{a:true},
+            {t:'51 Databases',c:'victim'},{a:true},
+            {t:'Encrypted Archives',c:'tool'},{a:true},
+            {t:'20 Countries Routed',c:'tool'},{a:true},
+            {t:'Undetected',c:'attacker'}
+          ]
+        },
+        defense:['Enable SSL/TLS inspection on outbound traffic','Set database query rate limits and anomaly alerts','Data Loss Prevention (DLP) tools on all egress points']
+      },
+      {
+        label:'DISCOVERY', labelColor:'#00ccff',
+        title:'An Expired Certificate',
+        narrative:"July 29, 2017. An Equifax security engineer renews an expired SSL certificate used for network traffic inspection. Suddenly, 76 days of suspicious outbound traffic becomes visible. The engineer sees thousands of encrypted data transfers to foreign IP addresses. Equifax confirms the breach and spends the next 40 days trying to understand the scope before public disclosure.",
+        diagram:{
+          label:'Discovery via Certificate Renewal',
+          nodes:[
+            {t:'Expired SSL Cert',c:'data'},{a:true},
+            {t:'Cert Renewed',c:'system'},{a:true},
+            {t:'Suspicious Traffic Visible',c:'tool'},{a:true},
+            {t:'Breach Confirmed',c:'data'}
+          ]
+        },
+        quote:{ text:'"We discovered suspicious network traffic on July 29. We should have discovered it on May 13."', src:'— Equifax CEO Richard Smith, Congressional Testimony' },
+        defense:['Monitor SSL certificate expiration automatically','Traffic inspection should NEVER be allowed to lapse','Implement continuous network traffic anomaly detection']
+      },
+      {
+        label:'FALLOUT', labelColor:'#00ff88',
+        title:'The Costliest Patch in History',
+        narrative:"Equifax waits 6 weeks before publicly disclosing — during which time 3 executives sell stock. The CEO, CTO, and CSO all resign. Congress summons the CEO. The FTC levies a $575 million settlement — the largest in FTC history. Equifax spends $1.4 billion on security upgrades. The breach that a single patch could have prevented became the most expensive cybersecurity failure in corporate history.",
+        diagram:{
+          label:'Regulatory & Corporate Fallout',
+          nodes:[
+            {t:'$575M FTC Fine',c:'data'},{a:true},
+            {t:'CEO Resigned',c:'victim'},{a:true},
+            {t:'Congressional Hearing',c:'system'},{a:true},
+            {t:'$1.4B Remediation',c:'data'}
+          ]
+        },
+        defense:['Patch management policy with SLA: Critical = 24h, High = 7 days','Automated asset inventory and vulnerability correlation','Bug bounty program to catch what internal scans miss','CISO accountability must extend to patch compliance']
+      }
+    ]
+  },
+  {
+    id:'rockstar2022',
+    year:'SEPT 2022',
+    title:'ROCKSTAR / GTA VI',
+    victim:'Rockstar Games',
+    color:'#ffdd00',
+    severity:'high',
+    tags:['Social Engineering','Slack','Lapsus$'],
+    desc:'An teenager used Slack and social engineering to infiltrate Rockstar Games\' internal network, leaking 90 videos of unreleased GTA VI footage — one of gaming\'s biggest ever leaks.',
+    impact:{ records:'90 GTA VI Videos', loss:'Massive IP Damage', duration:'Hours', method:'Slack Social Engineering' },
+    lesson:'Collaboration tools like Slack are attack surfaces. Employees should verify identity through separate channels before sharing ANY internal access.',
+    stages:[
+      {
+        label:'SOCIAL ENGINEERING', labelColor:'#ffaa00',
+        title:'Hi, I\'m from IT',
+        narrative:"September 2022. A teenager — the same person behind the Uber hack days earlier — contacts a Rockstar Games employee via Slack. Posing as an IT support person, they claim to be investigating a security incident and need the employee to help them access internal systems. The employee, believing the request is legitimate, provides access.",
+        diagram:{
+          label:'Slack-Based Social Engineering',
+          nodes:[
+            {t:'Attacker',c:'attacker'},{a:true},
+            {t:'Slack DM',c:'tool'},{a:true},
+            {t:'Rockstar Employee',c:'victim'},{a:true},
+            {t:'IT Impersonation',c:'attacker'},{a:true},
+            {t:'Access Granted',c:'data'}
+          ]
+        },
+        defense:['Verify ALL IT requests through official ticketing system','Train staff: IT will NEVER ask for access via Slack DM','Enable Slack\'s verified identity features for IT staff']
+      },
+      {
+        label:'INTERNAL ACCESS', labelColor:'#ff2244',
+        title:'Inside the Dev Network',
+        narrative:"With access to Rockstar's internal Confluence wiki and development Slack channels, the attacker finds documentation, build instructions, and credentials. They use these to access Rockstar's internal game development servers where GTA VI build files and test footage are stored. The footage represents years and hundreds of millions of dollars of development work.",
+        diagram:{
+          label:'Development Network Access',
+          nodes:[
+            {t:'Slack Access',c:'attacker'},{a:true},
+            {t:'Confluence Wiki',c:'tool'},{a:true},
+            {t:'Dev Credentials',c:'data'},{a:true},
+            {t:'GTA VI Build Servers',c:'victim'},{a:true},
+            {t:'90 Videos',c:'attacker'}
+          ]
+        },
+        defense:['Require MFA for all internal wiki and dev tool access','Separate credentials for production vs development environments','Audit Confluence for sensitive credential storage']
+      },
+      {
+        label:'EXTORTION ATTEMPT', labelColor:'#aa55ff',
+        title:'$10,000 or We Leak Everything',
+        narrative:"Before leaking, the attacker contacts Rockstar demanding $10,000 to not release the footage. Rockstar refuses to negotiate. The attacker posts all 90 GTA VI gameplay videos to GTAForums. Within hours it becomes the most viral gaming leak in history. The gaming community goes into meltdown. Rockstar is forced to confirm the breach publicly.",
+        diagram:{
+          label:'Extortion → Public Leak',
+          nodes:[
+            {t:'$10,000 Demand',c:'attacker'},{a:true},
+            {t:'Rockstar Refuses',c:'victim'},{a:true},
+            {t:'GTAForums Post',c:'tool'},{a:true},
+            {t:'Global Viral Spread',c:'data'},{a:true},
+            {t:'Rockstar Confirms',c:'victim'}
+          ]
+        },
+        quote:{ text:'"We recently suffered a network intrusion in which an unauthorized third party illegally accessed and downloaded confidential information."', src:'— Rockstar Games official statement' },
+        defense:['Never negotiate with ransomware/extortion actors','Have a PR crisis response plan ready','Legal preservation orders can sometimes limit spread']
+      },
+      {
+        label:'ARREST', labelColor:'#00ccff',
+        title:'A 17-Year-Old in Oxford',
+        narrative:"The City of London Police, working with the FBI and NCSC, trace the attacker through cryptocurrency transactions and digital footprints. Within days, a 17-year-old is arrested at his home in Oxford, England. He is the same person who hacked Uber days earlier. He is charged with computer misuse, fraud, and being a key member of the Lapsus$ group responsible for breaches at Microsoft, Nvidia, Samsung, and more.",
+        diagram:{
+          label:'Attribution & Arrest',
+          nodes:[
+            {t:'City of London Police',c:'system'},{a:true},
+            {t:'FBI Cooperation',c:'data'},{a:true},
+            {t:'Crypto Tracing',c:'tool'},{a:true},
+            {t:'Oxford, UK Arrest',c:'data'}
+          ]
+        },
+        defense:['Digital footprints are traceable even through Tor','Law enforcement international cooperation is highly effective','Cryptocurrency transactions are NOT anonymous']
+      },
+      {
+        label:'LESSONS', labelColor:'#00ff88',
+        title:'Slack is an Attack Surface',
+        narrative:"Rockstar, Uber, Microsoft, Nvidia — all breached by teenagers using nothing but social engineering via collaboration tools. The lesson: Slack, Teams, and Discord are front doors into your organization. Anyone who can message your employees can attempt to social engineer them. The solution is not to stop using these tools — it's to train staff and verify identity through separate channels.",
+        diagram:{
+          label:'Key Security Improvements',
+          nodes:[
+            {t:'IT Identity Verification',c:'system'},{a:true},
+            {t:'Slack Access Controls',c:'tool'},{a:true},
+            {t:'Security Awareness Training',c:'data'},{a:true},
+            {t:'Dev Network Isolation',c:'system'}
+          ]
+        },
+        defense:['All IT requests must go through official ticketing (Jira/ServiceNow)','Verify identity via video call before any access grants','Restrict Slack external messaging for sensitive workspaces','Regular social engineering simulation training for all staff','Segment development networks from corporate networks']
+      }
+    ]
+  }
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentBreach = null;
+let currentStage = 0;
+let typeInterval = null;
+
+// ══════════════════════════════════════════
+// RENDER SELECTION
+// ══════════════════════════════════════════
+function renderSelection() {
+  const grid = document.getElementById('breach-grid');
+  grid.innerHTML = '';
+  BREACHES.forEach((b, i) => {
+    const card = document.createElement('div');
+    card.className = 'breach-card';
+    card.style.animationDelay = `${0.1 + i*0.08}s`;
+    card.style.setProperty('--bc', b.color);
+    card.innerHTML = `
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${b.color};opacity:0.8"></div>
+      <div class="bc-severity sev-${b.severity}">${b.severity.toUpperCase()}</div>
+      <div class="bc-year">${b.year}</div>
+      <div class="bc-title" style="color:${b.color};text-shadow:0 0 20px ${b.color}44">${b.title}</div>
+      <div class="bc-victim">${b.victim}</div>
+      <div class="bc-desc">${b.desc}</div>
+      <div class="bc-tags">
+        ${b.tags.map(t=>`<span class="bc-tag" style="color:${b.color};border-color:${b.color}44;background:${b.color}10">${t}</span>`).join('')}
+      </div>
+    `;
+    card.onclick = () => startBreach(b);
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════
+// START BREACH
+// ══════════════════════════════════════════
+function startBreach(breach) {
+  currentBreach = breach;
+  currentStage = 0;
+  showScreen('screen-movie');
+  document.getElementById('mtb-title').textContent = breach.year + ' — ' + breach.title;
+  renderTimeline();
+  renderStage(0);
+}
+
+function renderTimeline() {
+  const bar = document.getElementById('timeline-bar');
+  bar.innerHTML = currentBreach.stages.map((s,i) => `
+    <div class="tb-stage ${i===0?'active':''}" id="tbst_${i}" onclick="jumpToStage(${i})">
+      <span class="tb-stage-num">${String(i+1).padStart(2,'0')}</span>
+      ${s.label}
+    </div>
+  `).join('');
+}
+
+function updateTimeline(idx) {
+  currentBreach.stages.forEach((_,i) => {
+    const el = document.getElementById(`tbst_${i}`);
+    if(!el) return;
+    el.classList.remove('active','done');
+    if(i < idx) el.classList.add('done');
+    else if(i === idx) el.classList.add('active');
+  });
+  document.getElementById('mtb-stage').textContent = `Stage ${idx+1} of ${currentBreach.stages.length}`;
+}
+
+function jumpToStage(idx) {
+  currentStage = idx;
+  renderStage(idx);
+}
+
+// ══════════════════════════════════════════
+// RENDER STAGE
+// ══════════════════════════════════════════
+function renderStage(idx) {
+  if(typeInterval) clearInterval(typeInterval);
+  const stage = currentBreach.stages[idx];
+  const area = document.getElementById('scene-area');
+  area.scrollTop = 0;
+  updateTimeline(idx);
+
+  const isLast = idx === currentBreach.stages.length - 1;
+  const color = stage.labelColor || '#ff2244';
+
+  area.innerHTML = `
+    <div class="scene" id="main-scene">
+      <div class="scene-stamp">${currentBreach.year}</div>
+      <div class="stage-label" style="color:${color};border-color:${color}44;background:${color}0d">
+        <span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block"></span>
+        ${stage.label}
+      </div>
+      <div class="scene-title">${stage.title}</div>
+      <div class="narrative" id="narrative-text"><span class="cursor"></span></div>
+
+      ${stage.diagram ? renderDiagram(stage.diagram) : ''}
+      ${stage.quote ? `<div class="quote-block" id="quote-el">${stage.quote.text}<em>${stage.quote.src}</em></div>` : ''}
+
+      <div class="defense-box" id="defense-el">
+        <div class="db-title">🛡️ How This Could Have Been Prevented</div>
+        ${stage.defense.map(d=>`<div class="db-item">${d}</div>`).join('')}
+      </div>
+
+      ${idx===1 && currentBreach.impact ? renderImpact() : ''}
+
+      <div class="scene-nav">
+        ${idx > 0 ? `<button class="nav-btn nav-prev" onclick="renderStage(${idx-1})">← Previous</button>` : '<div></div>'}
+        ${isLast
+          ? `<button class="nav-btn nav-finish" onclick="showCredits()">🏁 View Summary</button>`
+          : `<button class="nav-btn nav-next" onclick="renderStage(${idx+1})">Next Stage →</button>`}
+      </div>
+    </div>
+  `;
+
+  // Animate scene in
+  requestAnimationFrame(() => {
+    document.getElementById('main-scene').classList.add('visible');
+    typeWriter(stage.narrative, 'narrative-text', () => {
+      showDiagramNodes();
+      setTimeout(() => {
+        const q = document.getElementById('quote-el');
+        if(q) q.classList.add('show');
+        setTimeout(() => {
+          const d = document.getElementById('defense-el');
+          if(d) d.classList.add('show');
+          showImpactItems();
+        }, 400);
+      }, 300);
+    });
+  });
+}
+
+function renderDiagram(diag) {
+  const nodes = diag.nodes.map((n,i) => {
+    if(n.a) return `<div class="flow-arrow" data-arrow="${i}">→</div>`;
+    return `<div class="flow-node ${n.c||''}" data-node="${i}">${n.t}</div>`;
+  }).join('');
+  return `<div class="diagram">
+    <div class="diag-label">${diag.label}</div>
+    <div class="flow">${nodes}</div>
+  </div>`;
+}
+
+function showDiagramNodes() {
+  const nodes = document.querySelectorAll('.flow-node');
+  const arrows = document.querySelectorAll('.flow-arrow');
+  nodes.forEach((n,i) => setTimeout(() => n.classList.add('show'), i*120));
+  arrows.forEach((a,i) => setTimeout(() => a.classList.add('show'), i*120+60));
+}
+
+function renderImpact() {
+  const imp = currentBreach.impact;
+  return `<div class="impact-box">
+    ${Object.entries(imp).map(([k,v])=>`
+      <div class="ib-item" data-impact>
+        <div class="ib-val" style="color:var(--red)">${v}</div>
+        <div class="ib-label">${k.replace('_',' ').toUpperCase()}</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function showImpactItems() {
+  document.querySelectorAll('[data-impact]').forEach((el,i) => {
+    setTimeout(() => el.classList.add('show'), i*100);
+  });
+}
+
+// ══════════════════════════════════════════
+// TYPEWRITER
+// ══════════════════════════════════════════
+function typeWriter(text, targetId, callback) {
+  const el = document.getElementById(targetId);
+  if(!el) return;
+  let i = 0;
+  const speed = 18;
+  el.innerHTML = '<span class="cursor"></span>';
+
+  typeInterval = setInterval(() => {
+    if(i < text.length) {
+      el.innerHTML = text.slice(0,i+1) + '<span class="cursor"></span>';
+      i++;
+    } else {
+      clearInterval(typeInterval);
+      el.innerHTML = text;
+      if(callback) callback();
+    }
+  }, speed);
+}
+
+// ══════════════════════════════════════════
+// CREDITS
+// ══════════════════════════════════════════
+function showCredits() {
+  showScreen('screen-credits');
+  document.getElementById('cred-title').textContent = currentBreach.title + ' — CASE CLOSED';
+  document.getElementById('cred-title').style.color = currentBreach.color;
+  document.getElementById('cred-sub').textContent = currentBreach.year + ' · ' + currentBreach.victim;
+
+  const imp = currentBreach.impact;
+  document.getElementById('cred-lesson').innerHTML = `
+    <strong>Key Lesson:</strong><br>${currentBreach.lesson}<br><br>
+    <strong>Impact:</strong><br>
+    ${Object.entries(imp).map(([k,v])=>`<strong style="color:${currentBreach.color}">${v}</strong> — ${k.replace(/_/g,' ')}`).join('<br>')}
+  `;
+}
+
+function replayBreach() {
+  currentStage = 0;
+  showScreen('screen-movie');
+  renderTimeline();
+  renderStage(0);
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goBack() {
+  if(typeInterval) clearInterval(typeInterval);
+  showScreen('screen-select');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderSelection();
+</script>
+</body>
+</html>
