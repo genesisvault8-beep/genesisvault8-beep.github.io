@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINK SAFETY SCANNER // GENESIS VAULT</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0e;
+    --panel: #0a1018;
+    --border: #0ff3;
+    --accent: #00ffe7;
+    --accent2: #ff003c;
+    --text: #c8e6f0;
+    --dim: #4a7a8a;
+    --green: #00ff88;
+    --yellow: #ffe600;
+    --orange: #ff8800;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,255,231,0.015) 2px, rgba(0,255,231,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+
+  .logo { font-family: 'Orbitron', monospace; font-size: 11px; color: var(--dim); letter-spacing: 4px; margin-bottom: 8px; }
+  h1 { font-family: 'Orbitron', monospace; font-size: clamp(18px, 4vw, 26px); color: var(--accent); letter-spacing: 2px; text-shadow: 0 0 20px var(--accent); }
+  h1 span { color: var(--text); }
+  .subtitle { font-size: 11px; color: var(--dim); margin-top: 6px; letter-spacing: 2px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .panel::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -1px; left: 16px;
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 9px;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 2px;
+    padding: 2px 8px;
+    font-weight: 700;
+  }
+
+  label { display: block; font-size: 10px; letter-spacing: 2px; color: var(--dim); margin-bottom: 8px; }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  input[type="url"], input[type="text"] {
+    flex: 1;
+    background: #060d12;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,255,231,0.1); }
+  input::placeholder { color: var(--dim); }
+
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { background: #fff; box-shadow: 0 0 20px var(--accent); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--dim); border: 1px solid #1a2a30; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Verdict */
+  #verdict-box {
+    display: none;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 2px solid var(--border);
+    position: relative;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+
+  #verdict-box.safe { border-color: var(--green); background: rgba(0,255,136,0.04); }
+  #verdict-box.suspicious { border-color: var(--yellow); background: rgba(255,230,0,0.04); }
+  #verdict-box.dangerous { border-color: var(--accent2); background: rgba(255,0,60,0.04); }
+
+  .verdict-icon { font-size: 36px; margin-bottom: 10px; }
+  .verdict-label {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(18px, 5vw, 28px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+  }
+
+  .verdict-label.safe { color: var(--green); text-shadow: 0 0 20px var(--green); }
+  .verdict-label.suspicious { color: var(--yellow); text-shadow: 0 0 20px var(--yellow); }
+  .verdict-label.dangerous { color: var(--accent2); text-shadow: 0 0 20px var(--accent2); }
+
+  .verdict-sub { font-size: 11px; color: var(--dim); letter-spacing: 2px; }
+
+  /* Score bar */
+  .score-wrap { margin: 20px 0 0; }
+  .score-label { font-size: 10px; letter-spacing: 2px; color: var(--dim); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .score-bar { height: 6px; background: #0a1820; border: 1px solid var(--border); }
+  .score-fill { height: 100%; transition: width 0.8s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Checks grid */
+  .checks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+  }
+
+  .check-item {
+    background: #060d12;
+    border: 1px solid #0a1820;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 11px;
+    animation: fadeIn 0.3s ease;
+    transition: border-color 0.2s;
+  }
+
+  .check-item:hover { border-color: var(--border); }
+
+  .check-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .check-info { flex: 1; }
+  .check-name { color: var(--text); margin-bottom: 3px; letter-spacing: 1px; }
+  .check-detail { color: var(--dim); font-size: 10px; line-height: 1.5; }
+  .check-detail.flag { color: var(--accent2); }
+  .check-detail.ok { color: var(--green); }
+  .check-detail.warn { color: var(--yellow); }
+
+  /* URL breakdown */
+  .url-breakdown {
+    background: #060d12;
+    border: 1px solid var(--border);
+    padding: 16px;
+    font-size: 11px;
+    line-height: 2;
+    word-break: break-all;
+  }
+
+  .url-part { display: inline; }
+  .url-scheme { color: var(--dim); }
+  .url-host { color: var(--accent); font-weight: bold; }
+  .url-path { color: var(--text); }
+  .url-query { color: var(--yellow); }
+  .url-fragment { color: var(--orange); }
+
+  .breakdown-table { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 11px; }
+  .breakdown-table td { padding: 7px 10px; border-bottom: 1px solid #0a1820; }
+  .breakdown-table td:first-child { color: var(--dim); width: 140px; font-size: 10px; letter-spacing: 1px; }
+  .breakdown-table td:last-child { color: var(--text); word-break: break-all; }
+
+  .section-title { font-family: 'Orbitron', monospace; font-size: 10px; letter-spacing: 3px; color: var(--dim); margin-bottom: 14px; }
+
+  .tip { font-size: 10px; color: var(--dim); margin-top: 10px; line-height: 1.7; }
+
+  /* Scanning animation */
+  .scanning { display: none; text-align: center; padding: 30px; }
+  .scanning.active { display: block; }
+  .scan-text { font-family: 'Orbitron', monospace; font-size: 12px; color: var(--accent); letter-spacing: 3px; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .scan-bar { height: 2px; background: var(--border); margin: 16px 0; overflow: hidden; }
+  .scan-progress { height: 100%; background: var(--accent); animation: scanAnim 1.5s ease-in-out infinite; }
+  @keyframes scanAnim { 0% { width: 0; margin-left: 0; } 50% { width: 60%; } 100% { width: 0; margin-left: 100%; } }
+
+  #results { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">// GENESIS VAULT — TOOLS</div>
+    <h1>LINK SAFETY <span>SCANNER</span></h1>
+    <div class="subtitle">// DETECT PHISHING · MALICIOUS URLS · SUSPICIOUS PATTERNS</div>
+  </header>
+
+  <!-- Input -->
+  <div class="panel" data-label="TARGET URL">
+    <label>// PASTE URL TO SCAN</label>
+    <div class="input-row">
+      <input type="text" id="url-input" placeholder="https://suspicious-link.com/verify-account?token=abc123" />
+      <button class="btn btn-primary" id="scan-btn" onclick="scanURL()">[ SCAN ]</button>
+    </div>
+    <div class="tip">// Works on any URL — paste links from emails, messages, or social media to check before clicking. 100% client-side, your URL is never sent to any server.</div>
+  </div>
+
+  <!-- Scanning animation -->
+  <div class="scanning" id="scanning">
+    <div class="scan-bar"><div class="scan-progress"></div></div>
+    <div class="scan-text">// SCANNING TARGET...</div>
+  </div>
+
+  <!-- Verdict -->
+  <div id="verdict-box">
+    <div class="verdict-icon" id="verdict-icon"></div>
+    <div class="verdict-label" id="verdict-label"></div>
+    <div class="verdict-sub" id="verdict-sub"></div>
+    <div class="score-wrap">
+      <div class="score-label">
+        <span>// RISK SCORE</span>
+        <span id="score-num">0 / 100</span>
+      </div>
+      <div class="score-bar"><div class="score-fill" id="score-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- URL Breakdown -->
+    <div class="panel" data-label="URL BREAKDOWN" style="padding-top:28px;">
+      <div class="section-title">// STRUCTURE ANALYSIS</div>
+      <div class="url-breakdown" id="url-breakdown"></div>
+    </div>
+
+    <!-- Checks -->
+    <div class="panel" data-label="SECURITY CHECKS" style="padding-top:28px;">
+      <div class="section-title">// THREAT INDICATORS</div>
+      <div class="checks-grid" id="checks-grid"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Suspicious keywords commonly used in phishing
+  const PHISH_KEYWORDS = [
+    'verify','verification','confirm','account','secure','security','update',
+    'login','signin','sign-in','bank','paypal','amazon','google','microsoft',
+    'apple','facebook','instagram','netflix','suspend','suspended','urgent',
+    'alert','warning','limited','expire','expires','click','free','win','winner',
+    'prize','claim','password','credential','billing','invoice','payment'
+  ];
+
+  const SUSPICIOUS_TLDS = [
+    '.tk','.ml','.ga','.cf','.gq','.top','.xyz','.click','.download',
+    '.loan','.win','.racing','.party','.science','.trade','.review',
+    '.country','.stream','.gdn','.men','.work'
+  ];
+
+  const URL_SHORTENERS = [
+    'bit.ly','tinyurl.com','goo.gl','t.co','ow.ly','is.gd','buff.ly',
+    'adf.ly','j.mp','tr.im','tiny.cc','url4.eu','cutt.ly','rebrand.ly'
+  ];
+
+  function parseURL(raw) {
+    try {
+      const url = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
+      return url;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function getScore(checks) {
+    let score = 0;
+    checks.forEach(c => { score += c.weight || 0; });
+    return Math.min(100, score);
+  }
+
+  function getVerdict(score) {
+    if (score >= 60) return { label: 'DANGEROUS', icon: '🔴', sub: 'HIGH RISK — DO NOT CLICK THIS LINK', cls: 'dangerous', color: '#ff003c' };
+    if (score >= 30) return { label: 'SUSPICIOUS', icon: '🟡', sub: 'PROCEED WITH CAUTION — VERIFY BEFORE CLICKING', cls: 'suspicious', color: '#ffe600' };
+    return { label: 'LOOKS SAFE', icon: '🟢', sub: 'NO MAJOR THREATS DETECTED — STAY ALERT', cls: 'safe', color: '#00ff88' };
+  }
+
+  async function scanURL() {
+    const raw = document.getElementById('url-input').value.trim();
+    if (!raw) return;
+
+    const btn = document.getElementById('scan-btn');
+    btn.disabled = true;
+
+    document.getElementById('verdict-box').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('scanning').classList.add('active');
+
+    await sleep(1400);
+
+    document.getElementById('scanning').classList.remove('active');
+
+    const parsed = parseURL(raw);
+    if (!parsed) {
+      alert('Invalid URL format');
+      btn.disabled = false;
+      return;
+    }
+
+    const checks = runChecks(parsed, raw);
+    const score = getScore(checks);
+    const verdict = getVerdict(score);
+
+    renderVerdict(verdict, score);
+    renderBreakdown(parsed);
+    renderChecks(checks);
+
+    document.getElementById('verdict-box').style.display = 'block';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('verdict-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    btn.disabled = false;
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function runChecks(url, raw) {
+    const checks = [];
+    const host = url.hostname.toLowerCase();
+    const fullUrl = raw.toLowerCase();
+    const path = url.pathname.toLowerCase();
+    const params = url.search.toLowerCase();
+
+    // HTTPS check
+    const isHttps = url.protocol === 'https:';
+    checks.push({
+      name: 'HTTPS / SSL',
+      detail: isHttps ? 'Encrypted connection (HTTPS)' : 'No encryption — plain HTTP',
+      status: isHttps ? 'ok' : 'flag',
+      icon: isHttps ? '🔒' : '🔓',
+      weight: isHttps ? 0 : 20
+    });
+
+    // URL shortener
+    const isShort = URL_SHORTENERS.some(s => host === s || host.endsWith('.' + s));
+    checks.push({
+      name: 'URL SHORTENER',
+      detail: isShort ? 'Shortened URL — hides real destination' : 'Not a known URL shortener',
+      status: isShort ? 'warn' : 'ok',
+      icon: isShort ? '🔗' : '✅',
+      weight: isShort ? 15 : 0
+    });
+
+    // Suspicious TLD
+    const suspTLD = SUSPICIOUS_TLDS.find(t => host.endsWith(t));
+    checks.push({
+      name: 'DOMAIN EXTENSION',
+      detail: suspTLD ? `Suspicious TLD: ${suspTLD} — commonly used for spam/phishing` : 'Normal domain extension',
+      status: suspTLD ? 'flag' : 'ok',
+      icon: suspTLD ? '⚠️' : '✅',
+      weight: suspTLD ? 20 : 0
+    });
+
+    // IP address instead of domain
+    const isIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+    checks.push({
+      name: 'IP ADDRESS URL',
+      detail: isIP ? 'Uses raw IP instead of domain name — highly suspicious' : 'Uses domain name (normal)',
+      status: isIP ? 'flag' : 'ok',
+      icon: isIP ? '🚨' : '✅',
+      weight: isIP ? 30 : 0
+    });
+
+    // Excessive subdomains
+    const parts = host.split('.');
+    const subCount = parts.length - 2;
+    checks.push({
+      name: 'SUBDOMAIN DEPTH',
+      detail: subCount > 2 ? `${subCount} subdomain levels — may be impersonating a real domain` : `Normal subdomain structure`,
+      status: subCount > 2 ? 'warn' : 'ok',
+      icon: subCount > 2 ? '⚠️' : '✅',
+      weight: subCount > 2 ? 15 : 0
+    });
+
+    // Phishing keywords in URL
+    const foundKeywords = PHISH_KEYWORDS.filter(k => fullUrl.includes(k));
+    checks.push({
+      name: 'PHISHING KEYWORDS',
+      detail: foundKeywords.length ? `Found: ${foundKeywords.slice(0,5).join(', ')}${foundKeywords.length > 5 ? '...' : ''}` : 'No suspicious keywords detected',
+      status: foundKeywords.length > 2 ? 'flag' : foundKeywords.length > 0 ? 'warn' : 'ok',
+      icon: foundKeywords.length > 2 ? '🚨' : foundKeywords.length > 0 ? '⚠️' : '✅',
+      weight: Math.min(25, foundKeywords.length * 5)
+    });
+
+    // Long URL
+    const urlLen = raw.length;
+    checks.push({
+      name: 'URL LENGTH',
+      detail: urlLen > 100 ? `${urlLen} chars — unusually long URLs often hide malicious destinations` : `${urlLen} chars — normal length`,
+      status: urlLen > 100 ? 'warn' : 'ok',
+      icon: urlLen > 100 ? '⚠️' : '✅',
+      weight: urlLen > 150 ? 10 : urlLen > 100 ? 5 : 0
+    });
+
+    // Special characters / obfuscation
+    const hasAt = raw.includes('@');
+    checks.push({
+      name: 'URL OBFUSCATION',
+      detail: hasAt ? '@ symbol detected — may redirect to different domain' : 'No obfuscation characters detected',
+      status: hasAt ? 'flag' : 'ok',
+      icon: hasAt ? '🚨' : '✅',
+      weight: hasAt ? 25 : 0
+    });
+
+    // Encoded characters
+    const encodedCount = (raw.match(/%[0-9a-fA-F]{2}/g) || []).length;
+    checks.push({
+      name: 'URL ENCODING',
+      detail: encodedCount > 3 ? `${encodedCount} encoded chars — may hide true destination` : encodedCount > 0 ? `${encodedCount} encoded chars — minor` : 'No suspicious encoding',
+      status: encodedCount > 3 ? 'warn' : 'ok',
+      icon: encodedCount > 3 ? '⚠️' : '✅',
+      weight: encodedCount > 3 ? 10 : 0
+    });
+
+    // Double slashes in path
+    const hasDoubleSlash = path.includes('//');
+    checks.push({
+      name: 'PATH ANOMALIES',
+      detail: hasDoubleSlash ? 'Double slashes in path — possible redirect trick' : 'Clean URL path structure',
+      status: hasDoubleSlash ? 'warn' : 'ok',
+      icon: hasDoubleSlash ? '⚠️' : '✅',
+      weight: hasDoubleSlash ? 10 : 0
+    });
+
+    // Query params with tokens/keys
+    const hasToken = params.includes('token') || params.includes('key') || params.includes('auth') || params.includes('session');
+    checks.push({
+      name: 'CREDENTIAL PARAMS',
+      detail: hasToken ? 'URL contains token/auth parameters — verify legitimacy' : 'No credential parameters in URL',
+      status: hasToken ? 'warn' : 'ok',
+      icon: hasToken ? '⚠️' : '✅',
+      weight: hasToken ? 10 : 0
+    });
+
+    // Homograph / lookalike
+    const lookalike = checkLookalike(host);
+    checks.push({
+      name: 'LOOKALIKE DOMAIN',
+      detail: lookalike ? `May be impersonating: ${lookalike}` : 'No known brand impersonation detected',
+      status: lookalike ? 'flag' : 'ok',
+      icon: lookalike ? '🚨' : '✅',
+      weight: lookalike ? 30 : 0
+    });
+
+    return checks;
+  }
+
+  function checkLookalike(host) {
+    const brands = {
+      'paypal': ['paypa1','paypa-l','paypai','paypaI','pay-pal','paypall'],
+      'google': ['g00gle','g0ogle','go0gle','googIe','gooogle'],
+      'amazon': ['amaz0n','arnazon','amazón','amazon-secure'],
+      'microsoft': ['micros0ft','microsofft','mlcrosoft'],
+      'apple': ['app1e','appie','appl3'],
+      'facebook': ['faceb00k','facebok','faceboook'],
+      'netflix': ['netfl1x','netfIix','netflíx'],
+      'bank': ['bankk','banck','bánk'],
+    };
+    for (const [brand, fakes] of Object.entries(brands)) {
+      if (fakes.some(f => host.includes(f))) return brand;
+      if (host.includes(brand) && !host.endsWith(`.${brand}.com`) && host !== `${brand}.com` && host !== `www.${brand}.com`) {
+        if (host.includes(`${brand}-`) || host.includes(`-${brand}`) || host.startsWith(`${brand}.`) && !['com','org','net','io'].includes(host.split('.').pop())) {
+          return brand;
+        }
+      }
+    }
+    return null;
+  }
+
+  function renderVerdict(verdict, score) {
+    const box = document.getElementById('verdict-box');
+    box.className = verdict.cls;
+    document.getElementById('verdict-icon').textContent = verdict.icon;
+    document.getElementById('verdict-label').className = `verdict-label ${verdict.cls}`;
+    document.getElementById('verdict-label').textContent = verdict.label;
+    document.getElementById('verdict-sub').textContent = verdict.sub;
+    document.getElementById('score-num').textContent = `${score} / 100`;
+    const fill = document.getElementById('score-fill');
+    fill.style.width = '0%';
+    fill.style.background = verdict.color;
+    setTimeout(() => { fill.style.width = score + '%'; }, 100);
+  }
+
+  function renderBreakdown(url) {
+    const el = document.getElementById('url-breakdown');
+    const rows = [
+      ['PROTOCOL', url.protocol],
+      ['HOST', url.hostname],
+      ['PORT', url.port || (url.protocol === 'https:' ? '443 (default)' : '80 (default)')],
+      ['PATH', url.pathname || '/'],
+      ['QUERY', url.search || 'none'],
+      ['FRAGMENT', url.hash || 'none'],
+    ];
+
+    el.innerHTML = `
+      <div style="margin-bottom:12px;word-break:break-all">
+        <span class="url-scheme">${escHtml(url.protocol)}//</span><span class="url-host">${escHtml(url.hostname)}</span><span class="url-path">${escHtml(url.pathname)}</span><span class="url-query">${escHtml(url.search)}</span><span class="url-fragment">${escHtml(url.hash)}</span>
+      </div>
+      <table class="breakdown-table">
+        ${rows.map(r => `<tr><td>${r[0]}</td><td>${escHtml(r[1])}</td></tr>`).join('')}
+      </table>
+    `;
+  }
+
+  function renderChecks(checks) {
+    const grid = document.getElementById('checks-grid');
+    grid.innerHTML = checks.map(c => `
+      <div class="check-item">
+        <div class="check-icon">${c.icon}</div>
+        <div class="check-info">
+          <div class="check-name">${escHtml(c.name)}</div>
+          <div class="check-detail ${c.status}">${escHtml(c.detail)}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  // Allow Enter key
+  document.getElementById('url-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') scanURL();
+  });
+</script>
+</body>
+</html>
