@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DORK MASTER // GENESIS VAULT</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #020402;
+  --panel: #040804;
+  --border: rgba(0,255,65,0.1);
+  --accent: #00ff41;
+  --accent2: #00cfff;
+  --accent3: #ff6b35;
+  --accent4: #ffd700;
+  --accent5: #ff3dff;
+  --text: #a8ffc0;
+  --dim: #1a3a1a;
+  --red: #ff3131;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'JetBrains Mono',monospace; min-height:100vh; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(0,255,65,0.05) 0%,transparent 50%); pointer-events:none; z-index:0; }
+body::after { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(0,255,65,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,0.02) 1px,transparent 1px); background-size:24px 24px; pointer-events:none; z-index:0; }
+.container { max-width:1100px; margin:0 auto; padding:24px 16px 60px; position:relative; z-index:1; }
+header { margin-bottom:28px; }
+.logo { font-family:'Orbitron',monospace; font-size:10px; letter-spacing:5px; color:var(--dim); margin-bottom:10px; }
+h1 { font-family:'Orbitron',monospace; font-size:clamp(22px,5vw,38px); font-weight:900; letter-spacing:4px; line-height:1.1; margin-bottom:8px; }
+h1 .d1 { color:var(--accent); text-shadow:0 0 30px var(--accent); }
+h1 .d2 { color:var(--accent2); text-shadow:0 0 30px var(--accent2); }
+.subtitle { font-size:10px; color:var(--dim); letter-spacing:3px; }
+
+/* Input section */
+.input-section { background:var(--panel); border:1px solid var(--border); padding:20px; margin-bottom:16px; position:relative; }
+.input-section::before { content:'TARGET'; position:absolute; top:-1px; left:16px; background:var(--accent); color:#000; font-size:8px; font-family:'Orbitron',monospace; letter-spacing:2px; padding:2px 8px; font-weight:700; }
+.input-row { display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; }
+.url-input { flex:1; min-width:200px; background:#020402; border:1px solid var(--border); color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:14px; padding:12px 16px; outline:none; transition:border-color 0.2s; }
+.url-input:focus { border-color:var(--accent); box-shadow:0 0 16px rgba(0,255,65,0.1); }
+.url-input::placeholder { color:var(--dim); }
+.gen-btn { font-family:'Orbitron',monospace; font-size:11px; font-weight:700; letter-spacing:2px; padding:12px 24px; background:var(--accent); color:#000; border:none; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.gen-btn:hover { box-shadow:0 0 24px rgba(0,255,65,0.5); transform:translateY(-1px); }
+
+/* Stats bar */
+.stats-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.stat-pill { background:var(--panel); border:1px solid var(--border); padding:6px 14px; font-size:10px; letter-spacing:1px; display:flex; align-items:center; gap:6px; }
+.stat-pill .num { font-family:'Orbitron',monospace; font-size:13px; font-weight:700; color:var(--accent); }
+
+/* Filter tabs */
+.filter-row { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:16px; }
+.filter-btn { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1px; padding:6px 14px; border:1px solid var(--border); background:transparent; color:var(--dim); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.filter-btn:hover { border-color:var(--accent); color:var(--accent); }
+.filter-btn.active { background:rgba(0,255,65,0.08); border-color:var(--accent); color:var(--accent); }
+.filter-btn.cat-files.active { border-color:var(--accent4); color:var(--accent4); background:rgba(255,215,0,0.06); }
+.filter-btn.cat-creds.active { border-color:var(--red); color:var(--red); background:rgba(255,49,49,0.06); }
+.filter-btn.cat-admin.active { border-color:var(--accent3); color:var(--accent3); background:rgba(255,107,53,0.06); }
+.filter-btn.cat-api.active { border-color:var(--accent2); color:var(--accent2); background:rgba(0,207,255,0.06); }
+.filter-btn.cat-db.active { border-color:var(--accent5); color:var(--accent5); background:rgba(255,61,255,0.06); }
+.filter-btn.cat-vuln.active { border-color:var(--red); color:var(--red); background:rgba(255,49,49,0.08); }
+.filter-btn.cat-dir.active { border-color:var(--accent4); color:var(--accent4); background:rgba(255,215,0,0.06); }
+.filter-btn.cat-sub.active { border-color:var(--accent2); color:var(--accent2); background:rgba(0,207,255,0.06); }
+
+/* Action bar */
+.action-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.action-btn { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:2px; font-weight:700; padding:8px 16px; border:none; cursor:pointer; transition:all 0.2s; }
+.ab-primary { background:var(--accent); color:#000; }
+.ab-primary:hover { box-shadow:0 0 16px rgba(0,255,65,0.4); }
+.ab-secondary { background:transparent; border:1px solid var(--border); color:var(--dim); }
+.ab-secondary:hover { border-color:var(--accent); color:var(--accent); }
+.ab-danger { background:transparent; border:1px solid rgba(255,49,49,0.3); color:var(--red); }
+.ab-danger:hover { background:rgba(255,49,49,0.08); }
+
+/* Dork grid */
+.dork-grid { display:flex; flex-direction:column; gap:4px; }
+.cat-section { margin-bottom:12px; }
+.cat-header { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:3px; padding:6px 12px; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+.cat-icon { font-size:14px; }
+.cat-files .cat-header { color:var(--accent4); border-left:2px solid var(--accent4); }
+.cat-creds .cat-header { color:var(--red); border-left:2px solid var(--red); }
+.cat-admin .cat-header { color:var(--accent3); border-left:2px solid var(--accent3); }
+.cat-api .cat-header { color:var(--accent2); border-left:2px solid var(--accent2); }
+.cat-db .cat-header { color:var(--accent5); border-left:2px solid var(--accent5); }
+.cat-vuln .cat-header { color:var(--red); border-left:2px solid var(--red); }
+.cat-dir .cat-header { color:var(--accent4); border-left:2px solid var(--accent4); }
+.cat-sub .cat-header { color:var(--accent2); border-left:2px solid var(--accent2); }
+
+.dork-item {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  background:var(--panel);
+  border:1px solid transparent;
+  transition:all 0.15s;
+  cursor:default;
+  animation:fadeIn 0.3s ease;
+}
+.dork-item:hover { border-color:var(--border); background:#060c06; }
+.dork-item.selected { background:rgba(0,255,65,0.04); border-color:rgba(0,255,65,0.2); }
+
+.dork-check { width:14px; height:14px; border:1px solid var(--dim); cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:9px; transition:all 0.2s; }
+.dork-check.checked { background:var(--accent); border-color:var(--accent); color:#000; }
+
+.dork-text { flex:1; font-size:11px; color:var(--accent); letter-spacing:0.5px; word-break:break-all; font-family:'JetBrains Mono',monospace; }
+.dork-text .site-part { color:var(--dim); }
+.dork-text .op-part { color:var(--accent2); }
+.dork-text .val-part { color:var(--accent4); }
+
+.dork-severity { font-size:8px; font-family:'Orbitron',monospace; letter-spacing:1px; padding:2px 6px; border:1px solid; flex-shrink:0; }
+.sev-critical { color:var(--red); border-color:rgba(255,49,49,0.4); background:rgba(255,49,49,0.06); }
+.sev-high { color:var(--accent3); border-color:rgba(255,107,53,0.4); background:rgba(255,107,53,0.06); }
+.sev-medium { color:var(--accent4); border-color:rgba(255,215,0,0.4); background:rgba(255,215,0,0.06); }
+.sev-low { color:var(--dim); border-color:var(--dim); }
+
+.dork-actions { display:flex; gap:4px; flex-shrink:0; }
+.dork-btn { font-family:'JetBrains Mono',monospace; font-size:9px; padding:3px 8px; border:1px solid var(--border); background:transparent; color:var(--dim); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.dork-btn:hover { border-color:var(--accent); color:var(--accent); }
+.dork-btn.google { border-color:rgba(0,207,255,0.3); color:var(--accent2); }
+.dork-btn.google:hover { background:rgba(0,207,255,0.08); }
+.dork-btn.bing { border-color:rgba(255,215,0,0.3); color:var(--accent4); }
+.dork-btn.bing:hover { background:rgba(255,215,0,0.06); }
+
+/* Custom dork builder */
+.builder-section { background:var(--panel); border:1px solid var(--border); padding:18px; margin-bottom:16px; position:relative; }
+.builder-section::before { content:'CUSTOM DORK BUILDER'; position:absolute; top:-1px; left:16px; background:var(--accent2); color:#000; font-size:8px; font-family:'Orbitron',monospace; letter-spacing:2px; padding:2px 8px; font-weight:700; }
+.builder-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:6px; margin-bottom:12px; }
+.op-chip { font-size:10px; padding:6px 10px; border:1px solid var(--border); background:transparent; color:var(--dim); cursor:pointer; transition:all 0.2s; font-family:'JetBrains Mono',monospace; text-align:left; }
+.op-chip:hover { border-color:var(--accent2); color:var(--accent2); }
+.op-chip.selected { background:rgba(0,207,255,0.08); border-color:var(--accent2); color:var(--accent2); }
+.op-chip .op-name { color:var(--accent2); font-weight:700; font-size:10px; }
+.op-chip .op-desc { color:var(--dim); font-size:9px; margin-top:2px; }
+.builder-preview { background:#020402; border:1px solid var(--border); padding:10px 14px; font-size:12px; color:var(--accent); margin-bottom:10px; min-height:40px; word-break:break-all; }
+.builder-inputs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.builder-input { flex:1; min-width:150px; background:#020402; border:1px solid var(--border); color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px 12px; outline:none; }
+.builder-input:focus { border-color:var(--accent2); }
+.builder-input::placeholder { color:var(--dim); }
+
+/* Saved dorks */
+.saved-section { background:var(--panel); border:1px solid var(--border); padding:18px; margin-bottom:16px; position:relative; display:none; }
+.saved-section::before { content:'SAVED DORK SETS'; position:absolute; top:-1px; left:16px; background:var(--accent4); color:#000; font-size:8px; font-family:'Orbitron',monospace; letter-spacing:2px; padding:2px 8px; font-weight:700; }
+.saved-section.active { display:block; }
+.saved-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:#020402; border:1px solid transparent; margin-bottom:4px; font-size:11px; }
+.saved-item:hover { border-color:var(--border); }
+.saved-name { flex:1; color:var(--accent4); }
+.saved-count { color:var(--dim); font-size:10px; }
+.saved-btn { font-size:9px; padding:3px 8px; border:1px solid var(--border); background:transparent; color:var(--dim); cursor:pointer; }
+.saved-btn:hover { color:var(--accent); border-color:var(--accent); }
+
+/* Empty state */
+.empty-state { text-align:center; padding:48px; color:var(--dim); }
+.empty-icon { font-size:40px; margin-bottom:12px; filter:grayscale(1); opacity:0.3; }
+.empty-text { font-size:11px; letter-spacing:2px; }
+
+/* Copy toast */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--accent); color:#000; font-family:'Orbitron',monospace; font-size:10px; letter-spacing:2px; padding:10px 20px; z-index:1000; display:none; animation:fadeIn 0.3s ease; font-weight:700; }
+.toast.active { display:block; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+/* Responsive */
+@media(max-width:600px) {
+  .dork-item { flex-wrap:wrap; }
+  .dork-actions { width:100%; justify-content:flex-end; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">// GENESIS VAULT — TOOLS</div>
+    <h1><span class="d1">DORK</span> <span class="d2">MASTER</span></h1>
+    <div class="subtitle">// GOOGLE DORK GENERATOR · BUG BOUNTY RECON · LIVE SEARCH EXECUTION</div>
+  </header>
+
+  <!-- Input -->
+  <div class="input-section" style="padding-top:28px">
+    <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--dim);margin-bottom:10px">// ENTER TARGET DOMAIN</div>
+    <div class="input-row">
+      <input type="text" class="url-input" id="url-input" placeholder="e.g. example.com or https://example.com" onkeydown="if(event.key==='Enter')generateDorks()">
+      <button class="gen-btn" onclick="generateDorks()">[ GENERATE DORKS ]</button>
+    </div>
+    <div style="font-size:10px;color:var(--dim);margin-top:10px;line-height:1.8">
+      // Tip: Enter any domain to generate 60+ targeted dorks across 8 categories. Click any dork to search live on Google or Bing.
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar" id="stats-bar" style="display:none">
+    <div class="stat-pill"><span class="num" id="stat-total">0</span> TOTAL DORKS</div>
+    <div class="stat-pill"><span class="num" id="stat-selected">0</span> SELECTED</div>
+    <div class="stat-pill"><span class="num" id="stat-critical" style="color:var(--red)">0</span> CRITICAL</div>
+    <div class="stat-pill"><span class="num" id="stat-high" style="color:var(--accent3)">0</span> HIGH</div>
+    <div class="stat-pill" id="target-pill" style="border-color:rgba(0,255,65,0.2)"><span style="color:var(--accent)">🎯</span> <span id="stat-target" style="color:var(--accent)">—</span></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row" id="filter-row" style="display:none">
+    <button class="filter-btn active" data-cat="all" onclick="setFilter('all',this)">ALL</button>
+    <button class="filter-btn cat-files" data-cat="files" onclick="setFilter('files',this)">🗂 FILES</button>
+    <button class="filter-btn cat-creds" data-cat="creds" onclick="setFilter('creds',this)">🔑 CREDENTIALS</button>
+    <button class="filter-btn cat-admin" data-cat="admin" onclick="setFilter('admin',this)">🛠 ADMIN PANELS</button>
+    <button class="filter-btn cat-api" data-cat="api" onclick="setFilter('api',this)">🔗 API/ENDPOINTS</button>
+    <button class="filter-btn cat-db" data-cat="db" onclick="setFilter('db',this)">📊 DATABASES</button>
+    <button class="filter-btn cat-vuln" data-cat="vuln" onclick="setFilter('vuln',this)">🐛 VULNERABILITIES</button>
+    <button class="filter-btn cat-dir" data-cat="dir" onclick="setFilter('dir',this)">📁 DIRECTORIES</button>
+    <button class="filter-btn cat-sub" data-cat="sub" onclick="setFilter('sub',this)">🌐 SUBDOMAINS</button>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-bar" id="action-bar" style="display:none">
+    <button class="action-btn ab-primary" onclick="openSelected()">[ 🔍 OPEN SELECTED IN GOOGLE ]</button>
+    <button class="action-btn ab-secondary" onclick="selectAll()">[ SELECT ALL ]</button>
+    <button class="action-btn ab-secondary" onclick="selectNone()">[ DESELECT ALL ]</button>
+    <button class="action-btn ab-secondary" onclick="copySelected()">[ 📋 COPY SELECTED ]</button>
+    <button class="action-btn ab-secondary" onclick="copyAll()">[ 📋 COPY ALL ]</button>
+    <button class="action-btn ab-secondary" onclick="saveDorkSet()">[ 💾 SAVE SET ]</button>
+    <button class="action-btn ab-danger" onclick="clearDorks()">[ 🗑 CLEAR ]</button>
+  </div>
+
+  <!-- Dork results -->
+  <div id="dork-results">
+    <div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <div class="empty-text">// ENTER A DOMAIN TO GENERATE DORKS</div>
+    </div>
+  </div>
+
+  <!-- Custom builder -->
+  <div class="builder-section" id="builder-section" style="padding-top:28px;margin-top:16px">
+    <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--dim);margin-bottom:14px">// SELECT OPERATORS TO BUILD CUSTOM DORK</div>
+    <div class="builder-grid" id="op-grid"></div>
+    <div class="builder-inputs">
+      <input type="text" class="builder-input" id="builder-domain" placeholder="domain (e.g. example.com)">
+      <input type="text" class="builder-input" id="builder-keyword" placeholder="keyword (e.g. password)">
+      <input type="text" class="builder-input" id="builder-ext" placeholder="extension (e.g. sql, env, log)">
+    </div>
+    <div class="builder-preview" id="builder-preview">// Your custom dork will appear here...</div>
+    <div class="action-bar" style="margin-bottom:0">
+      <button class="action-btn ab-primary" onclick="searchCustom('google')">[ 🔍 SEARCH GOOGLE ]</button>
+      <button class="action-btn ab-secondary" onclick="searchCustom('bing')">[ 🔍 SEARCH BING ]</button>
+      <button class="action-btn ab-secondary" onclick="copyCustom()">[ 📋 COPY DORK ]</button>
+      <button class="action-btn ab-secondary" onclick="addCustomToDorks()">[ + ADD TO LIST ]</button>
+    </div>
+  </div>
+
+  <!-- Saved sets -->
+  <div class="saved-section" id="saved-section" style="padding-top:28px;margin-top:16px">
+    <div id="saved-list"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Dork database ─────────────────────────────────────────────────
+function getDorks(domain) {
+  const d = domain;
+  return [
+    // FILES
+    { cat:'files', query:`site:${d} filetype:pdf`, desc:'PDF documents', severity:'medium' },
+    { cat:'files', query:`site:${d} filetype:doc OR filetype:docx`, desc:'Word documents', severity:'medium' },
+    { cat:'files', query:`site:${d} filetype:xls OR filetype:xlsx`, desc:'Excel spreadsheets', severity:'high' },
+    { cat:'files', query:`site:${d} filetype:sql`, desc:'SQL database files', severity:'critical' },
+    { cat:'files', query:`site:${d} filetype:env`, desc:'.env config files', severity:'critical' },
+    { cat:'files', query:`site:${d} filetype:log`, desc:'Log files', severity:'high' },
+    { cat:'files', query:`site:${d} filetype:xml`, desc:'XML files', severity:'medium' },
+    { cat:'files', query:`site:${d} filetype:json`, desc:'JSON files', severity:'medium' },
+    { cat:'files', query:`site:${d} filetype:yaml OR filetype:yml`, desc:'YAML config files', severity:'high' },
+    { cat:'files', query:`site:${d} filetype:txt`, desc:'Text files', severity:'medium' },
+    { cat:'files', query:`site:${d} filetype:bak`, desc:'Backup files', severity:'critical' },
+    { cat:'files', query:`site:${d} filetype:conf OR filetype:config`, desc:'Config files', severity:'high' },
+    { cat:'files', query:`site:${d} filetype:php`, desc:'PHP source files', severity:'high' },
+    { cat:'files', query:`site:${d} filetype:asp OR filetype:aspx`, desc:'ASP source files', severity:'high' },
+    { cat:'files', query:`site:${d} filetype:zip OR filetype:tar OR filetype:gz`, desc:'Archive files', severity:'critical' },
+    // CREDENTIALS
+    { cat:'creds', query:`site:${d} intext:password`, desc:'Pages containing "password"', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"api_key"`, desc:'Exposed API keys', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"api_secret"`, desc:'Exposed API secrets', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"access_token"`, desc:'Access tokens', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"secret_key"`, desc:'Secret keys', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"private_key"`, desc:'Private keys', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:username intext:password`, desc:'Username + password combo', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"BEGIN RSA PRIVATE KEY"`, desc:'RSA private keys', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:token`, desc:'Auth tokens', severity:'high' },
+    { cat:'creds', query:`site:${d} intext:passwd`, desc:'passwd references', severity:'high' },
+    { cat:'creds', query:`site:${d} intext:"db_password"`, desc:'Database passwords', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"mysql_password"`, desc:'MySQL passwords', severity:'critical' },
+    { cat:'creds', query:`site:${d} intext:"connectionString"`, desc:'DB connection strings', severity:'critical' },
+    // ADMIN
+    { cat:'admin', query:`site:${d} inurl:admin`, desc:'Admin panel', severity:'high' },
+    { cat:'admin', query:`site:${d} inurl:login`, desc:'Login pages', severity:'medium' },
+    { cat:'admin', query:`site:${d} inurl:dashboard`, desc:'Dashboard pages', severity:'high' },
+    { cat:'admin', query:`site:${d} inurl:wp-admin`, desc:'WordPress admin', severity:'high' },
+    { cat:'admin', query:`site:${d} inurl:administrator`, desc:'Administrator panel', severity:'high' },
+    { cat:'admin', query:`site:${d} inurl:cpanel`, desc:'cPanel', severity:'high' },
+    { cat:'admin', query:`site:${d} inurl:phpmyadmin`, desc:'phpMyAdmin', severity:'critical' },
+    { cat:'admin', query:`site:${d} inurl:webmail`, desc:'Webmail interface', severity:'medium' },
+    { cat:'admin', query:`site:${d} intitle:"admin panel"`, desc:'Admin panel (title)', severity:'high' },
+    { cat:'admin', query:`site:${d} intitle:"login" inurl:admin`, desc:'Admin login', severity:'high' },
+    { cat:'admin', query:`site:${d} inurl:manage`, desc:'Management pages', severity:'medium' },
+    { cat:'admin', query:`site:${d} inurl:portal`, desc:'Portal pages', severity:'medium' },
+    { cat:'admin', query:`site:${d} inurl:console`, desc:'Console pages', severity:'high' },
+    // API
+    { cat:'api', query:`site:${d} inurl:api`, desc:'API endpoints', severity:'medium' },
+    { cat:'api', query:`site:${d} inurl:/api/v1`, desc:'API v1 endpoints', severity:'medium' },
+    { cat:'api', query:`site:${d} inurl:/api/v2`, desc:'API v2 endpoints', severity:'medium' },
+    { cat:'api', query:`site:${d} inurl:swagger`, desc:'Swagger API docs', severity:'high' },
+    { cat:'api', query:`site:${d} inurl:graphql`, desc:'GraphQL endpoint', severity:'high' },
+    { cat:'api', query:`site:${d} inurl:rest`, desc:'REST API', severity:'medium' },
+    { cat:'api', query:`site:${d} inurl:endpoint`, desc:'Endpoints', severity:'medium' },
+    { cat:'api', query:`site:${d} filetype:json inurl:api`, desc:'API JSON responses', severity:'high' },
+    { cat:'api', query:`site:${d} inurl:webhook`, desc:'Webhook endpoints', severity:'high' },
+    { cat:'api', query:`site:${d} inurl:callback`, desc:'Callback URLs', severity:'medium' },
+    { cat:'api', query:`site:${d} inurl:oauth`, desc:'OAuth endpoints', severity:'high' },
+    { cat:'api', query:`site:${d} inurl:token`, desc:'Token endpoints', severity:'high' },
+    // DATABASES
+    { cat:'db', query:`site:${d} inurl:db`, desc:'Database paths', severity:'high' },
+    { cat:'db', query:`site:${d} intitle:"phpMyAdmin"`, desc:'phpMyAdmin exposed', severity:'critical' },
+    { cat:'db', query:`site:${d} inurl:mysql`, desc:'MySQL references', severity:'high' },
+    { cat:'db', query:`site:${d} inurl:mongodb`, desc:'MongoDB references', severity:'high' },
+    { cat:'db', query:`site:${d} inurl:redis`, desc:'Redis references', severity:'high' },
+    { cat:'db', query:`site:${d} intext:"ORA-" intext:"Oracle"`, desc:'Oracle DB errors', severity:'high' },
+    { cat:'db', query:`site:${d} intext:"SQL syntax"`, desc:'SQL errors exposed', severity:'high' },
+    { cat:'db', query:`site:${d} intext:"mysql_fetch"`, desc:'MySQL errors', severity:'high' },
+    { cat:'db', query:`site:${d} inurl:adminer`, desc:'Adminer DB tool', severity:'critical' },
+    // VULNERABILITIES
+    { cat:'vuln', query:`site:${d} inurl:redirect?url=`, desc:'Open redirect', severity:'high' },
+    { cat:'vuln', query:`site:${d} inurl:?next=`, desc:'Redirect parameter', severity:'high' },
+    { cat:'vuln', query:`site:${d} inurl:?return_url=`, desc:'Return URL redirect', severity:'high' },
+    { cat:'vuln', query:`site:${d} inurl:?file=`, desc:'File inclusion param', severity:'critical' },
+    { cat:'vuln', query:`site:${d} inurl:?path=`, desc:'Path traversal risk', severity:'high' },
+    { cat:'vuln', query:`site:${d} inurl:?page=`, desc:'Page param (LFI risk)', severity:'medium' },
+    { cat:'vuln', query:`site:${d} inurl:?id=`, desc:'ID parameter (IDOR)', severity:'medium' },
+    { cat:'vuln', query:`site:${d} inurl:?search=`, desc:'Search param (XSS)', severity:'medium' },
+    { cat:'vuln', query:`site:${d} inurl:?q=`, desc:'Query param (XSS)', severity:'medium' },
+    { cat:'vuln', query:`site:${d} inurl:?url=`, desc:'URL parameter (SSRF)', severity:'high' },
+    { cat:'vuln', query:`site:${d} intitle:"Index of /"`, desc:'Directory listing', severity:'high' },
+    { cat:'vuln', query:`site:${d} intext:"Warning: include("`, desc:'PHP include errors', severity:'high' },
+    { cat:'vuln', query:`site:${d} intext:"Stack trace:"`, desc:'Stack traces exposed', severity:'medium' },
+    // DIRECTORIES
+    { cat:'dir', query:`site:${d} intitle:"Index of"`, desc:'Open directories', severity:'high' },
+    { cat:'dir', query:`site:${d} intitle:"Index of /" "backup"`, desc:'Backup directories', severity:'critical' },
+    { cat:'dir', query:`site:${d} intitle:"Index of /" "database"`, desc:'Database directories', severity:'critical' },
+    { cat:'dir', query:`site:${d} intitle:"Index of /" ".git"`, desc:'Git repositories', severity:'critical' },
+    { cat:'dir', query:`site:${d} inurl:/.git`, desc:'Git directory exposed', severity:'critical' },
+    { cat:'dir', query:`site:${d} inurl:/.svn`, desc:'SVN directory exposed', severity:'high' },
+    { cat:'dir', query:`site:${d} inurl:/backup`, desc:'Backup directory', severity:'critical' },
+    { cat:'dir', query:`site:${d} inurl:/uploads`, desc:'Uploads directory', severity:'medium' },
+    { cat:'dir', query:`site:${d} inurl:/temp`, desc:'Temp directory', severity:'medium' },
+    { cat:'dir', query:`site:${d} inurl:/.env`, desc:'.env file exposed', severity:'critical' },
+    // SUBDOMAINS
+    { cat:'sub', query:`site:*.${d} -www`, desc:'All subdomains', severity:'low' },
+    { cat:'sub', query:`site:dev.${d}`, desc:'Dev subdomain', severity:'high' },
+    { cat:'sub', query:`site:staging.${d}`, desc:'Staging subdomain', severity:'high' },
+    { cat:'sub', query:`site:test.${d}`, desc:'Test subdomain', severity:'high' },
+    { cat:'sub', query:`site:api.${d}`, desc:'API subdomain', severity:'medium' },
+    { cat:'sub', query:`site:admin.${d}`, desc:'Admin subdomain', severity:'high' },
+    { cat:'sub', query:`site:mail.${d}`, desc:'Mail subdomain', severity:'medium' },
+    { cat:'sub', query:`site:vpn.${d}`, desc:'VPN subdomain', severity:'high' },
+    { cat:'sub', query:`site:jenkins.${d}`, desc:'Jenkins CI/CD', severity:'critical' },
+    { cat:'sub', query:`site:jira.${d}`, desc:'Jira instance', severity:'high' },
+    { cat:'sub', query:`site:gitlab.${d}`, desc:'GitLab instance', severity:'critical' },
+    { cat:'sub', query:`site:kibana.${d}`, desc:'Kibana dashboard', severity:'critical' },
+  ];
+}
+
+// ── State ─────────────────────────────────────────────────────────
+let allDorks = [];
+let selectedDorks = new Set();
+let currentFilter = 'all';
+let currentDomain = '';
+let savedSets = JSON.parse(localStorage.getItem('dork_saved') || '[]');
+let selectedOps = new Set();
+
+const CATEGORIES = {
+  files: { label:'SENSITIVE FILES', icon:'🗂' },
+  creds: { label:'CREDENTIALS', icon:'🔑' },
+  admin: { label:'ADMIN PANELS', icon:'🛠' },
+  api:   { label:'API ENDPOINTS', icon:'🔗' },
+  db:    { label:'DATABASES', icon:'📊' },
+  vuln:  { label:'VULNERABILITIES', icon:'🐛' },
+  dir:   { label:'DIRECTORIES', icon:'📁' },
+  sub:   { label:'SUBDOMAINS', icon:'🌐' },
+};
+
+const OPERATORS = [
+  { op:'site:', desc:'Limit to domain', field:'domain' },
+  { op:'inurl:', desc:'URL contains', field:'keyword' },
+  { op:'intitle:', desc:'Title contains', field:'keyword' },
+  { op:'intext:', desc:'Page text contains', field:'keyword' },
+  { op:'filetype:', desc:'File extension', field:'ext' },
+  { op:'ext:', desc:'File extension (alt)', field:'ext' },
+  { op:'-inurl:', desc:'Exclude URL', field:'keyword' },
+  { op:'cache:', desc:'Cached version', field:'domain' },
+  { op:'related:', desc:'Related sites', field:'domain' },
+  { op:'"..."', desc:'Exact phrase', field:'keyword' },
+];
+
+// ── Generate dorks ─────────────────────────────────────────────────
+function generateDorks() {
+  let raw = document.getElementById('url-input').value.trim();
+  if (!raw) return;
+
+  // Strip protocol and path
+  raw = raw.replace(/^https?:\/\//, '').replace(/\/.*$/, '').toLowerCase().trim();
+  currentDomain = raw;
+
+  allDorks = getDorks(raw);
+  selectedDorks.clear();
+  currentFilter = 'all';
+
+  // Reset filter buttons
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-cat="all"]').classList.add('active');
+
+  // Show UI elements
+  document.getElementById('stats-bar').style.display = 'flex';
+  document.getElementById('filter-row').style.display = 'flex';
+  document.getElementById('action-bar').style.display = 'flex';
+  document.getElementById('stat-target').textContent = raw;
+
+  renderDorks();
+  updateStats();
+  document.getElementById('builder-domain').value = raw;
+  updateBuilderPreview();
+}
+
+// ── Render ─────────────────────────────────────────────────────────
+function renderDorks() {
+  const container = document.getElementById('dork-results');
+  const filtered = currentFilter === 'all' ? allDorks : allDorks.filter(d => d.cat === currentFilter);
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">// NO DORKS IN THIS CATEGORY</div></div>';
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  filtered.forEach(d => {
+    if (!groups[d.cat]) groups[d.cat] = [];
+    groups[d.cat].push(d);
+  });
+
+  let html = '<div class="dork-grid">';
+
+  for (const [cat, dorks] of Object.entries(groups)) {
+    const catInfo = CATEGORIES[cat];
+    html += `<div class="cat-section cat-${cat}">
+      <div class="cat-header"><span class="cat-icon">${catInfo.icon}</span>${catInfo.label} <span style="color:var(--dim);font-size:9px">(${dorks.length})</span></div>`;
+
+    dorks.forEach((dork, i) => {
+      const id = `${dork.cat}_${i}`;
+      const isSelected = selectedDorks.has(dork.query);
+      const sevClass = `sev-${dork.severity}`;
+      const formattedQuery = formatDorkQuery(dork.query);
+      html += `
+        <div class="dork-item ${isSelected?'selected':''}" id="di_${id}">
+          <div class="dork-check ${isSelected?'checked':''}" onclick="toggleDork('${escQ(dork.query)}','${id}')">${isSelected?'✓':''}</div>
+          <div class="dork-text">${formattedQuery}</div>
+          <div class="dork-severity ${sevClass}">${dork.severity.toUpperCase()}</div>
+          <div class="dork-actions">
+            <button class="dork-btn google" onclick="searchDork('${escQ(dork.query)}','google')">G</button>
+            <button class="dork-btn bing" onclick="searchDork('${escQ(dork.query)}','bing')">B</button>
+            <button class="dork-btn" onclick="copyDork('${escQ(dork.query)}')">COPY</button>
+          </div>
+        </div>`;
+    });
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function formatDorkQuery(query) {
+  return query
+    .replace(/(site:[^\s]+)/g, '<span class="op-part">$1</span>')
+    .replace(/(inurl:[^\s]+)/g, '<span class="op-part">$1</span>')
+    .replace(/(intitle:[^\s]+)/g, '<span class="op-part">$1</span>')
+    .replace(/(intext:[^\s]+)/g, '<span class="op-part">$1</span>')
+    .replace(/(filetype:[^\s]+)/g, '<span class="op-part">$1</span>')
+    .replace(/(ext:[^\s]+)/g, '<span class="op-part">$1</span>')
+    .replace(/(".*?")/g, '<span class="val-part">$1</span>');
+}
+
+function escQ(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+// ── Interactions ───────────────────────────────────────────────────
+function toggleDork(query, id) {
+  if (selectedDorks.has(query)) {
+    selectedDorks.delete(query);
+    const el = document.getElementById('di_' + id);
+    if (el) { el.classList.remove('selected'); el.querySelector('.dork-check').classList.remove('checked'); el.querySelector('.dork-check').textContent = ''; }
+  } else {
+    selectedDorks.add(query);
+    const el = document.getElementById('di_' + id);
+    if (el) { el.classList.add('selected'); el.querySelector('.dork-check').classList.add('checked'); el.querySelector('.dork-check').textContent = '✓'; }
+  }
+  updateStats();
+}
+
+function searchDork(query, engine) {
+  const url = engine === 'google'
+    ? `https://www.google.com/search?q=${encodeURIComponent(query)}`
+    : `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+  window.open(url, '_blank');
+}
+
+function copyDork(query) {
+  navigator.clipboard.writeText(query).then(() => showToast('// DORK COPIED'));
+}
+
+function openSelected() {
+  if (!selectedDorks.size) { alert('Select dorks first'); return; }
+  selectedDorks.forEach(q => {
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+  });
+}
+
+function selectAll() {
+  const filtered = currentFilter === 'all' ? allDorks : allDorks.filter(d => d.cat === currentFilter);
+  filtered.forEach(d => selectedDorks.add(d.query));
+  renderDorks();
+  updateStats();
+}
+
+function selectNone() {
+  selectedDorks.clear();
+  renderDorks();
+  updateStats();
+}
+
+function copySelected() {
+  if (!selectedDorks.size) { alert('Select dorks first'); return; }
+  navigator.clipboard.writeText([...selectedDorks].join('\n')).then(() => showToast(`// ${selectedDorks.size} DORKS COPIED`));
+}
+
+function copyAll() {
+  if (!allDorks.length) return;
+  navigator.clipboard.writeText(allDorks.map(d=>d.query).join('\n')).then(() => showToast(`// ALL ${allDorks.length} DORKS COPIED`));
+}
+
+function clearDorks() {
+  allDorks = [];
+  selectedDorks.clear();
+  currentDomain = '';
+  document.getElementById('dork-results').innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-text">// ENTER A DOMAIN TO GENERATE DORKS</div></div>';
+  document.getElementById('stats-bar').style.display = 'none';
+  document.getElementById('filter-row').style.display = 'none';
+  document.getElementById('action-bar').style.display = 'none';
+  document.getElementById('url-input').value = '';
+}
+
+function setFilter(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderDorks();
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = allDorks.length;
+  document.getElementById('stat-selected').textContent = selectedDorks.size;
+  document.getElementById('stat-critical').textContent = allDorks.filter(d=>d.severity==='critical').length;
+  document.getElementById('stat-high').textContent = allDorks.filter(d=>d.severity==='high').length;
+}
+
+// ── Save/load sets ─────────────────────────────────────────────────
+function saveDorkSet() {
+  if (!allDorks.length) return;
+  const name = prompt('Name this dork set:', currentDomain || 'my-target');
+  if (!name) return;
+  const dorks = selectedDorks.size > 0 ? [...selectedDorks] : allDorks.map(d=>d.query);
+  savedSets.push({ name, domain:currentDomain, dorks, date:new Date().toLocaleDateString() });
+  localStorage.setItem('dork_saved', JSON.stringify(savedSets));
+  renderSaved();
+  showToast('// DORK SET SAVED');
+}
+
+function renderSaved() {
+  const el = document.getElementById('saved-section');
+  const list = document.getElementById('saved-list');
+  if (!savedSets.length) { el.classList.remove('active'); return; }
+  el.classList.add('active');
+  list.innerHTML = savedSets.map((s,i) => `
+    <div class="saved-item">
+      <div class="saved-name">🎯 ${s.name}</div>
+      <div class="saved-count">${s.dorks.length} dorks</div>
+      <div style="color:var(--dim);font-size:9px">${s.date}</div>
+      <button class="saved-btn" onclick="loadSavedSet(${i})">LOAD</button>
+      <button class="saved-btn" onclick="copySavedSet(${i})">COPY</button>
+      <button class="saved-btn" onclick="deleteSavedSet(${i})" style="color:var(--red)">DEL</button>
+    </div>`).join('');
+}
+
+function loadSavedSet(i) {
+  const set = savedSets[i];
+  document.getElementById('url-input').value = set.domain;
+  generateDorks();
+  // Re-select saved dorks
+  set.dorks.forEach(q => selectedDorks.add(q));
+  renderDorks();
+  updateStats();
+}
+
+function copySavedSet(i) {
+  navigator.clipboard.writeText(savedSets[i].dorks.join('\n')).then(() => showToast('// SET COPIED'));
+}
+
+function deleteSavedSet(i) {
+  savedSets.splice(i, 1);
+  localStorage.setItem('dork_saved', JSON.stringify(savedSets));
+  renderSaved();
+}
+
+// ── Custom builder ─────────────────────────────────────────────────
+function initBuilder() {
+  const grid = document.getElementById('op-grid');
+  grid.innerHTML = OPERATORS.map(op => `
+    <button class="op-chip" data-op="${op.op}" data-field="${op.field}" onclick="toggleOp(this)">
+      <div class="op-name">${op.op}</div>
+      <div class="op-desc">${op.desc}</div>
+    </button>`).join('');
+}
+
+function toggleOp(el) {
+  const op = el.dataset.op;
+  if (selectedOps.has(op)) { selectedOps.delete(op); el.classList.remove('selected'); }
+  else { selectedOps.add(op); el.classList.add('selected'); }
+  updateBuilderPreview();
+}
+
+function updateBuilderPreview() {
+  const domain = document.getElementById('builder-domain').value.trim();
+  const keyword = document.getElementById('builder-keyword').value.trim();
+  const ext = document.getElementById('builder-ext').value.trim();
+  let parts = [];
+  selectedOps.forEach(op => {
+    const chip = document.querySelector(`[data-op="${op}"]`);
+    const field = chip?.dataset.field;
+    const val = field === 'domain' ? domain : field === 'ext' ? ext : keyword;
+    if (val) {
+      if (op === '"..."') parts.push(`"${val}"`);
+      else parts.push(`${op}${val}`);
+    }
+  });
+  const preview = parts.join(' ') || '// Select operators above and fill in fields...';
+  document.getElementById('builder-preview').textContent = preview;
+}
+
+function getCustomDork() {
+  return document.getElementById('builder-preview').textContent;
+}
+
+function searchCustom(engine) {
+  const dork = getCustomDork();
+  if (dork.startsWith('//')) { alert('Build a dork first'); return; }
+  const url = engine === 'google'
+    ? `https://www.google.com/search?q=${encodeURIComponent(dork)}`
+    : `https://www.bing.com/search?q=${encodeURIComponent(dork)}`;
+  window.open(url, '_blank');
+}
+
+function copyCustom() {
+  const dork = getCustomDork();
+  if (dork.startsWith('//')) return;
+  navigator.clipboard.writeText(dork).then(() => showToast('// CUSTOM DORK COPIED'));
+}
+
+function addCustomToDorks() {
+  const dork = getCustomDork();
+  if (dork.startsWith('//')) { alert('Build a dork first'); return; }
+  const keyword = document.getElementById('builder-keyword').value.trim() || 'custom';
+  allDorks.push({ cat:'vuln', query:dork, desc:`Custom: ${keyword}`, severity:'medium' });
+  renderDorks();
+  updateStats();
+  showToast('// DORK ADDED TO LIST');
+}
+
+// ── Toast ──────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('active');
+  setTimeout(() => t.classList.remove('active'), 2000);
+}
+
+// ── Init ───────────────────────────────────────────────────────────
+initBuilder();
+renderSaved();
+
+// Live builder preview
+['builder-domain','builder-keyword','builder-ext'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateBuilderPreview);
+});
+
+// Load sample
+const params = new URLSearchParams(window.location.search);
+if (params.get('target')) {
+  document.getElementById('url-input').value = params.get('target');
+  generateDorks();
+}
+</script>
+</body>
+</html>
