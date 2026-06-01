@@ -232,6 +232,55 @@ body::before {
 }
 .refresh-btn:active { background:var(--teal-dark); color:var(--teal); }
 
+/* ── SANDBOX POST FORM ── */
+.post-form { background:var(--bg3); border:1px solid var(--border); padding:14px; margin-bottom:10px; }
+.post-form-title { font-size:9px; color:var(--teal); letter-spacing:3px; margin-bottom:12px; }
+.post-field { margin-bottom:10px; }
+.post-label { font-size:8px; color:var(--dim); letter-spacing:2px; display:block; margin-bottom:5px; }
+.post-input {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  color:var(--text); font-family:'JetBrains Mono',monospace; font-size:11px;
+  padding:9px 10px; outline:none; -webkit-appearance:none;
+}
+.post-input:focus { border-color:var(--teal-dim); }
+.post-select {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  color:var(--text); font-family:'JetBrains Mono',monospace; font-size:11px;
+  padding:9px 10px; outline:none; -webkit-appearance:none;
+}
+.post-textarea {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  color:var(--text); font-family:'JetBrains Mono',monospace; font-size:10px;
+  padding:9px 10px; outline:none; resize:vertical; min-height:160px;
+  -webkit-appearance:none; line-height:1.5;
+}
+.post-textarea:focus { border-color:var(--teal-dim); }
+.post-textarea::placeholder { color:var(--dim); }
+.post-row { display:flex; gap:8px; }
+.post-row .post-field { flex:1; }
+.post-submit-btn {
+  width:100%; background:var(--teal-dark); border:1px solid var(--teal-dim);
+  color:var(--teal); font-family:'JetBrains Mono',monospace;
+  font-size:10px; letter-spacing:2px; padding:13px; cursor:pointer; margin-top:4px;
+}
+.post-submit-btn:active { background:var(--teal); color:#000; }
+.post-submit-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.post-feedback { font-size:10px; margin-top:8px; text-align:center; min-height:16px; letter-spacing:1px; }
+.post-feedback.ok { color:var(--green); }
+.post-feedback.err { color:var(--red); }
+.posted-list { margin-top:6px; }
+.posted-item {
+  background:var(--bg3); border:1px solid var(--border);
+  padding:10px 12px; margin-bottom:6px; display:flex; align-items:center; gap:10px;
+}
+.posted-info { flex:1; }
+.posted-title { font-size:11px; color:var(--text); font-weight:700; }
+.posted-meta { font-size:8px; color:var(--dim); margin-top:3px; letter-spacing:1px; }
+.posted-delete {
+  font-size:8px; color:var(--red); border:1px solid #330011;
+  padding:3px 8px; cursor:pointer; background:none; font-family:'JetBrains Mono',monospace;
+}
+
 /* ── LOADING / EMPTY ── */
 .loading { text-align:center; color:var(--dim); font-size:10px; padding:20px; }
 .empty { text-align:center; color:var(--dim); font-size:10px; padding:30px; }
@@ -271,6 +320,7 @@ body::before {
   <div class="tabs">
     <div class="tab active" data-tab="engines">ENGINES</div>
     <div class="tab" data-tab="rotation">ROTATION</div>
+    <div class="tab" data-tab="sandbox">SANDBOX</div>
     <div class="tab" data-tab="users">USERS</div>
     <div class="tab" data-tab="logs">LOGS</div>
     <div class="tab" data-tab="failures">FAILURES</div>
@@ -309,6 +359,74 @@ body::before {
 
       <div class="section-title">AI PROVIDERS — TAP TOGGLE TO TEST ONE AT A TIME</div>
       <div id="engines-list"><div class="loading">LOADING PROVIDERS...</div></div>
+    </div>
+
+    <!-- SANDBOX TAB -->
+    <div class="section" id="tab-sandbox">
+
+      <!-- POST NEW SANDBOX -->
+      <div class="post-form">
+        <div class="post-form-title">⚔ POST NEW SANDBOX LAB</div>
+
+        <div class="post-field">
+          <label class="post-label">LAB TITLE</label>
+          <input class="post-input" id="sb-title" placeholder="e.g. OSINT Image Attack" maxlength="80">
+        </div>
+
+        <div class="post-field">
+          <label class="post-label">DESCRIPTION (shown on arena card)</label>
+          <input class="post-input" id="sb-desc" placeholder="e.g. Watch CIPHER extract GPS from photos..." maxlength="200">
+        </div>
+
+        <div class="post-row">
+          <div class="post-field">
+            <label class="post-label">ATTACK TYPE</label>
+            <select class="post-select" id="sb-type">
+              <option value="OSINT">OSINT</option>
+              <option value="XSS">XSS</option>
+              <option value="SQLI">SQLi</option>
+              <option value="IDOR">IDOR</option>
+              <option value="AUTH">AUTH BYPASS</option>
+              <option value="RCE">RCE</option>
+              <option value="CSRF">CSRF</option>
+              <option value="RECON">RECON</option>
+            </select>
+          </div>
+          <div class="post-field">
+            <label class="post-label">DIFFICULTY</label>
+            <select class="post-select" id="sb-diff">
+              <option value="easy">EASY</option>
+              <option value="medium">MEDIUM</option>
+              <option value="hard">HARD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="post-row">
+          <div class="post-field">
+            <label class="post-label">VC COST (entry fee)</label>
+            <input class="post-input" id="sb-cost" type="number" value="50" min="0" max="999">
+          </div>
+          <div class="post-field">
+            <label class="post-label">DURATION LABEL</label>
+            <input class="post-input" id="sb-duration" placeholder="~8 MIN" maxlength="20">
+          </div>
+        </div>
+
+        <div class="post-field">
+          <label class="post-label">LAB HTML — paste full HTML of the iframed lab below</label>
+          <textarea class="post-textarea" id="sb-html"
+            placeholder="<!DOCTYPE html>&#10;<html>&#10;...paste your lab HTML here...&#10;</html>"></textarea>
+        </div>
+
+        <button class="post-submit-btn" id="sb-submit-btn" onclick="postSandbox()">[ POST SANDBOX TO ARENA ]</button>
+        <div class="post-feedback" id="sb-feedback"></div>
+      </div>
+
+      <!-- POSTED SANDBOXES LIST -->
+      <div class="section-title" style="margin-top:16px;">ACTIVE SANDBOXES</div>
+      <button class="refresh-btn" onclick="loadPostedSandboxes()">↻ REFRESH LIST</button>
+      <div class="posted-list" id="posted-list"><div class="loading">LOADING...</div></div>
     </div>
 
     <!-- ROTATION TAB -->
@@ -357,7 +475,7 @@ body::before {
 </div>
 
 <script>
-const AI_URL = 'https://genesis-ai-backend.onrender.com';
+const AI_URL = 'https://genesis-ai-backend-wheat.vercel.app';
 let adminToken = '';
 let currentMode = 'auto';
 let activeEngine = null; // for radio-style single toggle
@@ -448,6 +566,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (t === 'rotation') { document.getElementById('status-left').textContent = 'KEY ROTATION'; loadRotation(); }
     if (t === 'leaderboard') { document.getElementById('status-left').textContent = 'SPEED TEST'; }
     if (t === 'engines') { document.getElementById('status-left').textContent = `MODE: ${currentMode.toUpperCase()}`; }
+    if (t === 'sandbox') { document.getElementById('status-left').textContent = 'SANDBOX MANAGER'; loadPostedSandboxes(); }
   });
 });
 
@@ -813,6 +932,107 @@ async function runLeaderboard() {
   });
 
   setStatus('SPEED TEST COMPLETE');
+}// ── SANDBOX POSTING ──
+async function postSandbox() {
+  const btn      = document.getElementById('sb-submit-btn');
+  const feedback = document.getElementById('sb-feedback');
+  const title    = document.getElementById('sb-title').value.trim();
+  const desc     = document.getElementById('sb-desc').value.trim();
+  const type     = document.getElementById('sb-type').value;
+  const diff     = document.getElementById('sb-diff').value;
+  const cost     = parseInt(document.getElementById('sb-cost').value) || 50;
+  const duration = document.getElementById('sb-duration').value.trim() || '~8 MIN';
+  const labHtml  = document.getElementById('sb-html').value.trim();
+
+  if (!title) { showFeedback('TITLE REQUIRED', false); return; }
+  if (!labHtml) { showFeedback('LAB HTML REQUIRED', false); return; }
+
+  btn.disabled = true;
+  btn.textContent = '[ POSTING... ]';
+  feedback.textContent = '';
+
+  try {
+    const res = await fetch(`${AI_URL}/admin/post-sandbox`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ title, description: desc, attack_type: type, difficulty: diff, vc_cost: cost, duration, lab_html: labHtml, status: 'active' })
+    });
+    if (res.status === 401) { logout401(); return; }
+    const data = await res.json();
+    if (res.ok && (data.success || data.id)) {
+      showFeedback('✓ SANDBOX POSTED — NOW LIVE ON ARENA', true);
+      // Clear form
+      document.getElementById('sb-title').value = '';
+      document.getElementById('sb-desc').value = '';
+      document.getElementById('sb-html').value = '';
+      document.getElementById('sb-duration').value = '';
+      loadPostedSandboxes();
+    } else {
+      showFeedback(data.error || 'POST FAILED', false);
+    }
+  } catch(e) {
+    showFeedback('CONNECTION ERROR: ' + e.message, false);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '[ POST SANDBOX TO ARENA ]';
+}
+
+function showFeedback(msg, ok) {
+  const el = document.getElementById('sb-feedback');
+  el.textContent = msg;
+  el.className = 'post-feedback ' + (ok ? 'ok' : 'err');
+}
+
+async function loadPostedSandboxes() {
+  const list = document.getElementById('posted-list');
+  list.innerHTML = '<div class="loading">LOADING...</div>';
+  try {
+    const res = await fetch(`${AI_URL}/arena/matches`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    if (res.status === 401) { logout401(); return; }
+    const data = await res.json();
+    const matches = Array.isArray(data) ? data : (data.matches || []);
+    if (!matches.length) {
+      list.innerHTML = '<div class="empty">NO SANDBOXES POSTED YET</div>';
+      return;
+    }
+    list.innerHTML = '';
+    matches.forEach(m => {
+      const item = document.createElement('div');
+      item.className = 'posted-item';
+      item.innerHTML = `
+        <div class="posted-info">
+          <div class="posted-title">${esc(m.title)}</div>
+          <div class="posted-meta">${esc(m.attack_type||'?')} · ${esc(m.difficulty||'?')} · ${m.vc_cost||0} VC · ${esc(m.status||'active')}</div>
+        </div>
+        <button class="posted-delete" onclick="deleteSandbox('${esc(m.id)}', this)">DELETE</button>
+      `;
+      list.appendChild(item);
+    });
+  } catch(e) {
+    list.innerHTML = `<div class="empty">ERROR: ${esc(e.message)}</div>`;
+  }
+}
+
+async function deleteSandbox(id, btn) {
+  if (!confirm('Delete this sandbox?')) return;
+  btn.textContent = '...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${AI_URL}/admin/delete-sandbox/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    if (res.status === 401) { logout401(); return; }
+    loadPostedSandboxes();
+  } catch(e) {
+    btn.textContent = 'ERR';
+  }
 }
 </script>
 </body>
