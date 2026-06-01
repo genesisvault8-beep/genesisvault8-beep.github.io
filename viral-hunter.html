@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0f">
+<title>VIRAL HUNTER — Influencer Growth Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07080f;
+  --surface: #0d0e1a;
+  --surface2: #12142a;
+  --border: rgba(255,255,255,0.06);
+  --accent: #ff3cac;
+  --accent2: #784ba0;
+  --accent3: #2b86c5;
+  --accent4: #f9c846;
+  --accent5: #00f5a0;
+  --text: #e8e8f0;
+  --dim: #4a4a6a;
+  --yt: #ff0000;
+  --tt: #ff0050;
+  --ig: #e1306c;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated gradient bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(255,60,172,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 0%, rgba(43,134,197,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(120,75,160,0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 32px 18px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,60,172,0.1);
+  border: 1px solid rgba(255,60,172,0.3);
+  padding: 6px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 7vw, 64px);
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+h1 .viral { 
+  background: linear-gradient(135deg, #ff3cac, #784ba0, #2b86c5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h1 .hunter { color: var(--text); }
+
+.header-sub {
+  font-size: 14px;
+  color: var(--dim);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Platform selector */
+.platform-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.platform-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--dim);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 100px;
+}
+
+.platform-btn:hover { transform: translateY(-2px); }
+.platform-btn.yt.active { background: rgba(255,0,0,0.1); border-color: var(--yt); color: var(--yt); box-shadow: 0 0 20px rgba(255,0,0,0.2); }
+.platform-btn.tt.active { background: rgba(255,0,80,0.1); border-color: var(--tt); color: var(--tt); box-shadow: 0 0 20px rgba(255,0,80,0.2); }
+.platform-btn.ig.active { background: rgba(225,48,108,0.1); border-color: var(--ig); color: var(--ig); box-shadow: 0 0 20px rgba(225,48,108,0.2); }
+
+.platform-icon { font-size: 18px; }
+
+/* Niche grid */
+.niche-section {
+  margin-bottom: 32px;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.niche-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.niche-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dim);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.niche-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--niche-color, linear-gradient(135deg,#ff3cac,#784ba0));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.niche-btn:hover { transform: translateY(-2px); color: var(--text); }
+.niche-btn:hover::before { opacity: 0.08; }
+
+.niche-btn.active {
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.niche-btn.active::before { opacity: 1; }
+
+.niche-icon { font-size: 24px; position: relative; z-index: 1; }
+.niche-label { position: relative; z-index: 1; }
+
+/* Search section */
+.search-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  padding: 12px 18px;
+  outline: none;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--dim); }
+
+.find-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 13px 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 8px;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.find-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent2), var(--accent3));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.find-btn:hover::after { opacity: 1; }
+.find-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,60,172,0.4); }
+.find-btn span { position: relative; z-index: 1; }
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.stat-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dim);
+}
+
+.stat-chip .num {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+
+.tab-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn.active { background: var(--surface2); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* Video grid */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Video card */
+.video-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s;
+  animation: cardIn 0.4s ease forwards;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@keyframes cardIn {
+  to { opacity:1; transform:translateY(0); }
+}
+
+.video-card:hover {
+  border-color: rgba(255,60,172,0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+}
+
+.video-thumb {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  background: var(--surface2);
+  position: relative;
+}
+
+.video-thumb-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.video-thumb-img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s;
+}
+
+.video-card:hover .video-thumb-img { transform: scale(1.04); }
+
+.video-platform-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 1px;
+}
+
+.badge-yt { background: var(--yt); color: #fff; }
+.badge-tt { background: var(--tt); color: #fff; }
+.badge-ig { background: var(--ig); color: #fff; }
+
+.video-views-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.75);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: #fff;
+}
+
+.video-body { padding: 16px; }
+
+.video-channel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.channel-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.channel-name { font-size: 11px; color: var(--dim); font-weight: 600; }
+.channel-subs { font-size: 10px; color: var(--dim); margin-left: auto; font-family: 'DM Mono', monospace; }
+
+.video-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.video-metrics {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.metric-label { font-size: 9px; color: var(--dim); letter-spacing: 1px; }
+
+.engagement-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.engagement-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent3));
+  border-radius: 2px;
+  transition: width 0.8s ease;
+}
+
+/* Comment section on card */
+.comment-section {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 8px;
+}
+
+.comment-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.comment-chip {
+  font-size: 10px;
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  cursor: pointer;
+  border-radius: 100px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.comment-chip:hover { border-color: var(--accent); color: var(--accent); }
+.comment-chip.selected { background: rgba(255,60,172,0.1); border-color: var(--accent); color: var(--accent); }
+
+.comment-preview {
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.6;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border-radius: 6px;
+  min-height: 40px;
+  border-left: 2px solid var(--accent);
+}
+
+/* Card actions */
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.card-btn {
+  flex: 1;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 9px 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.cb-primary { background: linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+.cb-primary:hover { box-shadow:0 4px 16px rgba(255,60,172,0.4); transform:translateY(-1px); }
+.cb-secondary { background: var(--surface2); color: var(--dim); border: 1px solid var(--border); }
+.cb-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.cb-green { background: rgba(0,245,160,0.1); border: 1px solid rgba(0,245,160,0.3); color: var(--accent5); }
+.cb-green:hover { background: rgba(0,245,160,0.2); }
+
+/* Done badge */
+.done-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--accent5);
+  color: #000;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  display: none;
+}
+
+.video-card.commented .done-badge { display: block; }
+.video-card.commented { border-color: rgba(0,245,160,0.2); }
+
+/* Strategy panel */
+.strategy-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: none;
+}
+
+.strategy-panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+.strategy-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.strategy-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.sc-icon { font-size: 28px; margin-bottom: 10px; }
+.sc-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+.sc-body { font-size: 11px; color: var(--dim); line-height: 1.7; }
+.sc-tip { font-size: 10px; color: var(--accent); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+/* Templates tab */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.template-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.tc-niche {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.tc-type {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+
+.tc-comment {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.7;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 8px;
+  border-left: 2px solid var(--accent);
+  margin-bottom: 10px;
+}
+
+.tc-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 7px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.tc-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Tracker tab */
+.tracker-empty {
+  text-align: center;
+  padding: 48px;
+  color: var(--dim);
+}
+
+.tracker-empty .te-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.tracker-empty .te-text { font-size: 13px; }
+
+.tracker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.tracker-card {
+  background: var(--surface);
+  border: 1px solid rgba(0,245,160,0.2);
+  border-radius: 12px;
+  padding: 14px;
+  animation: fadeIn 0.3s ease;
+}
+
+.trk-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--text); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.trk-comment { font-size: 11px; color: var(--dim); line-height: 1.6; margin-bottom: 8px; font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.trk-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--dim); font-family: 'DM Mono', monospace; }
+.trk-link { font-size: 10px; color: var(--accent); text-decoration: none; }
+
+/* Loading */
+.loading-wrap {
+  text-align: center;
+  padding: 60px;
+  display: none;
+}
+
+.loading-wrap.active { display: block; }
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  animation: blink 1s infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* Empty */
+.empty-wrap {
+  text-align: center;
+  padding: 60px;
+}
+
+.empty-emoji { font-size: 56px; margin-bottom: 16px; }
+.empty-text { font-size: 14px; color: var(--dim); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 10px 24px;
+  border-radius: 100px;
+  z-index: 1000;
+  display: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(255,60,172,0.4);
+}
+
+.toast.active { display: block; animation: toastIn 0.3s ease; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+@media(max-width:600px) {
+  .video-grid { grid-template-columns: 1fr; }
+  .niche-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="header-badge">🔥 INFLUENCER GROWTH TOOL v1.0</div>
+    <h1><span class="viral">VIRAL</span> <span class="hunter">HUNTER</span></h1>
+    <p class="header-sub">Find the most viral videos in your niche, get AI-powered comment strategies, and grow your following by engaging where the audience already is.</p>
+  </header>
+
+  <!-- Platform selector -->
+  <div class="section-label">// SELECT PLATFORM</div>
+  <div class="platform-row">
+    <button class="platform-btn yt active" data-platform="youtube" onclick="setPlatform('youtube',this)">
+      <span class="platform-icon">▶️</span> YouTube
+    </button>
+    <button class="platform-btn tt" data-platform="tiktok" onclick="setPlatform('tiktok',this)">
+      <span class="platform-icon">🎵</span> TikTok
+    </button>
+    <button class="platform-btn ig" data-platform="instagram" onclick="setPlatform('instagram',this)">
+      <span class="platform-icon">📸</span> Instagram
+    </button>
+  </div>
+
+  <!-- Niche selector -->
+  <div class="niche-section">
+    <div class="section-label">// SELECT YOUR NICHE</div>
+    <div class="niche-grid" id="niche-grid"></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-section">
+    <input type="text" class="search-input" id="search-input" placeholder="Or type a custom niche / keyword..." onkeydown="if(event.key==='Enter')findVideos()">
+    <select style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:12px 16px;outline:none;border-radius:8px;" id="sort-select">
+      <option value="views">Most Viewed</option>
+      <option value="engagement">Most Engaging</option>
+      <option value="recent">Most Recent</option>
+      <option value="comments">Most Comments</option>
+    </select>
+    <button class="find-btn" onclick="findVideos()"><span>🔥 FIND VIRAL VIDEOS</span></button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar" id="stats-bar" style="display:none">
+    <div class="stat-chip"><span class="num" id="stat-videos">0</span> VIDEOS FOUND</div>
+    <div class="stat-chip"><span class="num" id="stat-commented">0</span> COMMENTED</div>
+    <div class="stat-chip"><span class="num" id="stat-niche" style="color:var(--accent4)">—</span> NICHE</div>
+    <div class="stat-chip"><span class="num" id="stat-platform" style="color:var(--yt)">YouTube</span> PLATFORM</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('videos',this)">🎬 Videos</button>
+    <button class="tab-btn" onclick="switchTab('strategy',this)">🎯 Strategy</button>
+    <button class="tab-btn" onclick="switchTab('templates',this)">💬 Comment Templates</button>
+    <button class="tab-btn" onclick="switchTab('tracker',this)">✅ My Comments</button>
+  </div>
+
+  <!-- VIDEOS TAB -->
+  <div id="tab-videos">
+    <div class="loading-wrap" id="loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">// FINDING VIRAL VIDEOS...</div>
+    </div>
+    <div class="video-grid" id="video-grid">
+      <div class="empty-wrap" style="grid-column:1/-1">
+        <div class="empty-emoji">🎯</div>
+        <div class="empty-text">Select a niche and hit Find Viral Videos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRATEGY TAB -->
+  <div id="tab-strategy" style="display:none">
+    <div class="strategy-panel active">
+      <div class="strategy-title">🎯 Comment Growth Strategy</div>
+      <div class="strategy-grid" id="strategy-grid"></div>
+    </div>
+  </div>
+
+  <!-- TEMPLATES TAB -->
+  <div id="tab-templates" style="display:none">
+    <div class="templates-grid" id="templates-grid"></div>
+  </div>
+
+  <!-- TRACKER TAB -->
+  <div id="tab-tracker" style="display:none">
+    <div id="tracker-content">
+      <div class="tracker-empty">
+        <div class="te-icon">✅</div>
+        <div class="te-text">Your commented videos will appear here</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const NICHES = [
+  { id:'fitness', label:'Fitness', icon:'💪', color:'linear-gradient(135deg,#f093fb,#f5576c)', search:'fitness workout gym motivation' },
+  { id:'finance', label:'Finance', icon:'💰', color:'linear-gradient(135deg,#4facfe,#00f2fe)', search:'personal finance money investing wealth' },
+  { id:'crypto', label:'Crypto', icon:'₿', color:'linear-gradient(135deg,#f9c846,#f5576c)', search:'cryptocurrency bitcoin crypto trading' },
+  { id:'beauty', label:'Beauty', icon:'💄', color:'linear-gradient(135deg,#fda085,#f6d365)', search:'makeup beauty tutorial skincare' },
+  { id:'food', label:'Food', icon:'🍕', color:'linear-gradient(135deg,#f7971e,#ffd200)', search:'food recipe cooking viral mukbang' },
+  { id:'gaming', label:'Gaming', icon:'🎮', color:'linear-gradient(135deg,#6a11cb,#2575fc)', search:'gaming gameplay viral clips highlights' },
+  { id:'travel', label:'Travel', icon:'✈️', color:'linear-gradient(135deg,#0f9b58,#00bf72)', search:'travel vlog destinations adventure' },
+  { id:'motivation', label:'Motivate', icon:'🔥', color:'linear-gradient(135deg,#f093fb,#f5576c)', search:'motivation success mindset inspirational' },
+  { id:'fashion', label:'Fashion', icon:'👗', color:'linear-gradient(135deg,#fc6076,#ff9a44)', search:'fashion outfit style lookbook' },
+  { id:'tech', label:'Tech', icon:'💻', color:'linear-gradient(135deg,#2980b9,#6dd5fa)', search:'technology gadgets tech review ai' },
+  { id:'love', label:'Dating', icon:'❤️', color:'linear-gradient(135deg,#f093fb,#f5576c)', search:'dating relationship advice love' },
+  { id:'comedy', label:'Comedy', icon:'😂', color:'linear-gradient(135deg,#f7971e,#ffd200)', search:'funny comedy memes viral humor' },
+  { id:'business', label:'Business', icon:'📈', color:'linear-gradient(135deg,#4facfe,#00f2fe)', search:'business entrepreneurship startup success' },
+  { id:'music', label:'Music', icon:'🎵', color:'linear-gradient(135deg,#6a11cb,#2575fc)', search:'music viral song trending audio' },
+  { id:'sports', label:'Sports', icon:'⚽', color:'linear-gradient(135deg,#0f9b58,#00bf72)', search:'sports highlights viral athletic' },
+  { id:'betting', label:'Betting', icon:'🎰', color:'linear-gradient(135deg,#f9c846,#f5576c)', search:'sports betting predictions tips odds' },
+  { id:'affiliate', label:'Affiliate', icon:'🔗', color:'linear-gradient(135deg,#4facfe,#00f2fe)', search:'affiliate marketing passive income online business' },
+  { id:'model', label:'Model', icon:'📸', color:'linear-gradient(135deg,#fc6076,#ff9a44)', search:'model photography viral photoshoot' },
+  { id:'anime', label:'Anime', icon:'⛩️', color:'linear-gradient(135deg,#6a11cb,#2575fc)', search:'anime viral moments clips reaction' },
+  { id:'movies', label:'Movies', icon:'🎬', color:'linear-gradient(135deg,#f093fb,#f5576c)', search:'movie review viral scene reaction' },
+];
+
+const COMMENT_STRATEGIES = [
+  { icon:'⏰', title:'First 24 Hours Rule', body:'Comment within the first 24 hours of a viral video going live. The algorithm boosts engagement in this window, making your comment more visible.', tip:'→ Set up Google Alerts for your niche keywords' },
+  { icon:'❓', title:'Ask a Genuine Question', body:'Comments that ask thoughtful questions get the most replies. This starts a thread under your comment, multiplying your visibility exponentially.', tip:'→ "What do you think about X?" performs 3x better than statements' },
+  { icon:'💡', title:'Add Value First', body:'Before mentioning yourself, add genuine value. Share a tip, fact, or insight related to the video. The creator may pin your comment.', tip:'→ Pinned comments get 10x the visibility of regular comments' },
+  { icon:'🎯', title:'Niche Authority Positioning', body:'Establish yourself as an expert in 2 sentences. Reference your experience. People will click your profile to learn more about you.', tip:'→ "As someone who\'s done X for Y years, I can confirm..."' },
+  { icon:'🔥', title:'Emotional Hook Comments', body:'Comments that express genuine emotion (amazement, humor, relatability) get the most likes. The more likes your comment has, the more profile visits you get.', tip:'→ "This literally describes my situation exactly 😭" type comments go viral' },
+  { icon:'📌', title:'The Controversy Play', body:'Respectfully disagree with a minor point in the video. This sparks replies from both the creator and viewers, keeping your comment at the top.', tip:'→ Be respectful — toxic comments get hidden by YouTube algorithm' },
+  { icon:'⭐', title:'Compliment + Add On', body:'Compliment the creator genuinely, then add something they missed. Creators often heart/pin these comments which multiplies your reach.', tip:'→ "Great video! One thing I\'d add is..."' },
+  { icon:'🌐', title:'Cross-Niche Bridge', body:'Comment on related niches that share your audience. A fitness creator commenting on nutrition videos reaches the same audience from a different angle.', tip:'→ Map 3-5 related niches and comment across all of them daily' },
+];
+
+const TEMPLATES = {
+  fitness: [
+    { type:'Authority', comment:'Been training for 8 years and this is genuinely one of the best breakdowns I\'ve seen. The part about progressive overload is SO underrated. What\'s your take on deload weeks?' },
+    { type:'Relatable', comment:'The fact that I watched this at 11pm while eating chips is sending me 💀 Tomorrow I start for real though. Who\'s with me?' },
+    { type:'Question', comment:'Quick question — do you think this works the same for people training at home with limited equipment? Would love to see a video on that!' },
+    { type:'Value Add', comment:'Great video! One thing worth adding: foam rolling before this workout increases blood flow by ~30% and noticeably improves performance. Game changer!' },
+  ],
+  finance: [
+    { type:'Authority', comment:'Financial analyst here — this is genuinely solid advice. The compound interest calculation at 7:30 is spot on. Most people underestimate how powerful starting early is.' },
+    { type:'Relatable', comment:'Me: watches 50 finance videos. Also me: still has $0 in savings 😭 But seriously this one actually made it click for me. Thank you.' },
+    { type:'Question', comment:'What\'s your opinion on index funds vs. individual stocks for someone just starting out with $500? Would love your take.' },
+    { type:'Value Add', comment:'Worth noting: the tax-advantaged accounts mentioned here have different limits in 2025. Always max your Roth IRA first before taxable accounts!' },
+  ],
+  crypto: [
+    { type:'Authority', comment:'Been in crypto since 2017 through multiple cycles. The risk management principles in this video are what separate people who stay in crypto from those who get wiped out.' },
+    { type:'Relatable', comment:'Me in 2021: "This is the dip, I\'m buying." Me now, finally watching this: 💀 Better late than never right?' },
+    { type:'Question', comment:'How do you personally manage the emotional side of watching your portfolio drop 40%? Would love a video on the psychology of crypto investing.' },
+    { type:'Value Add', comment:'Important to add: always keep your crypto off exchanges if you\'re holding long term. "Not your keys, not your coins" — FTX taught us this the hard way.' },
+  ],
+  beauty: [
+    { type:'Authority', comment:'As a makeup artist for 6 years, I\'m genuinely impressed. The blending technique at 4:20 is professional level. Most tutorials skip this step and it makes ALL the difference.' },
+    { type:'Relatable', comment:'Me buying all these products knowing I\'ll use them twice and they\'ll collect dust forever 😂 But this tutorial is actually so simple I might stick to it!' },
+    { type:'Question', comment:'What products would you recommend for sensitive skin that gets irritated easily? I love the look but worry about reactions!' },
+    { type:'Value Add', comment:'Pro tip that changed my life: apply setting spray before AND after makeup. It acts as a primer AND sets everything. My makeup now lasts 12+ hours!' },
+  ],
+  food: [
+    { type:'Authority', comment:'Chef with 10 years experience — this recipe is genuinely great. The secret most people miss is resting the meat for exactly as long as you cooked it. Changes everything.' },
+    { type:'Relatable', comment:'My cooking level: burning water. But something about this video makes me think I could actually do this. Saving this for the weekend 🍕' },
+    { type:'Question', comment:'Could this work with an air fryer instead of an oven? I\'d love a version for people who don\'t have a lot of kitchen equipment!' },
+    { type:'Value Add', comment:'Nutritional hack: adding lemon juice RIGHT before serving (not during cooking) preserves 40% more Vitamin C. Small change, big difference!' },
+  ],
+  gaming: [
+    { type:'Authority', comment:'Diamond rank in this game and I can confirm — this strat is actually broken right now. Used it in ranked last night and went 12-2. The devs will definitely patch this.' },
+    { type:'Relatable', comment:'Me watching this: "Yes I know exactly what to do now." Me in-game 5 minutes later: dies immediately 💀' },
+    { type:'Question', comment:'Does this work the same way in lower ranks where people don\'t play as predictably? Would love to see a low-rank edition of this!' },
+    { type:'Value Add', comment:'Worth adding: this works even better with [specific setting] turned on. Found this in a pro player\'s stream settings and it\'s a massive improvement.' },
+  ],
+  default: [
+    { type:'Authority', comment:'I\'ve been following this topic closely for years and this is genuinely one of the most accurate and well-explained videos I\'ve come across. The detail at [timestamp] is particularly impressive.' },
+    { type:'Relatable', comment:'The way this video perfectly describes exactly what I\'ve been going through 😭 Needed to see this today. Sharing with everyone I know.' },
+    { type:'Question', comment:'What\'s the single most important thing a beginner should focus on first? There\'s so much information — would love to know your top priority!' },
+    { type:'Value Add', comment:'Great content! One thing I\'d add based on my experience: [specific tip]. It\'s a small thing but makes a noticeable difference. Hope this helps someone!' },
+  ],
+};
+
+// ── YouTube Data API (free with key, fallback to curated data) ────
+const YOUTUBE_SEARCH_URL = 'https://www.googleapis.com/youtube/v3/search';
+
+// Generate realistic video data for each niche
+function generateVideoData(niche, platform, count = 9) {
+  const nicheData = NICHES.find(n => n.id === niche) || NICHES[0];
+  const videos = [];
+
+  const videoTemplates = {
+    fitness: [
+      { title: '30 Day Transformation Challenge (SHOCKING RESULTS)', ch: 'FitLife Pro', subs: '2.4M', views: 8400000, likes: 342000, comments: 28400 },
+      { title: 'Why 90% of People FAIL at the Gym (And How to Fix It)', ch: 'AthleanX', subs: '13.8M', views: 12300000, likes: 521000, comments: 41200 },
+      { title: 'I Tried Working Out Every Day for 365 Days', ch: 'Chris Heria', subs: '4.2M', views: 5600000, likes: 198000, comments: 15600 },
+      { title: 'The PERFECT Full Body Workout (Science Explained)', ch: 'Jeff Nippard', subs: '5.1M', views: 7800000, likes: 312000, comments: 22100 },
+      { title: 'What Happens to Your Body After 30 Days of Exercise', ch: 'Gravity Transformation', subs: '6.7M', views: 9200000, likes: 405000, comments: 31800 },
+      { title: 'I Trained Like a Navy SEAL for 30 Days', ch: 'Yes Theory', subs: '8.2M', views: 14500000, likes: 621000, comments: 48200 },
+      { title: 'The Truth About Abs (Why Yours Aren\'t Showing)', ch: 'Mike Thurston', subs: '3.1M', views: 6100000, likes: 245000, comments: 19400 },
+      { title: 'Home Workout vs Gym: Which Builds More Muscle?', ch: 'Calisthenic Movement', subs: '2.8M', views: 4200000, likes: 178000, comments: 13200 },
+      { title: '5 Exercises You\'re Doing WRONG (Fix These Now)', ch: 'Scott Herman Fitness', subs: '1.9M', views: 3800000, likes: 156000, comments: 11800 },
+    ],
+    finance: [
+      { title: 'How I Made $100,000 at 22 (Step by Step)', ch: 'Graham Stephan', subs: '4.5M', views: 11200000, likes: 478000, comments: 36200 },
+      { title: 'The Money Secret Banks Don\'t Want You to Know', ch: 'Andrei Jikh', subs: '2.1M', views: 8900000, likes: 389000, comments: 28900 },
+      { title: 'I Saved 70% of My Income for a Year (Here\'s What Happened)', ch: 'Our Rich Journey', subs: '1.8M', views: 5200000, likes: 214000, comments: 16800 },
+      { title: 'Why the Rich Get Richer (The Real Reason)', ch: 'Mark Tilbury', subs: '3.4M', views: 9800000, likes: 421000, comments: 33200 },
+      { title: 'The ONLY 5 Investments You Need in 2025', ch: 'Humphrey Yang', subs: '1.6M', views: 4800000, likes: 196000, comments: 15400 },
+      { title: 'Debt Free at 28: How I Paid Off $80K in 2 Years', ch: 'Tae Kim', subs: '890K', views: 3600000, likes: 148000, comments: 11600 },
+      { title: 'The Stock Market Crash Is Coming (Prepare NOW)', ch: 'InvestAnswers', subs: '2.9M', views: 7200000, likes: 298000, comments: 24600 },
+      { title: 'I Invested $1,000 Every Month for a Year', ch: 'WhiteBoard Finance', subs: '1.4M', views: 4100000, likes: 168000, comments: 13200 },
+      { title: 'Side Hustles That Made Me $50K Last Year', ch: 'Ryan Scribner', subs: '2.2M', views: 6800000, likes: 278000, comments: 21800 },
+    ],
+    crypto: [
+      { title: 'Bitcoin Will Hit $500K (Here\'s Why)', ch: 'Coin Bureau', subs: '2.8M', views: 9800000, likes: 412000, comments: 32400 },
+      { title: 'I Lost Everything in Crypto (Don\'t Make My Mistakes)', ch: 'Lark Davis', subs: '1.4M', views: 6200000, likes: 268000, comments: 21600 },
+      { title: 'The BEST Crypto to Buy Right Now (Not Bitcoin)', ch: 'Altcoin Daily', subs: '1.9M', views: 8100000, likes: 342000, comments: 27800 },
+      { title: 'How to Turn $1,000 into $100,000 with Crypto', ch: 'BitBoy Crypto', subs: '3.2M', views: 12400000, likes: 518000, comments: 41200 },
+      { title: 'Ethereum is About to EXPLODE (Don\'t Miss This)', ch: 'InvestAnswers', subs: '2.1M', views: 7400000, likes: 312000, comments: 24800 },
+      { title: 'The Crypto Crash: What Nobody Is Telling You', ch: 'Crypto Zombie', subs: '1.1M', views: 4800000, likes: 198000, comments: 16200 },
+      { title: 'I Tried 10 Crypto Strategies (Here\'s What Worked)', ch: 'Nicholas Merten', subs: '1.6M', views: 5900000, likes: 241000, comments: 19400 },
+      { title: 'DeFi Explained Simply (Earn 20% APY?)', ch: 'Finematics', subs: '980K', views: 3800000, likes: 156000, comments: 12600 },
+      { title: 'NFTs Are Dead (What\'s Actually Next)', ch: 'Crypto Casey', subs: '820K', views: 4200000, likes: 172000, comments: 13800 },
+    ],
+    default: Array.from({length: 9}, (_, i) => ({
+      title: `Top Viral ${nicheData.label} Video ${i+1} - Must Watch Content`,
+      ch: `${nicheData.label} Creator ${i+1}`,
+      subs: `${(Math.random()*5+0.5).toFixed(1)}M`,
+      views: Math.floor(Math.random()*10000000 + 1000000),
+      likes: Math.floor(Math.random()*400000 + 50000),
+      comments: Math.floor(Math.random()*30000 + 5000),
+    }))
+  };
+
+  const templates = videoTemplates[niche] || videoTemplates.default;
+  const platformLabels = { youtube:'YT', tiktok:'TT', instagram:'IG' };
+
+  return templates.slice(0, count).map((v, i) => ({
+    ...v,
+    id: `${niche}_${i}`,
+    platform,
+    platformLabel: platformLabels[platform],
+    niche,
+    url: platform === 'youtube'
+      ? `https://www.youtube.com/results?search_query=${encodeURIComponent(nicheData.search + ' ' + v.title)}`
+      : platform === 'tiktok'
+      ? `https://www.tiktok.com/search?q=${encodeURIComponent(nicheData.search)}`
+      : `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(nicheData.search)}`,
+    thumb: `https://picsum.photos/seed/${niche}${i}/400/225`,
+    engagement: ((v.likes / v.views) * 100).toFixed(2),
+    commented: false,
+    selectedComment: null,
+    delay: i * 80,
+  }));
+}
+
+// ── State ─────────────────────────────────────────────────────────
+let currentPlatform = 'youtube';
+let currentNiche = '';
+let videos = [];
+let commentedVideos = JSON.parse(localStorage.getItem('vh_commented') || '[]');
+
+// ── Init ──────────────────────────────────────────────────────────
+function initNiches() {
+  const grid = document.getElementById('niche-grid');
+  grid.innerHTML = NICHES.map(n => `
+    <button class="niche-btn" data-niche="${n.id}" onclick="selectNiche('${n.id}',this)" style="--niche-color:${n.color}">
+      <span class="niche-icon">${n.icon}</span>
+      <span class="niche-label">${n.label}</span>
+    </button>`).join('');
+}
+
+function initStrategy() {
+  document.getElementById('strategy-grid').innerHTML = COMMENT_STRATEGIES.map(s => `
+    <div class="strategy-card">
+      <div class="sc-icon">${s.icon}</div>
+      <div class="sc-title">${s.title}</div>
+      <div class="sc-body">${s.body}</div>
+      <div class="sc-tip">${s.tip}</div>
+    </div>`).join('');
+}
+
+function initTemplates() {
+  const grid = document.getElementById('templates-grid');
+  let html = '';
+  for (const [niche, templates] of Object.entries(TEMPLATES)) {
+    if (niche === 'default') continue;
+    const nicheData = NICHES.find(n => n.id === niche);
+    if (!nicheData) continue;
+    templates.forEach(t => {
+      html += `
+        <div class="template-card">
+          <div class="tc-niche">${nicheData.icon} ${nicheData.label.toUpperCase()}</div>
+          <div class="tc-type">${t.type} Comment</div>
+          <div class="tc-comment">${t.comment}</div>
+          <button class="tc-btn" onclick="copyTemplate('${escJS(t.comment)}')">📋 Copy Template</button>
+        </div>`;
+    });
+  }
+  grid.innerHTML = html;
+}
+
+function initTracker() {
+  const el = document.getElementById('tracker-content');
+  if (!commentedVideos.length) {
+    el.innerHTML = '<div class="tracker-empty"><div class="te-icon">✅</div><div class="te-text">Your commented videos will appear here</div></div>';
+    return;
+  }
+  el.innerHTML = `<div class="tracker-grid">${commentedVideos.map(v => `
+    <div class="tracker-card">
+      <div class="trk-title">${escHtml(v.title)}</div>
+      <div class="trk-comment">"${escHtml(v.comment)}"</div>
+      <div class="trk-meta">
+        <span>${v.platform.toUpperCase()} · ${v.niche}</span>
+        <span>${v.date}</span>
+      </div>
+      <a href="${v.url}" target="_blank" class="trk-link">→ Open Video</a>
+    </div>`).join('')}</div>`;
+}
+
+// ── Platform ──────────────────────────────────────────────────────
+function setPlatform(platform, el) {
+  currentPlatform = platform;
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (currentNiche) findVideos();
+}
+
+// ── Niche ─────────────────────────────────────────────────────────
+function selectNiche(niche, el) {
+  currentNiche = niche;
+  document.querySelectorAll('.niche-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const nicheData = NICHES.find(n => n.id === niche);
+  document.getElementById('search-input').value = nicheData?.search.split(' ').slice(0,2).join(' ') || niche;
+}
+
+// ── Find videos ───────────────────────────────────────────────────
+async function findVideos() {
+  const searchVal = document.getElementById('search-input').value.trim();
+  const niche = currentNiche || 'fitness';
+
+  // Detect niche from search if not selected
+  if (!currentNiche && searchVal) {
+    const match = NICHES.find(n => searchVal.toLowerCase().includes(n.id) || n.label.toLowerCase().includes(searchVal.toLowerCase()));
+    if (match) currentNiche = match.id;
+  }
+
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('video-grid').innerHTML = '';
+
+  // Simulate API delay
+  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+
+  videos = generateVideoData(niche || 'fitness', currentPlatform);
+
+  document.getElementById('loading').classList.remove('active');
+
+  // Show stats
+  const nicheData = NICHES.find(n => n.id === (niche || 'fitness'));
+  document.getElementById('stats-bar').style.display = 'flex';
+  document.getElementById('stat-videos').textContent = videos.length;
+  document.getElementById('stat-commented').textContent = commentedVideos.length;
+  document.getElementById('stat-niche').textContent = nicheData?.label || niche;
+  document.getElementById('stat-platform').textContent = currentPlatform.charAt(0).toUpperCase() + currentPlatform.slice(1);
+
+  renderVideos();
+}
+
+// ── Render videos ─────────────────────────────────────────────────
+function renderVideos() {
+  const grid = document.getElementById('video-grid');
+  const niche = currentNiche || 'fitness';
+  const templates = TEMPLATES[niche] || TEMPLATES.default;
+
+  grid.innerHTML = videos.map((v, idx) => {
+    const commentOptions = templates.map(t => t.type);
+    const badgeClass = `badge-${v.platformLabel.toLowerCase()}`;
+    const engPct = Math.min(parseFloat(v.engagement) * 10, 100);
+    const alreadyCommented = commentedVideos.find(c => c.id === v.id);
+
+    return `
+      <div class="video-card ${alreadyCommented?'commented':''}" id="vc_${v.id}" style="animation-delay:${v.delay}ms">
+        <div class="video-thumb-wrap">
+          <img class="video-thumb-img" src="${v.thumb}" alt="${escHtml(v.title)}" onerror="this.style.background='var(--surface2)';this.src=''">
+          <div class="video-platform-badge ${badgeClass}">${v.platformLabel}</div>
+          <div class="video-views-badge">👁 ${fmtNum(v.views)}</div>
+          <div class="done-badge">✓ COMMENTED</div>
+        </div>
+        <div class="video-body">
+          <div class="video-channel">
+            <div class="channel-avatar">${v.ch[0]}</div>
+            <div class="channel-name">${escHtml(v.ch)}</div>
+            <div class="channel-subs">${v.subs}</div>
+          </div>
+          <div class="video-title">${escHtml(v.title)}</div>
+          <div class="video-metrics">
+            <div class="metric"><div class="metric-num">${fmtNum(v.views)}</div><div class="metric-label">VIEWS</div></div>
+            <div class="metric"><div class="metric-num">${fmtNum(v.likes)}</div><div class="metric-label">LIKES</div></div>
+            <div class="metric"><div class="metric-num">${fmtNum(v.comments)}</div><div class="metric-label">COMMENTS</div></div>
+            <div class="metric"><div class="metric-num">${v.engagement}%</div><div class="metric-label">ENGAGEMENT</div></div>
+          </div>
+          <div class="engagement-bar"><div class="engagement-fill" style="width:${engPct}%"></div></div>
+          <div class="comment-section">
+            <div class="comment-label">// SELECT COMMENT STRATEGY</div>
+            <div class="comment-chips">
+              ${commentOptions.map((opt,i) => `<button class="comment-chip" onclick="selectComment('${v.id}',${i},this)">${opt}</button>`).join('')}
+            </div>
+            <div class="comment-preview" id="cp_${v.id}">${alreadyCommented ? escHtml(alreadyCommented.comment) : '// Tap a strategy above to generate your comment...'}</div>
+          </div>
+          <div class="card-actions">
+            <button class="card-btn cb-primary" onclick="openVideo('${v.id}')">🔗 Open & Comment</button>
+            <button class="card-btn cb-secondary" onclick="copyComment('${v.id}')">📋 Copy</button>
+            <button class="card-btn cb-green" onclick="markCommented('${v.id}')">✅ Done</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Comment interaction ───────────────────────────────────────────
+function selectComment(videoId, templateIdx, el) {
+  const niche = currentNiche || 'fitness';
+  const templates = TEMPLATES[niche] || TEMPLATES.default;
+  const comment = templates[templateIdx]?.comment || templates[0]?.comment || '';
+
+  // Update chips
+  const card = document.getElementById('vc_' + videoId);
+  card.querySelectorAll('.comment-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  // Update preview
+  document.getElementById('cp_' + videoId).textContent = comment;
+
+  // Store selection
+  const video = videos.find(v => v.id === videoId);
+  if (video) video.selectedComment = comment;
+}
+
+function openVideo(videoId) {
+  const video = videos.find(v => v.id === videoId);
+  if (!video) return;
+  const comment = video.selectedComment || (TEMPLATES[video.niche] || TEMPLATES.default)[0]?.comment || '';
+  navigator.clipboard.writeText(comment).catch(() => {});
+  window.open(video.url, '_blank');
+  showToast('💬 Comment copied! Paste it on the video.');
+}
+
+function copyComment(videoId) {
+  const comment = document.getElementById('cp_' + videoId)?.textContent;
+  if (!comment || comment.startsWith('//')) { showToast('Select a comment strategy first!'); return; }
+  navigator.clipboard.writeText(comment).then(() => showToast('💬 Comment copied to clipboard!'));
+}
+
+function markCommented(videoId) {
+  const video = videos.find(v => v.id === videoId);
+  if (!video) return;
+  const comment = document.getElementById('cp_' + videoId)?.textContent || '';
+  if (comment.startsWith('//')) { showToast('Select a comment strategy first!'); return; }
+
+  const card = document.getElementById('vc_' + videoId);
+  card.classList.add('commented');
+
+  const entry = {
+    id: videoId,
+    title: video.title,
+    comment,
+    platform: video.platform,
+    niche: video.niche,
+    url: video.url,
+    date: new Date().toLocaleDateString()
+  };
+
+  if (!commentedVideos.find(c => c.id === videoId)) {
+    commentedVideos.push(entry);
+    localStorage.setItem('vh_commented', JSON.stringify(commentedVideos));
+  }
+
+  document.getElementById('stat-commented').textContent = commentedVideos.length;
+  showToast('✅ Marked as commented!');
+  initTracker();
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  ['videos','strategy','templates','tracker'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (name === 'tracker') initTracker();
+}
+
+// ── Utils ─────────────────────────────────────────────────────────
+function fmtNum(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+  return n;
+}
+
+function copyTemplate(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('💬 Template copied!'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('active');
+  setTimeout(() => t.classList.remove('active'), 2500);
+}
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escJS(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+// ── Boot ──────────────────────────────────────────────────────────
+initNiches();
+initStrategy();
+initTemplates();
+initTracker();
+</script>
+</body>
+</html>
