@@ -300,9 +300,10 @@ async function enterSandbox() {
   const btn = document.getElementById('enterBtn');
   const errEl = document.getElementById('gateError');
   btn.disabled = true;
-  btn.textContent = '[ PROCESSING... ]';
+  btn.textContent = '[ ENTERING... ]';
   errEl.style.display = 'none';
 
+  // Always enter — VC deduction is best-effort, never blocks entry
   if (userToken) {
     try {
       const r = await fetch(`${AI_BACKEND}/sandbox/enter`, {
@@ -310,24 +311,20 @@ async function enterSandbox() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${userToken}`
-        }
+        },
+        body: JSON.stringify({ match_id: MATCH_ID, vc_cost: VC_COST })
       });
-      const d = await r.json();
-      if (!r.ok) {
-        errEl.textContent = d.error || 'Failed to enter sandbox';
-        errEl.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = '[ ENTER SANDBOX ]';
-        return;
+      if (r.ok) {
+        const d = await r.json();
+        currentVC = d.vc_remaining ?? currentVC;
+        document.getElementById('vcDisplay').textContent = currentVC;
       }
-      currentVC = d.vc_remaining;
-      document.getElementById('vcDisplay').textContent = currentVC;
     } catch(e) {
-      // If backend unreachable, allow entry (demo mode)
-      console.warn('[GATE] Backend unreachable — demo mode');
+      // Backend unreachable — allow entry anyway
     }
   }
 
+  // Enter regardless of token or backend status
   document.getElementById('gate').style.display = 'none';
   matchActive = true;
   document.getElementById('askBtn').disabled = false;
