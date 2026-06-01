@@ -143,8 +143,8 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 <!-- GATE -->
 <div class="gate" id="gate">
   <div class="gate-box">
-    <div class="gate-title">AI SANDBOX</div>
-    <div class="gate-sub">// OSINT IMAGE ANALYSIS — DEMO MATCH</div>
+    <div class="gate-title" id="gateTitle">AI SANDBOX</div>
+    <div class="gate-sub" id="gateSub">// OSINT IMAGE ANALYSIS — DEMO MATCH</div>
     <div class="gate-info">
       <div class="gate-row"><span class="lbl">LAB</span><span class="val">SnapGrid OSINT — Image Metadata</span></div>
       <div class="gate-row"><span class="lbl">MODE</span><span class="val cyan">AI ATTACKER — YOU SPECTATE</span></div>
@@ -184,7 +184,7 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
       <span style="font-size:8px;color:var(--text-dim);">SANDBOXED ENVIRONMENT</span>
     </div>
     <iframe class="lab-iframe" id="labFrame"
-      id="labFrame" src=""
+      src=""
       sandbox="allow-scripts allow-same-origin allow-forms"
       title="Lab Target"></iframe>
   </div>
@@ -234,7 +234,7 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 
 <script>
 // ── CONFIG ──
-const AI_BACKEND  = 'https://genesis-ai-backend.onrender.com';
+const AI_BACKEND  = 'https://genesis-ai-backend-wheat.vercel.app';
 
 // Read params from URL (set by vault-arena when user enters)
 const urlParams   = new URLSearchParams(window.location.search);
@@ -258,15 +258,20 @@ let currentVC     = 0;
 
 // ── INIT ──
 window.addEventListener('load', () => {
-  // Apply URL params to UI
-  document.getElementById('gateTitle').textContent = LAB_NAME.toUpperCase();
-  document.getElementById('gateSub').textContent = '// ' + ATTACK_TYPE.toUpperCase() + ' ATTACK DEMONSTRATION';
+  // Apply URL params to gate UI
+  const titleEl = document.getElementById('gateTitle');
+  const subEl   = document.getElementById('gateSub');
+  if (titleEl) titleEl.textContent = LAB_NAME.toUpperCase();
+  if (subEl)   subEl.textContent   = '// ' + ATTACK_TYPE.toUpperCase() + ' ATTACK DEMONSTRATION';
   document.getElementById('gateCost').textContent = VC_COST + ' VC';
   document.getElementById('labFrame').src = LAB_URL_PARAM;
   // Update gate info rows
   const rows = document.querySelectorAll('.gate-row .val');
   if (rows[0]) rows[0].textContent = LAB_NAME;
   if (rows[2]) rows[2].textContent = DIFFICULTY.toUpperCase();
+  // Update lab pane label
+  const labLabelSpan = document.querySelector('.lab-label-left span');
+  if (labLabelSpan) labLabelSpan.textContent = '// TARGET — ' + LAB_NAME.toUpperCase();
   if (userToken) loadVC();
 });
 
@@ -439,44 +444,81 @@ async function askCipher(userMessage) {
   }
 }
 
-// ── MATCH SCRIPT ──
-const matchScript = [
-  {
-    delay: 1000,
-    step: 1,
-    title: 'INITIAL RECON',
-    technique: 'Open Source Intelligence (OSINT)',
-    prompt: 'You just arrived at the SnapGrid profile of target "travel.with.alex". Introduce yourself briefly, describe what you can see on the page, and explain your first move as an OSINT attacker. Be exciting for beginners.'
-  },
-  {
-    delay: 14000,
-    step: 2,
-    title: 'PROFILE ANALYSIS',
-    technique: 'Social Media Profiling',
-    prompt: 'Explain what useful information an attacker can gather just from a public social media profile — username, bio, post count, follower count. What does each piece of data reveal about the target?'
-  },
-  {
-    delay: 28000,
-    step: 3,
-    title: 'METADATA DISCOVERY',
-    technique: 'EXIF Data Extraction',
-    prompt: 'Explain what EXIF metadata is hidden inside photos, and why photos posted on social media are dangerous for privacy. Tell the beginner watching to tap the Eiffel Tower photo on the left to see the metadata panel appear.'
-  },
-  {
-    delay: 46000,
-    step: 4,
-    title: 'GPS COORDINATES FOUND',
-    technique: 'GPS Coordinate Analysis',
-    prompt: 'The EXIF panel has revealed GPS coordinates: 48.8583° N, 2.2944° E from the Eiffel Tower photo. Explain what these coordinates mean, what city they identify, and why this is a critical finding. Make it exciting!'
-  },
-  {
-    delay: 64000,
-    step: 5,
-    title: 'MISSION SUMMARY',
-    technique: 'OSINT Report',
-    prompt: 'Summarize the full attack: you found the suspect is in Paris from a single Instagram-style post. Give 2-3 practical tips beginners can use right now to protect their own photos from this kind of attack.'
-  }
-];
+// ── DYNAMIC MATCH SCRIPT ──
+// Builds commentary steps based on the attack type passed from vault-arena
+function buildMatchScript(attackType, labName) {
+  const type = (attackType || 'OSINT').toUpperCase();
+  const lab  = labName || 'the target';
+
+  const scripts = {
+    OSINT: [
+      { delay:1000,  step:1, title:'INITIAL RECON',       technique:'Open Source Intelligence (OSINT)',
+        prompt:`You just arrived at the target profile "${lab}". Introduce yourself as CIPHER briefly, describe what you see, and explain your first move as an OSINT attacker. Be exciting for beginners.` },
+      { delay:14000, step:2, title:'PROFILE ANALYSIS',    technique:'Social Media Profiling',
+        prompt:`Explain what useful information an attacker can gather from a public social media profile — username, bio, post count, follower count. What does each piece of data reveal about the target "${lab}"?` },
+      { delay:28000, step:3, title:'METADATA DISCOVERY',  technique:'EXIF Data Extraction',
+        prompt:`Explain what EXIF metadata is hidden inside photos and why photos posted online are dangerous for privacy. Tell the beginner watching to interact with the lab "${lab}" to reveal metadata.` },
+      { delay:46000, step:4, title:'GPS COORDINATES FOUND',technique:'GPS Coordinate Analysis',
+        prompt:`GPS coordinates have been found in the photo metadata. Explain what GPS coordinates mean, how they identify a precise location, and why this is a critical finding in an OSINT investigation. Make it exciting!` },
+      { delay:64000, step:5, title:'MISSION SUMMARY',     technique:'OSINT Report',
+        prompt:`Summarize the full OSINT attack on "${lab}": the technique used, what was found, and give 2-3 practical tips beginners can use right now to protect themselves from this kind of attack.` }
+    ],
+    XSS: [
+      { delay:1000,  step:1, title:'TARGET ANALYSIS',     technique:'Cross-Site Scripting (XSS)',
+        prompt:`You are CIPHER, an AI security researcher. You've arrived at "${lab}". Explain to beginners what XSS is and what you're looking for — input fields that reflect user data unsafely.` },
+      { delay:14000, step:2, title:'INPUT DISCOVERY',     technique:'Input Field Enumeration',
+        prompt:`Describe how you identify potential XSS injection points in the lab "${lab}". What fields and parameters do you check first and why?` },
+      { delay:28000, step:3, title:'PAYLOAD INJECTION',   technique:'XSS Payload Crafting',
+        prompt:`Explain how a basic XSS payload works (e.g. <script>alert(1)</script>), why it executes in the browser, and what real attackers can do beyond just alert boxes — cookie theft, keylogging, session hijacking.` },
+      { delay:46000, step:4, title:'IMPACT DEMONSTRATION',technique:'Session Hijacking',
+        prompt:`Demonstrate the real-world impact: if this XSS is stored/persistent, how could an attacker steal session cookies from every visitor? Explain the attack chain in simple terms.` },
+      { delay:64000, step:5, title:'REMEDIATION',         technique:'XSS Defense',
+        prompt:`Summarize the XSS attack on "${lab}" and give developers 3 clear defenses: output encoding, Content Security Policy, and HttpOnly cookies. Keep it beginner-friendly.` }
+    ],
+    SQLI: [
+      { delay:1000,  step:1, title:'RECON',               technique:'SQL Injection',
+        prompt:`You are CIPHER. You've found a login form at "${lab}". Explain to beginners what SQL injection is and why login forms are often vulnerable.` },
+      { delay:14000, step:2, title:'ERROR-BASED PROBING',  technique:'Error-Based SQLi',
+        prompt:`Explain how inserting a single quote ' into a form field can break a SQL query and reveal database errors. What does the error message tell an attacker?` },
+      { delay:28000, step:3, title:'AUTHENTICATION BYPASS',technique:'SQLi Auth Bypass',
+        prompt:`Show how the classic payload "' OR '1'='1" bypasses login. Explain in plain English why this payload works at the SQL query level.` },
+      { delay:46000, step:4, title:'DATA EXTRACTION',      technique:'UNION-Based SQLi',
+        prompt:`Explain UNION-based SQL injection — how an attacker can extract usernames, passwords, and other table data from the database using carefully crafted queries.` },
+      { delay:64000, step:5, title:'REMEDIATION',          technique:'Parameterized Queries',
+        prompt:`Summarize the SQL injection attack on "${lab}" and explain how parameterized queries / prepared statements completely prevent this class of vulnerability. Make it clear for beginners.` }
+    ],
+    IDOR: [
+      { delay:1000,  step:1, title:'RECON',               technique:'Insecure Direct Object Reference',
+        prompt:`You are CIPHER. You've arrived at "${lab}". Explain to beginners what IDOR is — accessing objects (files, records, accounts) by manipulating identifiers in URLs or requests.` },
+      { delay:14000, step:2, title:'ID ENUMERATION',       technique:'Parameter Tampering',
+        prompt:`Show how changing a numeric ID in a URL (e.g. /profile?id=1001 → /profile?id=1002) can expose another user's data. What do you look for?` },
+      { delay:28000, step:3, title:'HORIZONTAL ESCALATION',technique:'Horizontal Privilege Escalation',
+        prompt:`Explain horizontal privilege escalation — accessing another user's account at the same privilege level. How is this different from vertical privilege escalation?` },
+      { delay:46000, step:4, title:'IMPACT',               technique:'Data Breach via IDOR',
+        prompt:`Explain the real-world impact of IDOR vulnerabilities — mass data breaches, PII exposure, account takeover. Give a real example (e.g. Facebook or Instagram IDOR bugs).` },
+      { delay:64000, step:5, title:'REMEDIATION',          technique:'Access Control Checks',
+        prompt:`Summarize the IDOR attack on "${lab}" and explain server-side authorization checks — verifying the logged-in user owns the resource before returning it. Keep it simple.` }
+    ]
+  };
+
+  // Default fallback for unknown attack types
+  const defaultScript = [
+    { delay:1000,  step:1, title:'INITIAL RECON',    technique:type,
+      prompt:`You are CIPHER, an AI security researcher. You've arrived at the target lab "${lab}" which involves ${type} techniques. Introduce yourself and explain what ${type} is to a beginner audience.` },
+    { delay:14000, step:2, title:'ENUMERATION',      technique:`${type} Scanning`,
+      prompt:`Explain the reconnaissance phase of a ${type} attack on "${lab}". What are you looking for and why?` },
+    { delay:28000, step:3, title:'EXPLOITATION',     technique:`${type} Exploitation`,
+      prompt:`Walk through the exploitation phase of a ${type} attack. Explain the technique step by step for beginners watching the lab "${lab}".` },
+    { delay:46000, step:4, title:'IMPACT ANALYSIS',  technique:'Impact Assessment',
+      prompt:`Explain the real-world impact of this ${type} vulnerability found in "${lab}". What can an attacker do with this access?` },
+    { delay:64000, step:5, title:'MISSION SUMMARY',  technique:'Security Report',
+      prompt:`Summarize the full ${type} attack demonstration on "${lab}" and give 3 actionable defense tips. Keep it beginner-friendly.` }
+  ];
+
+  return scripts[type] || defaultScript;
+}
+
+const matchScript = buildMatchScript(ATTACK_TYPE, LAB_NAME);
 
 async function startMatch() {
   addSystem('CIPHER connecting to target...');
@@ -530,7 +572,7 @@ async function askQuestion() {
   setAIState('// CIPHER IS RESPONDING...');
   showTyping();
 
-  const prompt = `A beginner watching this match asks: "${question}". Answer clearly and simply, relating your answer to what's visible on the SnapGrid lab page if possible.`;
+  const prompt = `A beginner watching a ${ATTACK_TYPE} attack demonstration on "${LAB_NAME}" asks: "${question}". Answer clearly and simply, relating your answer to what's visible on the lab if possible.`;
   const response = await askCipher(prompt);
 
   removeTyping();
