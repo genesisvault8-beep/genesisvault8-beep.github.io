@@ -1105,7 +1105,7 @@ function escapeHtml(str) {
 }
 
 // ── USER INFO ────────────────────────────────────────────────────────
-const AI_URL = 'https://genesis-ai-backend.onrender.com';
+const AI_URL = 'https://genesis-ai-backend-wheat.vercel.app';
 let USER_ID = null, USERNAME = 'ghost', USER_RANK = 'Ghost';
 
 async function initUser() {
@@ -1150,7 +1150,7 @@ async function sendAI() {
 
     const message = `[LAB CONTEXT]: ${labContext}\n\n[USER QUESTION]: ${q}`;
 
-    const res = await fetch(`${AI_URL}/api/vault-ai`, {
+    const res = await fetch(`${AI_URL}/vault-ai`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body:    JSON.stringify({
