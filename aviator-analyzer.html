@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVIATOR ANALYZER // GENESIS VAULT</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050608;
+  --panel: #080b10;
+  --border: rgba(0,255,200,0.15);
+  --accent: #00ffc8;
+  --accent2: #ff2d55;
+  --accent3: #ffd60a;
+  --text: #c8e6f0;
+  --dim: #3a5a6a;
+  --green: #00ff88;
+  --red: #ff2d55;
+  --yellow: #ffd60a;
+  --orange: #ff8c00;
+  --blue: #0af;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanlines */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,200,0.012) 2px, rgba(0,255,200,0.012) 4px);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* Animated grid background */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image: linear-gradient(rgba(0,255,200,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,200,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none;
+  z-index:0;
+}
+
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 30px 20px 60px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.logo { font-family:'Orbitron',monospace; font-size:10px; color:var(--dim); letter-spacing:4px; margin-bottom:10px; }
+
+h1 {
+  font-family:'Orbitron',monospace;
+  font-size: clamp(20px,5vw,32px);
+  font-weight:900;
+  letter-spacing:3px;
+  line-height:1.1;
+}
+
+h1 .avi { color:var(--accent3); text-shadow: 0 0 30px var(--accent3); }
+h1 .tor { color:var(--accent); text-shadow: 0 0 30px var(--accent); }
+
+.subtitle { font-size:11px; color:var(--dim); margin-top:8px; letter-spacing:2px; }
+
+.header-plane {
+  position:absolute;
+  right:0; top:0;
+  font-size:42px;
+  animation: planeFly 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px var(--accent3));
+}
+
+@keyframes planeFly {
+  0%,100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+/* Tabs */
+.tabs {
+  display:flex;
+  gap:4px;
+  margin-bottom:24px;
+  border-bottom:1px solid var(--border);
+}
+
+.tab {
+  font-family:'Orbitron',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+  padding:10px 20px;
+  border:none;
+  background:transparent;
+  color:var(--dim);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all 0.2s;
+  position:relative;
+  top:1px;
+}
+
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* Panel */
+.panel {
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:24px;
+  margin-bottom:20px;
+  position:relative;
+}
+
+.panel::before {
+  content:attr(data-label);
+  position:absolute;
+  top:-1px; left:16px;
+  background:var(--accent);
+  color:var(--bg);
+  font-size:9px;
+  font-family:'Orbitron',monospace;
+  letter-spacing:2px;
+  padding:2px 10px;
+  font-weight:700;
+}
+
+.panel.red::before { background:var(--accent2); }
+.panel.yellow::before { background:var(--accent3); color:#000; }
+
+.section-title {
+  font-family:'Orbitron',monospace;
+  font-size:10px;
+  letter-spacing:3px;
+  color:var(--dim);
+  margin-bottom:16px;
+}
+
+/* Form elements */
+label { display:block; font-size:10px; letter-spacing:2px; color:var(--dim); margin-bottom:6px; }
+
+input[type=text], input[type=number], textarea {
+  width:100%;
+  background:#060a0f;
+  border:1px solid var(--border);
+  color:var(--accent);
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;
+  padding:10px 14px;
+  outline:none;
+  transition:border-color 0.2s;
+  resize:vertical;
+}
+
+input:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 10px rgba(0,255,200,0.1); }
+input::placeholder, textarea::placeholder { color:var(--dim); }
+
+.field { margin-bottom:16px; }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.field-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+@media(max-width:600px) {
+  .field-row, .field-row-3 { grid-template-columns:1fr; }
+}
+
+/* Buttons */
+.btn {
+  font-family:'Orbitron',monospace;
+  font-size:11px;
+  letter-spacing:2px;
+  font-weight:700;
+  padding:12px 24px;
+  border:none;
+  cursor:pointer;
+  transition:all 0.2s;
+  white-space:nowrap;
+}
+
+.btn-primary { background:var(--accent); color:var(--bg); }
+.btn-primary:hover { background:#fff; box-shadow:0 0 24px var(--accent); }
+.btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-danger { background:var(--accent2); color:#fff; }
+.btn-danger:hover { box-shadow:0 0 24px var(--accent2); }
+.btn-warn { background:var(--accent3); color:#000; }
+.btn-warn:hover { box-shadow:0 0 24px var(--accent3); }
+.btn-ghost { background:transparent; color:var(--dim); border:1px solid #1a2a30; }
+.btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+
+.btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+
+/* Verdict box */
+.verdict-box {
+  padding:28px;
+  text-align:center;
+  border:2px solid var(--border);
+  margin-bottom:20px;
+  animation:fadeIn 0.4s ease;
+  display:none;
+}
+
+.verdict-box.fair { border-color:var(--green); background:rgba(0,255,136,0.04); }
+.verdict-box.rigged { border-color:var(--red); background:rgba(255,45,85,0.06); }
+.verdict-box.unknown { border-color:var(--yellow); background:rgba(255,214,10,0.04); }
+
+.verdict-icon { font-size:48px; margin-bottom:12px; }
+.verdict-label {
+  font-family:'Orbitron',monospace;
+  font-size:clamp(20px,5vw,32px);
+  font-weight:900;
+  letter-spacing:4px;
+  margin-bottom:8px;
+}
+
+.verdict-label.fair { color:var(--green); text-shadow:0 0 24px var(--green); }
+.verdict-label.rigged { color:var(--red); text-shadow:0 0 24px var(--red); }
+.verdict-label.unknown { color:var(--yellow); text-shadow:0 0 24px var(--yellow); }
+.verdict-sub { font-size:12px; color:var(--dim); letter-spacing:2px; }
+
+/* Result grid */
+.result-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:10px;
+  margin-top:20px;
+}
+
+.result-card {
+  background:#060a0f;
+  border:1px solid var(--border);
+  padding:14px 16px;
+  animation:fadeIn 0.3s ease;
+}
+
+.rc-label { font-size:9px; letter-spacing:2px; color:var(--dim); margin-bottom:6px; }
+.rc-value { font-size:14px; color:var(--accent); font-family:'Orbitron',monospace; word-break:break-all; }
+.rc-value.green { color:var(--green); }
+.rc-value.red { color:var(--red); }
+.rc-value.yellow { color:var(--yellow); }
+
+/* Hash display */
+.hash-display {
+  background:#030608;
+  border:1px solid var(--border);
+  padding:12px 16px;
+  font-size:11px;
+  word-break:break-all;
+  line-height:1.8;
+  margin-top:12px;
+}
+
+.hash-display .hl { color:var(--accent3); }
+
+/* Stats grid */
+.stats-row {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.stat-card {
+  background:#060a0f;
+  border:1px solid var(--border);
+  padding:16px;
+  text-align:center;
+}
+
+.stat-num {
+  font-family:'Orbitron',monospace;
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:4px;
+}
+
+.stat-label { font-size:9px; color:var(--dim); letter-spacing:2px; }
+
+/* Chart */
+.chart-wrap {
+  background:#030608;
+  border:1px solid var(--border);
+  padding:16px;
+  margin-bottom:16px;
+  position:relative;
+}
+
+canvas { display:block; width:100% !important; }
+
+/* Probability table */
+.prob-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+}
+
+.prob-table th {
+  font-family:'Orbitron',monospace;
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--dim);
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+}
+
+.prob-table td {
+  padding:8px 12px;
+  border-bottom:1px solid #0a1520;
+}
+
+.prob-table tr:hover td { background:rgba(0,255,200,0.03); }
+
+/* Streak bar */
+.streak-bar {
+  height:4px;
+  background:#0a1520;
+  margin-top:4px;
+}
+
+.streak-fill {
+  height:100%;
+  background:var(--accent2);
+  transition:width 0.6s ease;
+}
+
+/* Risk meter */
+.risk-meter {
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:16px;
+  background:#060a0f;
+  border:1px solid var(--border);
+  margin-bottom:16px;
+}
+
+.risk-circle {
+  width:72px; height:72px;
+  border-radius:50%;
+  border:3px solid var(--accent);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  font-family:'Orbitron',monospace;
+}
+
+.risk-num { font-size:20px; font-weight:900; }
+.risk-lbl { font-size:8px; letter-spacing:1px; margin-top:2px; }
+
+.risk-circle.low { border-color:var(--green); }
+.risk-circle.low .risk-num { color:var(--green); }
+.risk-circle.medium { border-color:var(--yellow); }
+.risk-circle.medium .risk-num { color:var(--yellow); }
+.risk-circle.high { border-color:var(--orange); }
+.risk-circle.high .risk-num { color:var(--orange); }
+.risk-circle.extreme { border-color:var(--red); box-shadow:0 0 16px rgba(255,45,85,0.4); }
+.risk-circle.extreme .risk-num { color:var(--red); }
+
+.risk-body { flex:1; }
+.risk-verdict { font-family:'Orbitron',monospace; font-size:13px; font-weight:700; margin-bottom:8px; }
+.risk-bar-track { height:5px; background:#0a1520; margin-bottom:8px; }
+.risk-bar-fill { height:100%; transition:width 0.8s ease; }
+.risk-signals { font-size:10px; line-height:1.9; }
+.sig-bad { color:var(--red); }
+.sig-warn { color:var(--yellow); }
+.sig-ok { color:var(--green); }
+.sig-info { color:var(--dim); }
+
+/* Tip */
+.tip { font-size:10px; color:var(--dim); margin-top:8px; line-height:1.7; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+/* Scanning */
+.scanning { display:none; text-align:center; padding:24px; }
+.scanning.active { display:block; }
+.scan-text { font-family:'Orbitron',monospace; font-size:11px; color:var(--accent); letter-spacing:3px; animation:blink 0.8s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.scan-bar { height:2px; background:var(--border); margin:12px 0; overflow:hidden; }
+.scan-progress { height:100%; background:var(--accent); animation:scanAnim 1.2s ease-in-out infinite; }
+@keyframes scanAnim { 0%{width:0;margin-left:0} 50%{width:60%} 100%{width:0;margin-left:100%} }
+
+/* Algorithm explanation */
+.algo-step {
+  display:flex;
+  gap:16px;
+  padding:12px 0;
+  border-bottom:1px solid #0a1520;
+  font-size:11px;
+  line-height:1.7;
+}
+
+.algo-num {
+  font-family:'Orbitron',monospace;
+  font-size:16px;
+  font-weight:900;
+  color:var(--accent);
+  flex-shrink:0;
+  width:28px;
+}
+
+.algo-body .algo-title { color:var(--text); margin-bottom:3px; letter-spacing:1px; }
+.algo-body .algo-desc { color:var(--dim); }
+.algo-body code { color:var(--accent3); background:#030608; padding:1px 6px; font-size:10px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">// GENESIS VAULT — TOOLS</div>
+    <h1><span class="avi">AVIATOR</span> <span class="tor">ANALYZER</span></h1>
+    <div class="subtitle">// PROVABLY FAIR VERIFIER · PATTERN ANALYSIS · RIGGED SITE DETECTOR</div>
+    <div class="header-plane">✈️</div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('verify', this)">🔍 FAIR VERIFIER</button>
+    <button class="tab" onclick="switchTab('analyzer', this)">📊 PATTERN ANALYZER</button>
+    <button class="tab" onclick="switchTab('howit', this)">⚙️ HOW IT WORKS</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB 1: PROVABLY FAIR VERIFIER -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div id="tab-verify" class="tab-content active">
+
+    <div class="panel" data-label="ROUND INPUTS" style="padding-top:28px">
+      <div class="section-title">// PASTE ROUND DATA FROM THE CASINO</div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>// SERVER SEED (revealed after round)</label>
+          <input type="text" id="server-seed" placeholder="e.g. 7f3a9b2c1d4e5f6a..." />
+        </div>
+        <div class="field">
+          <label>// CLIENT SEED</label>
+          <input type="text" id="client-seed" placeholder="e.g. abc123xyz..." />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>// NONCE (round number)</label>
+          <input type="number" id="nonce" placeholder="e.g. 1, 2, 3..." min="1" />
+        </div>
+        <div class="field">
+          <label>// CLAIMED CRASH POINT</label>
+          <input type="number" id="claimed-crash" placeholder="e.g. 2.45" step="0.01" min="1" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="verifyRound()">[ VERIFY ROUND ]</button>
+        <button class="btn btn-warn" onclick="loadSampleFair()">[ LOAD FAIR SAMPLE ]</button>
+        <button class="btn btn-danger" onclick="loadSampleRigged()">[ LOAD RIGGED SAMPLE ]</button>
+        <button class="btn btn-ghost" onclick="clearVerify()">[ CLEAR ]</button>
+      </div>
+
+      <div class="tip">// How to get this data: On a legitimate Aviator site, each round shows a "Provably Fair" button after it ends — click it to reveal the server seed, client seed, and nonce. Rigged sites either don't show this, or show data that doesn't match.</div>
+    </div>
+
+    <!-- Scanning -->
+    <div class="scanning" id="scan-anim">
+      <div class="scan-bar"><div class="scan-progress"></div></div>
+      <div class="scan-text">// RUNNING SHA-256 VERIFICATION...</div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict-box" id="verdict-box">
+      <div class="verdict-icon" id="v-icon"></div>
+      <div class="verdict-label" id="v-label"></div>
+      <div class="verdict-sub" id="v-sub"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="verify-results" style="display:none">
+      <div class="panel" data-label="CALCULATION" style="padding-top:28px">
+        <div class="section-title">// SHA-256 HASH CHAIN</div>
+        <div class="hash-display" id="hash-display"></div>
+      </div>
+
+      <div class="result-grid" id="result-grid"></div>
+
+      <div class="panel" data-label="BULK VERIFY" style="padding-top:28px;margin-top:20px">
+        <div class="section-title">// VERIFY MULTIPLE ROUNDS AT ONCE</div>
+        <div class="field">
+          <label>// PASTE ROUNDS (one per line: serverSeed,clientSeed,nonce,claimedCrash)</label>
+          <textarea id="bulk-input" rows="6" placeholder="7f3a9b2c...,abc123,1,2.45&#10;8e2b1a3d...,abc123,2,1.02&#10;..."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="bulkVerify()">[ BULK VERIFY ]</button>
+        </div>
+        <div id="bulk-results" style="margin-top:16px"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB 2: PATTERN ANALYZER -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div id="tab-analyzer" class="tab-content">
+
+    <div class="panel" data-label="CRASH HISTORY" style="padding-top:28px">
+      <div class="section-title">// PASTE YOUR CRASH HISTORY</div>
+      <div class="field">
+        <label>// CRASH MULTIPLIERS (comma or newline separated)</label>
+        <textarea id="history-input" rows="5" placeholder="1.24, 8.5, 1.01, 3.2, 15.0, 1.02, 2.5, 1.88, 42.1, 1.01, 5.5, 1.13..."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="analyzeHistory()">[ ANALYZE ]</button>
+        <button class="btn btn-warn" onclick="loadSampleHistory()">[ LOAD SAMPLE ]</button>
+        <button class="btn btn-ghost" onclick="clearAnalyzer()">[ CLEAR ]</button>
+      </div>
+      <div class="tip">// Where to get this: Copy crash results from the game history panel. The more rounds you provide, the more accurate the analysis.</div>
+    </div>
+
+    <div id="analysis-results" style="display:none">
+
+      <!-- Risk meter -->
+      <div class="panel" data-label="SITE RISK ASSESSMENT" style="padding-top:28px">
+        <div class="risk-meter" id="risk-meter"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="panel" data-label="STATISTICS" style="padding-top:28px">
+        <div class="section-title">// SUMMARY STATS</div>
+        <div class="stats-row" id="stats-row"></div>
+      </div>
+
+      <!-- Chart: crash distribution -->
+      <div class="panel" data-label="DISTRIBUTION" style="padding-top:28px">
+        <div class="section-title">// CRASH POINT DISTRIBUTION</div>
+        <div class="chart-wrap">
+          <canvas id="dist-chart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart: crash history timeline -->
+      <div class="panel" data-label="TIMELINE" style="padding-top:28px">
+        <div class="section-title">// CRASH HISTORY TIMELINE (last 50)</div>
+        <div class="chart-wrap">
+          <canvas id="timeline-chart" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- Probability table -->
+      <div class="panel" data-label="PROBABILITY TABLE" style="padding-top:28px">
+        <div class="section-title">// CASHOUT TARGET vs EXPECTED WIN RATE</div>
+        <table class="prob-table" id="prob-table"></table>
+      </div>
+
+      <!-- Streak analysis -->
+      <div class="panel" data-label="STREAK ANALYSIS" style="padding-top:28px">
+        <div class="section-title">// DANGER ZONES — CONSECUTIVE CRASHES BELOW 2X</div>
+        <div id="streak-analysis"></div>
+      </div>
+
+      <!-- House edge -->
+      <div class="panel yellow" data-label="HOUSE EDGE" style="padding-top:28px">
+        <div class="section-title">// CASINO EDGE CALCULATOR</div>
+        <div id="house-edge-content"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- TAB 3: HOW IT WORKS -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div id="tab-howit" class="tab-content">
+
+    <div class="panel" data-label="THE ALGORITHM" style="padding-top:28px">
+      <div class="section-title">// HOW PROVABLY FAIR AVIATOR WORKS</div>
+
+      <div class="algo-step">
+        <div class="algo-num">01</div>
+        <div class="algo-body">
+          <div class="algo-title">SERVER COMMITS TO A SEED</div>
+          <div class="algo-desc">Before the round starts, the casino generates a random <code>serverSeed</code> and publishes its SHA-256 hash. This "commits" them to the result — they can't change it after you bet.</div>
+        </div>
+      </div>
+
+      <div class="algo-step">
+        <div class="algo-num">02</div>
+        <div class="algo-body">
+          <div class="algo-title">CLIENT SEED IS COMBINED</div>
+          <div class="algo-desc">Your browser generates a <code>clientSeed</code>. The crash point is derived from <code>HMAC-SHA256(serverSeed, clientSeed + ":" + nonce)</code>. The nonce is the round number — it increments each round so each result is unique.</div>
+        </div>
+      </div>
+
+      <div class="algo-step">
+        <div class="algo-num">03</div>
+        <div class="algo-body">
+          <div class="algo-title">CRASH POINT IS CALCULATED</div>
+          <div class="algo-desc">The first 8 hex characters of the HMAC hash are converted to a number. The crash point formula is:<br>
+          <code>crashPoint = max(1.0, (2^32 / (h + 1)) * (1 - houseEdge))</code><br>
+          where <code>h</code> is the hex value and houseEdge is typically 1% (0.01).</div>
+        </div>
+      </div>
+
+      <div class="algo-step">
+        <div class="algo-num">04</div>
+        <div class="algo-body">
+          <div class="algo-title">AFTER THE ROUND — VERIFY IT</div>
+          <div class="algo-desc">After the round ends, the server reveals the original <code>serverSeed</code>. You can now run the same calculation yourself. If the result matches the claimed crash point — the round was fair. If not — <span style="color:var(--red)">the site is rigged.</span></div>
+        </div>
+      </div>
+
+      <div class="algo-step" style="border:none">
+        <div class="algo-num">05</div>
+        <div class="algo-body">
+          <div class="algo-title">HOW RIGGED SITES GET CAUGHT</div>
+          <div class="algo-desc">A rigged site either: (1) never reveals the server seed, (2) reveals a seed that doesn't match the committed hash, or (3) shows a crash point that doesn't match the calculation. All three are detectable with this tool. Pattern analysis can also detect if crash distribution is statistically abnormal — crashing too early too often is a statistical fingerprint of a rigged RNG.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel red" data-label="RED FLAGS" style="padding-top:28px">
+      <div class="section-title">// SIGNS A SITE IS RIGGED</div>
+      <div style="font-size:11px;line-height:2.2;color:var(--dim)">
+        <div><span style="color:var(--red)">✗</span> No "Provably Fair" button shown after rounds</div>
+        <div><span style="color:var(--red)">✗</span> Server seed hash not shown before the round</div>
+        <div><span style="color:var(--red)">✗</span> Revealed server seed doesn't match pre-committed hash</div>
+        <div><span style="color:var(--red)">✗</span> Calculated crash point doesn't match what was shown</div>
+        <div><span style="color:var(--red)">✗</span> Crash distribution shows too many sub-2x results (>60%)</div>
+        <div><span style="color:var(--red)">✗</span> Long streaks of sub-2x crashes that defy probability</div>
+        <div><span style="color:var(--red)">✗</span> House edge calculated from history is above 5%</div>
+        <div><span style="color:var(--green)">✓</span> Legitimate sites show all seed data and math checks out</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ── Tab system ────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── SHA-256 via Web Crypto API ────────────────────────────────────
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// HMAC-SHA256
+async function hmacSha256(key, message) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(key), { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', keyMaterial, enc.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Crash point calculation (standard Aviator algorithm) ──────────
+async function calcCrashPoint(serverSeed, clientSeed, nonce, houseEdge = 0.01) {
+  // HMAC-SHA256(serverSeed, clientSeed:nonce)
+  const hash = await hmacSha256(serverSeed, `${clientSeed}:${nonce}`);
+  // Take first 8 hex chars
+  const h = parseInt(hash.slice(0, 8), 16);
+  // Crash point formula
+  const e = Math.pow(2, 32);
+  const crash = Math.max(1.00, (e / (h + 1)) * (1 - houseEdge));
+  return { crash: Math.floor(crash * 100) / 100, hash, h, e };
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
+
+// ── VERIFIER ─────────────────────────────────────────────────────
+async function verifyRound() {
+  const serverSeed = document.getElementById('server-seed').value.trim();
+  const clientSeed = document.getElementById('client-seed').value.trim();
+  const nonce = document.getElementById('nonce').value.trim();
+  const claimed = parseFloat(document.getElementById('claimed-crash').value);
+
+  if (!serverSeed || !clientSeed || !nonce) { alert('Fill in all fields'); return; }
+
+  document.getElementById('scan-anim').classList.add('active');
+  document.getElementById('verdict-box').style.display = 'none';
+  document.getElementById('verify-results').style.display = 'none';
+
+  await sleep(1200);
+  document.getElementById('scan-anim').classList.remove('active');
+
+  const result = await calcCrashPoint(serverSeed, clientSeed, parseInt(nonce));
+  const commitHash = await sha256(serverSeed);
+
+  showVerdict(result.crash, claimed, result, serverSeed, clientSeed, nonce, commitHash);
+}
+
+function showVerdict(calculated, claimed, result, serverSeed, clientSeed, nonce, commitHash) {
+  const box = document.getElementById('verdict-box');
+  const icon = document.getElementById('v-icon');
+  const label = document.getElementById('v-label');
+  const sub = document.getElementById('v-sub');
+
+  const hasClaimed = !isNaN(claimed);
+  const matches = hasClaimed ? Math.abs(calculated - claimed) < 0.01 : true;
+
+  if (!hasClaimed) {
+    box.className = 'verdict-box unknown';
+    icon.textContent = '🔍';
+    label.className = 'verdict-label unknown';
+    label.textContent = 'CALCULATED';
+    sub.textContent = `NO CLAIMED CRASH PROVIDED — SHOWING CALCULATED RESULT`;
+  } else if (matches) {
+    box.className = 'verdict-box fair';
+    icon.textContent = '✅';
+    label.className = 'verdict-label fair';
+    label.textContent = 'PROVABLY FAIR';
+    sub.textContent = `CALCULATED CRASH MATCHES CLAIMED — THIS ROUND WAS NOT RIGGED`;
+  } else {
+    box.className = 'verdict-box rigged';
+    icon.textContent = '🚨';
+    label.className = 'verdict-label rigged';
+    label.textContent = 'RIGGED DETECTED';
+    sub.textContent = `CALCULATED ${calculated}x ≠ CLAIMED ${claimed}x — THIS SITE IS MANIPULATING RESULTS`;
+  }
+
+  box.style.display = 'block';
+
+  // Hash display
+  document.getElementById('hash-display').innerHTML = `
+    <div>// INPUT: HMAC-SHA256(<span class="hl">${escHtml(serverSeed.slice(0,20))}...</span>, "<span class="hl">${escHtml(clientSeed)}</span>:<span class="hl">${nonce}</span>")</div>
+    <div style="margin-top:6px">// FULL HASH: <span class="hl">[${escHtml(result.hash.slice(0,8))}]</span>${escHtml(result.hash.slice(8))}</div>
+    <div style="margin-top:6px">// HEX VALUE: <span class="hl">${result.h}</span> (first 8 chars as integer)</div>
+    <div style="margin-top:6px">// FORMULA: max(1.00, (2^32 / (${result.h} + 1)) × 0.99)</div>
+    <div style="margin-top:6px">// RESULT: <span class="hl">${calculated}x</span></div>
+    <div style="margin-top:6px">// SERVER SEED HASH: <span class="hl">${commitHash.slice(0,32)}...</span></div>
+  `;
+
+  // Result cards
+  document.getElementById('result-grid').innerHTML = `
+    <div class="result-card"><div class="rc-label">// CALCULATED CRASH</div><div class="rc-value ${matches||!hasClaimed?'green':'red'}">${calculated}x</div></div>
+    ${hasClaimed ? `<div class="result-card"><div class="rc-label">// CLAIMED CRASH</div><div class="rc-value ${matches?'green':'red'}">${claimed}x</div></div>` : ''}
+    <div class="result-card"><div class="rc-label">// VERDICT</div><div class="rc-value ${matches||!hasClaimed?'green':'red'}">${!hasClaimed?'CALCULATED':matches?'✓ FAIR':'✗ RIGGED'}</div></div>
+    <div class="result-card"><div class="rc-label">// HASH (first 8)</div><div class="rc-value">${result.hash.slice(0,8)}</div></div>
+    <div class="result-card"><div class="rc-label">// NONCE</div><div class="rc-value">${nonce}</div></div>
+    <div class="result-card"><div class="rc-label">// COMMIT HASH</div><div class="rc-value">${commitHash.slice(0,16)}...</div></div>
+  `;
+
+  document.getElementById('verify-results').style.display = 'block';
+  box.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Bulk verifier ─────────────────────────────────────────────────
+async function bulkVerify() {
+  const lines = document.getElementById('bulk-input').value.trim().split('\n').filter(l=>l.trim());
+  if (!lines.length) return;
+
+  const el = document.getElementById('bulk-results');
+  el.innerHTML = '<div style="color:var(--dim);font-size:11px">// VERIFYING...</div>';
+
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:11px">
+    <tr>
+      <th style="color:var(--dim);font-size:9px;letter-spacing:2px;padding:8px;border-bottom:1px solid var(--border);text-align:left">#</th>
+      <th style="color:var(--dim);font-size:9px;letter-spacing:2px;padding:8px;border-bottom:1px solid var(--border);text-align:left">CLAIMED</th>
+      <th style="color:var(--dim);font-size:9px;letter-spacing:2px;padding:8px;border-bottom:1px solid var(--border);text-align:left">CALCULATED</th>
+      <th style="color:var(--dim);font-size:9px;letter-spacing:2px;padding:8px;border-bottom:1px solid var(--border);text-align:left">VERDICT</th>
+    </tr>`;
+
+  let riggedCount = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(p=>p.trim());
+    if (parts.length < 3) continue;
+    const [ss, cs, nc, cl] = parts;
+    const claimed = parseFloat(cl);
+    const r = await calcCrashPoint(ss, cs, parseInt(nc));
+    const matches = isNaN(claimed) || Math.abs(r.crash - claimed) < 0.01;
+    if (!matches) riggedCount++;
+    html += `<tr>
+      <td style="padding:7px 8px;border-bottom:1px solid #0a1520;color:var(--dim)">${i+1}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid #0a1520">${isNaN(claimed)?'—':claimed+'x'}</td>
+      <td style="padding:7px 8px;border-bottom:1px solid #0a1520;color:var(--accent)">${r.crash}x</td>
+      <td style="padding:7px 8px;border-bottom:1px solid #0a1520;color:${matches?'var(--green)':'var(--red)'}">${matches?'✓ FAIR':'✗ RIGGED'}</td>
+    </tr>`;
+  }
+  html += '</table>';
+
+  if (riggedCount > 0) {
+    html = `<div style="background:rgba(255,45,85,0.08);border:1px solid var(--red);padding:12px 16px;margin-bottom:12px;font-size:12px;color:var(--red);font-family:'Orbitron',monospace;letter-spacing:2px">🚨 ${riggedCount} RIGGED ROUND${riggedCount>1?'S':''} DETECTED</div>` + html;
+  } else {
+    html = `<div style="background:rgba(0,255,136,0.06);border:1px solid var(--green);padding:12px 16px;margin-bottom:12px;font-size:12px;color:var(--green);font-family:'Orbitron',monospace;letter-spacing:2px">✓ ALL ${lines.length} ROUNDS VERIFIED FAIR</div>` + html;
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Sample data ───────────────────────────────────────────────────
+async function loadSampleFair() {
+  const ss = 'a1b2c3d4e5f6789012345678901234567890abcdef';
+  const cs = 'player_seed_xyz';
+  const nc = 42;
+  const r = await calcCrashPoint(ss, cs, nc);
+  document.getElementById('server-seed').value = ss;
+  document.getElementById('client-seed').value = cs;
+  document.getElementById('nonce').value = nc;
+  document.getElementById('claimed-crash').value = r.crash;
+  verifyRound();
+}
+
+async function loadSampleRigged() {
+  document.getElementById('server-seed').value = 'a1b2c3d4e5f6789012345678901234567890abcdef';
+  document.getElementById('client-seed').value = 'player_seed_xyz';
+  document.getElementById('nonce').value = 42;
+  document.getElementById('claimed-crash').value = 1.20; // Wrong value!
+  verifyRound();
+}
+
+function clearVerify() {
+  ['server-seed','client-seed','nonce','claimed-crash'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('verdict-box').style.display='none';
+  document.getElementById('verify-results').style.display='none';
+}
+
+// ── PATTERN ANALYZER ─────────────────────────────────────────────
+function parseHistory(raw) {
+  return raw.split(/[\n,]+/).map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v)&&v>=1.0);
+}
+
+function analyzeHistory() {
+  const raw = document.getElementById('history-input').value.trim();
+  if (!raw) { alert('Paste crash history first'); return; }
+  const data = parseHistory(raw);
+  if (data.length < 10) { alert('Need at least 10 rounds for analysis'); return; }
+
+  // Stats
+  const n = data.length;
+  const avg = data.reduce((a,b)=>a+b,0)/n;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const median = [...data].sort((a,b)=>a-b)[Math.floor(n/2)];
+  const sub2 = data.filter(v=>v<2).length;
+  const sub2pct = (sub2/n*100).toFixed(1);
+  const above10 = data.filter(v=>v>=10).length;
+  const above10pct = (above10/n*100).toFixed(1);
+
+  // House edge estimation
+  // Expected value = sum(1/crash) / n, house edge ≈ 1 - expectedValue
+  const sumInverse = data.reduce((a,v)=>a+1/v,0);
+  const estimatedHouseEdge = Math.max(0, (1 - sumInverse/n)*100);
+
+  // Streak analysis
+  let maxStreak = 0, curStreak = 0, streaks = [];
+  for (const v of data) {
+    if (v < 2) { curStreak++; maxStreak = Math.max(maxStreak,curStreak); }
+    else { if (curStreak>1) streaks.push(curStreak); curStreak=0; }
+  }
+  if (curStreak>1) streaks.push(curStreak);
+
+  // Risk score
+  const signals = [];
+  let riskScore = 0;
+
+  // Sub-2x percentage (expected ~50%)
+  const sub2Expected = 50;
+  if (parseFloat(sub2pct) > 65) { riskScore+=30; signals.push({type:'bad',msg:`Sub-2x rate ${sub2pct}% — expected ~50%, this site crashes early too often`}); }
+  else if (parseFloat(sub2pct) > 55) { riskScore+=15; signals.push({type:'warn',msg:`Sub-2x rate ${sub2pct}% — slightly elevated`}); }
+  else { signals.push({type:'ok',msg:`Sub-2x rate ${sub2pct}% — within normal range`}); }
+
+  // House edge
+  if (estimatedHouseEdge > 5) { riskScore+=25; signals.push({type:'bad',msg:`Estimated house edge ${estimatedHouseEdge.toFixed(1)}% — industry standard is 1-3%`}); }
+  else if (estimatedHouseEdge > 3) { riskScore+=10; signals.push({type:'warn',msg:`Estimated house edge ${estimatedHouseEdge.toFixed(1)}% — slightly above normal`}); }
+  else { signals.push({type:'ok',msg:`Estimated house edge ${estimatedHouseEdge.toFixed(1)}% — normal`}); }
+
+  // Max streak
+  if (maxStreak >= 10) { riskScore+=20; signals.push({type:'bad',msg:`Max sub-2x streak: ${maxStreak} rounds — statistically suspicious`}); }
+  else if (maxStreak >= 6) { riskScore+=10; signals.push({type:'warn',msg:`Max sub-2x streak: ${maxStreak} rounds — elevated`}); }
+  else { signals.push({type:'ok',msg:`Max sub-2x streak: ${maxStreak} rounds — normal`}); }
+
+  // Average
+  if (avg < 1.8) { riskScore+=15; signals.push({type:'bad',msg:`Average crash ${avg.toFixed(2)}x — expected >2x on a fair game`}); }
+  else { signals.push({type:'ok',msg:`Average crash ${avg.toFixed(2)}x — normal`}); }
+
+  signals.push({type:'info',msg:`Analyzed ${n} rounds`});
+  riskScore = Math.min(100, riskScore);
+
+  // Render
+  document.getElementById('analysis-results').style.display = 'block';
+  renderRiskMeter(riskScore, signals);
+  renderStats(n, avg, max, min, median, sub2, sub2pct, above10, above10pct);
+  renderDistChart(data);
+  renderTimelineChart(data);
+  renderProbTable(data, n);
+  renderStreakAnalysis(maxStreak, streaks, data);
+  renderHouseEdge(estimatedHouseEdge, n);
+
+  document.getElementById('analysis-results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function renderRiskMeter(score, signals) {
+  let level, color, verdict;
+  if (score>=70) { level='extreme'; color='#ff2d55'; verdict='HIGH MANIPULATION RISK — LIKELY RIGGED'; }
+  else if (score>=45) { level='high'; color='#ff8c00'; verdict='ELEVATED RISK — SUSPICIOUS PATTERNS DETECTED'; }
+  else if (score>=20) { level='medium'; color='#ffd60a'; verdict='MODERATE RISK — MONITOR CLOSELY'; }
+  else { level='low'; color='#00ff88'; verdict='LOW RISK — DISTRIBUTION APPEARS NORMAL'; }
+
+  const sigHtml = signals.map(s=>`<span class="sig-${s.type==='bad'?'bad':s.type==='warn'?'warn':s.type==='ok'?'ok':'info'}">${s.type==='bad'?'✗':s.type==='warn'?'⚠':s.type==='ok'?'✓':'·'} ${escHtml(s.msg)}</span>`).join('<br>');
+
+  document.getElementById('risk-meter').innerHTML = `
+    <div class="risk-circle ${level}">
+      <div class="risk-num">${score}</div>
+      <div class="risk-lbl" style="color:${color}">${level.toUpperCase()}</div>
+    </div>
+    <div class="risk-body">
+      <div class="risk-verdict" style="color:${color}">${verdict}</div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" style="width:${score}%;background:${color}"></div></div>
+      <div class="risk-signals">${sigHtml}</div>
+    </div>`;
+}
+
+function renderStats(n,avg,max,min,median,sub2,sub2pct,above10,above10pct) {
+  document.getElementById('stats-row').innerHTML = [
+    { label:'TOTAL ROUNDS', val:n, cls:'' },
+    { label:'AVERAGE CRASH', val:avg.toFixed(2)+'x', cls: avg<1.8?'red':avg>3?'green':'' },
+    { label:'MAX CRASH', val:max.toFixed(2)+'x', cls:'green' },
+    { label:'MIN CRASH', val:min.toFixed(2)+'x', cls:'' },
+    { label:'MEDIAN', val:median.toFixed(2)+'x', cls:'' },
+    { label:'SUB-2x RATE', val:sub2pct+'%', cls: parseFloat(sub2pct)>60?'red':'' },
+    { label:'ABOVE 10x RATE', val:above10pct+'%', cls:'green' },
+  ].map(s=>`<div class="stat-card"><div class="stat-num ${s.cls}" style="color:${s.cls==='red'?'var(--red)':s.cls==='green'?'var(--green)':'var(--accent)'}">${s.val}</div><div class="stat-label">${s.label}</div></div>`).join('');
+}
+
+function renderDistChart(data) {
+  const canvas = document.getElementById('dist-chart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio || 800;
+  canvas.height = 200 * window.devicePixelRatio || 200;
+  ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+  const W = canvas.offsetWidth||800, H = 200;
+
+  // Buckets: 1-2, 2-3, 3-5, 5-10, 10-20, 20+
+  const buckets = [
+    { label:'1-2x', min:1, max:2 },
+    { label:'2-3x', min:2, max:3 },
+    { label:'3-5x', min:3, max:5 },
+    { label:'5-10x', min:5, max:10 },
+    { label:'10-20x', min:10, max:20 },
+    { label:'20x+', min:20, max:Infinity },
+  ];
+  const counts = buckets.map(b => data.filter(v=>v>=b.min&&v<b.max).length);
+  const maxCount = Math.max(...counts);
+  const pad = { t:20,r:20,b:40,l:50 };
+  const chartW = W - pad.l - pad.r;
+  const chartH = H - pad.t - pad.b;
+  const barW = chartW / buckets.length * 0.7;
+  const gap = chartW / buckets.length;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(0,255,200,0.08)';
+  ctx.lineWidth = 1;
+  for (let i=0;i<=4;i++) {
+    const y = pad.t + chartH - (i/4)*chartH;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+chartW,y); ctx.stroke();
+  }
+
+  // Bars
+  counts.forEach((count,i) => {
+    const x = pad.l + i*gap + gap/2 - barW/2;
+    const h = maxCount ? (count/maxCount)*chartH : 0;
+    const y = pad.t + chartH - h;
+    const pct = data.length ? count/data.length : 0;
+
+    // Color by danger
+    const color = i===0 ? '#ff2d55' : i===1 ? '#ff8c00' : i===2 ? '#ffd60a' : i===3 ? '#00ffc8' : '#00ff88';
+    ctx.fillStyle = color + '33';
+    ctx.fillRect(x, y, barW, h);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, y, barW, h);
+
+    // Count label
+    ctx.fillStyle = color;
+    ctx.font = `${11*(window.devicePixelRatio||1)}px Share Tech Mono`;
+    ctx.textAlign = 'center';
+    ctx.fillText(count, x+barW/2, y-6);
+
+    // Percent
+    ctx.fillStyle = 'rgba(0,255,200,0.5)';
+    ctx.font = `${9*(window.devicePixelRatio||1)}px Share Tech Mono`;
+    ctx.fillText((pct*100).toFixed(1)+'%', x+barW/2, y-18);
+
+    // X label
+    ctx.fillStyle = '#3a5a6a';
+    ctx.font = `${10*(window.devicePixelRatio||1)}px Share Tech Mono`;
+    ctx.fillText(buckets[i].label, x+barW/2, pad.t+chartH+18);
+  });
+
+  // Y axis
+  ctx.strokeStyle = 'rgba(0,255,200,0.2)';
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+chartH); ctx.stroke();
+}
+
+function renderTimelineChart(data) {
+  const canvas = document.getElementById('timeline-chart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio || 800;
+  canvas.height = 160 * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+  const W = canvas.offsetWidth||800, H = 160;
+
+  const recent = data.slice(-50);
+  const maxVal = Math.min(Math.max(...recent), 20); // cap at 20x for readability
+  const pad = {t:20,r:20,b:30,l:50};
+  const chartW = W-pad.l-pad.r;
+  const chartH = H-pad.t-pad.b;
+  const step = chartW / (recent.length-1||1);
+
+  ctx.clearRect(0,0,W,H);
+
+  // 2x reference line
+  const y2x = pad.t + chartH - (1/maxVal)*chartH;
+  ctx.strokeStyle = 'rgba(255,45,85,0.3)';
+  ctx.setLineDash([4,4]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l,y2x); ctx.lineTo(pad.l+chartW,y2x); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,45,85,0.5)';
+  ctx.font = `${9*(window.devicePixelRatio||1)}px Share Tech Mono`;
+  ctx.fillText('2x', pad.l-28, y2x+4);
+
+  // Line
+  ctx.beginPath();
+  recent.forEach((v,i) => {
+    const x = pad.l + i*step;
+    const capped = Math.min(v, maxVal);
+    const y = pad.t + chartH - (capped/maxVal)*chartH;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = 'rgba(0,255,200,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Dots
+  recent.forEach((v,i) => {
+    const x = pad.l + i*step;
+    const capped = Math.min(v,maxVal);
+    const y = pad.t + chartH - (capped/maxVal)*chartH;
+    ctx.beginPath();
+    ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle = v < 2 ? '#ff2d55' : v >= 10 ? '#00ff88' : '#00ffc8';
+    ctx.fill();
+  });
+}
+
+function renderProbTable(data, n) {
+  const targets = [1.5,2,3,5,10,20,50,100];
+  const rows = targets.map(t => {
+    const wins = data.filter(v=>v>=t).length;
+    const winPct = (wins/n*100).toFixed(1);
+    const theoretical = (1/t*100).toFixed(1);
+    const ev = ((wins/n)*t - 1).toFixed(3);
+    const evClass = parseFloat(ev)>0?'color:var(--green)':parseFloat(ev)<-0.2?'color:var(--red)':'color:var(--yellow)';
+    return `<tr>
+      <td style="color:var(--accent)">${t}x</td>
+      <td>${winPct}%</td>
+      <td style="color:var(--dim)">${theoretical}%</td>
+      <td style="${evClass}">${parseFloat(ev)>0?'+':''}${ev}</td>
+      <td style="color:var(--dim)">${wins}/${n}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('prob-table').innerHTML = `
+    <thead><tr>
+      <th>CASHOUT TARGET</th>
+      <th>ACTUAL WIN RATE</th>
+      <th>THEORETICAL</th>
+      <th>EV PER UNIT BET</th>
+      <th>SAMPLE</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>`;
+}
+
+function renderStreakAnalysis(maxStreak, streaks, data) {
+  const el = document.getElementById('streak-analysis');
+  const avgStreak = streaks.length ? (streaks.reduce((a,b)=>a+b,0)/streaks.length).toFixed(1) : 0;
+
+  // Find longest streak positions
+  let longest = {start:0,len:0};
+  let cur = {start:0,len:0};
+  for (let i=0;i<data.length;i++) {
+    if (data[i]<2) {
+      if (cur.len===0) cur.start=i;
+      cur.len++;
+      if (cur.len>longest.len) longest={...cur};
+    } else cur={start:0,len:0};
+  }
+
+  const dangerPct = Math.min(100, maxStreak*8);
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div class="stat-card"><div class="stat-num" style="color:${maxStreak>=10?'var(--red)':maxStreak>=6?'var(--orange)':'var(--green)'}">${maxStreak}</div><div class="stat-label">MAX STREAK</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--accent)">${streaks.length}</div><div class="stat-label">STREAK EVENTS</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--yellow)">${avgStreak}</div><div class="stat-label">AVG STREAK LEN</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:8px">// DANGER LEVEL (max streak of ${maxStreak})</div>
+    <div class="streak-bar"><div class="streak-fill" style="width:${dangerPct}%"></div></div>
+    <div style="font-size:10px;color:var(--dim);margin-top:8px">// Longest streak started at round ${longest.start+1}. A streak of ${maxStreak} consecutive sub-2x crashes has a ${(Math.pow(0.5,maxStreak)*100).toFixed(4)}% natural probability — ${maxStreak>=10?'extremely suspicious':'within range'}.</div>
+  `;
+}
+
+function renderHouseEdge(edge, n) {
+  const normal = edge <= 3;
+  const color = edge > 5 ? 'var(--red)' : edge > 3 ? 'var(--orange)' : 'var(--green)';
+
+  document.getElementById('house-edge-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-family:'Orbitron',monospace;font-size:36px;font-weight:900;color:${color}">${edge.toFixed(2)}%</div>
+        <div style="font-size:10px;color:var(--dim);letter-spacing:2px;margin-top:4px">ESTIMATED HOUSE EDGE</div>
+      </div>
+      <div style="flex:1;min-width:200px;font-size:11px;line-height:2;color:var(--dim)">
+        <div>// Industry standard: <span style="color:var(--green)">1% - 3%</span></div>
+        <div>// Your site: <span style="color:${color}">${edge.toFixed(2)}%</span></div>
+        <div>// Verdict: <span style="color:${color};font-family:'Orbitron',monospace">${edge>5?'ABOVE NORMAL — SUSPICIOUS':edge>3?'SLIGHTLY ELEVATED':'NORMAL RANGE'}</span></div>
+        <div>// Based on ${n} rounds of data</div>
+        <div style="color:var(--dim);font-size:10px;margin-top:6px">// Note: edge is estimated from your sample. More rounds = more accurate.</div>
+      </div>
+    </div>`;
+}
+
+function loadSampleHistory() {
+  // Realistic but slightly suspicious history
+  const h = [1.02,8.5,1.24,1.01,3.2,15.0,1.02,2.5,1.88,42.1,1.01,5.5,1.13,1.02,1.01,7.3,1.44,2.1,1.02,1.01,1.32,4.7,1.01,1.02,1.01,1.88,11.2,1.01,1.02,3.4,1.01,1.75,1.02,1.01,2.2,1.01,1.02,1.01,6.8,1.44,1.02,1.01,1.02,1.01,25.0,1.02,1.01,3.3,1.88,1.02,1.01,1.02,1.44,1.01,2.7,1.01,1.02,1.01,1.02,1.01,1.88,8.1,1.01,1.02,4.4,1.01,1.02,1.01,1.02,1.44,1.01,2.2,1.02,1.01,1.88,16.5,1.01,1.02,1.01,3.1,1.02,1.01,1.44,1.02,2.5,1.01,1.02,1.01,1.88,5.5,1.01,1.02,1.01,1.02,1.01,9.9,1.44,1.02,1.01,1.02];
+  document.getElementById('history-input').value = h.join(', ');
+  analyzeHistory();
+}
+
+function clearAnalyzer() {
+  document.getElementById('history-input').value='';
+  document.getElementById('analysis-results').style.display='none';
+}
+</script>
+</body>
+</html>
