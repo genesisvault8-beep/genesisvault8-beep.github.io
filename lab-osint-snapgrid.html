@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SnapGrid — travel.with.alex</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: #1e1e1e;
+    --text: #e8e8e8;
+    --dim: #555;
+    --accent: #00e5ff;
+    --red: #ff3b5c;
+    --green: #00e676;
+    --yellow: #ffd600;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--dim); }
+  .topbar-icons { display:flex; gap:18px; }
+  .topbar-icon {
+    width: 22px; height: 22px;
+    border: 1.5px solid var(--dim);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--dim); cursor: pointer;
+  }
+
+  /* ── PROFILE HEADER ── */
+  .profile-header {
+    padding: 20px 16px 0;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .avatar-wrap { position: relative; flex-shrink: 0; }
+  .avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    padding: 2px;
+  }
+  .avatar-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+  }
+  .profile-stats { flex: 1; }
+  .username-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .username {
+    font-size: 16px; font-weight: 600; color: var(--text);
+  }
+  .verified {
+    width: 16px; height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #000; font-weight: 700;
+  }
+  .real-name { font-size: 13px; color: var(--dim); margin-bottom: 10px; }
+  .stats-row { display: flex; gap: 20px; margin-bottom: 10px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 15px; font-weight: 700; color: var(--text); }
+  .stat-label { font-size: 10px; color: var(--dim); letter-spacing: 0.5px; }
+  .bio {
+    font-size: 12px; color: #aaa; line-height: 1.5;
+    padding: 0 0 12px;
+  }
+  .bio .highlight { color: var(--accent); }
+
+  /* ── FOLLOW BAR ── */
+  .follow-bar {
+    display: flex; gap: 8px;
+    padding: 0 16px 16px;
+  }
+  .btn-follow {
+    flex: 1; padding: 8px;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-msg {
+    flex: 1; padding: 8px;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 0 16px; }
+
+  /* ── GRID TABS ── */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1; padding: 12px 0;
+    text-align: center; font-size: 11px;
+    letter-spacing: 1px; color: var(--dim);
+    cursor: pointer; font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── PHOTO GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 2px;
+  }
+  .grid-item {
+    aspect-ratio: 1;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .grid-item:hover .grid-overlay { opacity: 1; }
+  .grid-bg {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    transition: transform 0.3s;
+  }
+  .grid-item:hover .grid-bg { transform: scale(1.05); }
+  .grid-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,229,255,0.12);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+    gap: 4px;
+  }
+  .grid-overlay span {
+    font-size: 10px; color: white;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+  }
+  .exif-badge {
+    position: absolute; top: 4px; right: 4px;
+    background: var(--red); color: white;
+    font-size: 7px; font-family: 'JetBrains Mono', monospace;
+    padding: 2px 4px; letter-spacing: 1px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .grid-item.has-exif .exif-badge { opacity: 1; }
+
+  /* Photo backgrounds */
+  .photo-1 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+  .photo-2 { background: linear-gradient(135deg, #2d1b33 0%, #4a1942 100%); }
+  .photo-3 { background: linear-gradient(135deg, #0d2137 0%, #1a4a6e 100%); }
+  .photo-4 { background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%); }
+  .photo-5 { background: linear-gradient(135deg, #0a2e1a 0%, #0d4a20 100%); }
+  .photo-6 { background: linear-gradient(135deg, #2e1a0a 0%, #4a2d0d 100%); }
+
+  /* ── EXIF PANEL ── */
+  .exif-panel {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .exif-panel.show { opacity: 1; pointer-events: all; }
+  .exif-sheet {
+    width: 100%;
+    background: #0d0d0d;
+    border-top: 1px solid var(--accent);
+    padding: 20px 16px 32px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .exif-panel.show .exif-sheet { transform: translateY(0); }
+  .exif-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .exif-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--accent);
+    letter-spacing: 3px; text-transform: uppercase;
+  }
+  .exif-close {
+    font-size: 18px; color: var(--dim);
+    cursor: pointer; line-height: 1;
+  }
+  .exif-photo-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .exif-thumb {
+    width: 50px; height: 50px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .exif-photo-info { flex: 1; }
+  .exif-photo-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .exif-photo-meta { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .exif-rows { display: flex; flex-direction: column; gap: 10px; }
+  .exif-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: border-color 0.3s;
+  }
+  .exif-row.critical { border-color: var(--red); }
+  .exif-row.warning { border-color: var(--yellow); }
+  .exif-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .exif-key {
+    font-size: 9px; color: var(--dim);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .exif-val {
+    font-size: 13px; color: var(--text); font-weight: 500;
+  }
+  .exif-val.critical { color: var(--red); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .exif-val.warning { color: var(--yellow); }
+  .exif-note {
+    font-size: 10px; color: var(--dim); margin-top: 3px; line-height: 1.4;
+  }
+
+  /* reveal animation */
+  .exif-row { opacity: 0; transform: translateY(8px); }
+  .exif-panel.show .exif-row {
+    animation: rowIn 0.3s forwards;
+  }
+  .exif-panel.show .exif-row:nth-child(1) { animation-delay: 0.1s; }
+  .exif-panel.show .exif-row:nth-child(2) { animation-delay: 0.2s; }
+  .exif-panel.show .exif-row:nth-child(3) { animation-delay: 0.3s; }
+  .exif-panel.show .exif-row:nth-child(4) { animation-delay: 0.4s; }
+  .exif-panel.show .exif-row:nth-child(5) { animation-delay: 0.5s; }
+  @keyframes rowIn {
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── SCAN PULSE on grid item ── */
+  @keyframes scanPulse {
+    0%   { box-shadow: inset 0 0 0 2px var(--accent); }
+    50%  { box-shadow: inset 0 0 0 2px transparent; }
+    100% { box-shadow: inset 0 0 0 2px var(--accent); }
+  }
+  .grid-item.scanning { animation: scanPulse 1s infinite; }
+
+  /* ── CIPHER HINT ── */
+  .cipher-hint {
+    margin: 12px 16px 0;
+    padding: 10px 12px;
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 6px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .hint-icon { font-size: 14px; flex-shrink: 0; }
+  .hint-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--accent);
+    letter-spacing: 1px; line-height: 1.6;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">Snap<span>Grid</span></div>
+  <div class="topbar-icons">
+    <div class="topbar-icon">⊕</div>
+    <div class="topbar-icon">◫</div>
+    <div class="topbar-icon">♡</div>
+  </div>
+</div>
+
+<!-- PROFILE HEADER -->
+<div class="profile-header">
+  <div class="avatar-wrap">
+    <div class="avatar">
+      <div class="avatar-inner">🧳</div>
+    </div>
+  </div>
+  <div class="profile-stats">
+    <div class="username-row">
+      <div class="username">travel.with.alex</div>
+      <div class="verified">✓</div>
+    </div>
+    <div class="real-name">Alexandra Mercer</div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num">247</div><div class="stat-label">Posts</div></div>
+      <div class="stat"><div class="stat-num">14.2K</div><div class="stat-label">Followers</div></div>
+      <div class="stat"><div class="stat-num">312</div><div class="stat-label">Following</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bio" style="padding:8px 16px 12px;">
+  ✈️ Full-time traveler · 23 countries<br>
+  📸 Canon R6 · <span class="highlight">@alex.mercer.photography</span><br>
+  🏠 Currently: <span class="highlight">Paris, France 🇫🇷</span><br>
+  💌 collabs: alexmercer.travel@gmail.com
+</div>
+
+<div class="follow-bar">
+  <button class="btn-follow">Follow</button>
+  <button class="btn-msg">Message</button>
+</div>
+
+<!-- CIPHER HINT -->
+<div class="cipher-hint">
+  <div class="hint-icon">⚡</div>
+  <div class="hint-text">CIPHER: tap any photo — some contain embedded metadata. check for exif data.</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" style="margin-top:12px;">
+  <div class="tab active">⊞ POSTS</div>
+  <div class="tab">▶ REELS</div>
+  <div class="tab">🏷 TAGGED</div>
+</div>
+
+<!-- PHOTO GRID -->
+<div class="grid">
+
+  <div class="grid-item photo-1 has-exif scanning" onclick="showExif('eiffel')" id="photo-eiffel">
+    <div class="grid-bg">🗼</div>
+    <div class="exif-badge">EXIF</div>
+    <div class="grid-overlay">
+      <span>📍 TAP</span>
+      <span>EXIF DATA</span>
+    </div>
+  </div>
+
+  <div class="grid-item photo-2" onclick="showNoExif()">
+    <div class="grid-bg">🌅</div>
+    <div class="grid-overlay"><span>VIEW</span></div>
+  </div>
+
+  <div class="grid-item photo-3 has-exif" onclick="showExif('cafe')" id="photo-cafe">
+    <div class="grid-bg">☕</div>
+    <div class="exif-badge">EXIF</div>
+    <div class="grid-overlay">
+      <span>📍 TAP</span>
+      <span>EXIF DATA</span>
+    </div>
+  </div>
+
+  <div class="grid-item photo-4" onclick="showNoExif()">
+    <div class="grid-bg">🛫</div>
+    <div class="grid-overlay"><span>VIEW</span></div>
+  </div>
+
+  <div class="grid-item photo-5" onclick="showNoExif()">
+    <div class="grid-bg">🌿</div>
+    <div class="grid-overlay"><span>VIEW</span></div>
+  </div>
+
+  <div class="grid-item photo-6 has-exif" onclick="showExif('hotel')" id="photo-hotel">
+    <div class="grid-bg">🏨</div>
+    <div class="exif-badge">EXIF</div>
+    <div class="grid-overlay">
+      <span>📍 TAP</span>
+      <span>EXIF DATA</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- EXIF PANEL -->
+<div class="exif-panel" id="exifPanel" onclick="handlePanelClick(event)">
+  <div class="exif-sheet" id="exifSheet">
+    <div class="exif-header">
+      <div class="exif-title">// EXIF METADATA EXTRACTED</div>
+      <div class="exif-close" onclick="closeExif()">✕</div>
+    </div>
+    <div class="exif-photo-row" id="exifPhotoRow"></div>
+    <div class="exif-rows" id="exifRows"></div>
+  </div>
+</div>
+
+<script>
+const EXIF_DATA = {
+  eiffel: {
+    thumb: '🗼',
+    thumbBg: 'linear-gradient(135deg,#1a1a2e,#0f3460)',
+    name: 'IMG_20240315_184203.jpg',
+    meta: '4.2 MB · Canon EOS R6 · Mar 15, 2024',
+    rows: [
+      { icon:'📸', key:'DEVICE', val:'Canon EOS R6 Mark II', note:'Full-frame mirrorless camera. Identifiable model.', cls:'' },
+      { icon:'🌐', key:'GPS COORDINATES', val:'48.8584° N, 2.2945° E', note:'CRITICAL: Precise real-world location embedded in photo.', cls:'critical', valCls:'critical' },
+      { icon:'📍', key:'LOCATION RESOLVED', val:'Eiffel Tower, Paris, France', note:'GPS resolves to exact landmark. Target confirmed in Paris.', cls:'critical', valCls:'critical' },
+      { icon:'🕐', key:'TIMESTAMP', val:'2024-03-15 18:42:03 UTC+1', note:'Date, time, and timezone all exposed.', cls:'warning', valCls:'warning' },
+      { icon:'⚙️', key:'SOFTWARE', val:'Adobe Lightroom 7.2 (iOS)', note:'Post-processing software — target uses iPhone + Lightroom.', cls:'' },
+    ]
+  },
+  cafe: {
+    thumb: '☕',
+    thumbBg: 'linear-gradient(135deg,#2d1b33,#4a1942)',
+    name: 'IMG_20240316_092211.jpg',
+    meta: '3.8 MB · iPhone 15 Pro · Mar 16, 2024',
+    rows: [
+      { icon:'📱', key:'DEVICE', val:'Apple iPhone 15 Pro', note:'Personal device identified. iOS metadata present.', cls:'' },
+      { icon:'🌐', key:'GPS COORDINATES', val:'48.8629° N, 2.3388° E', note:'CRITICAL: Location data not stripped from photo.', cls:'critical', valCls:'critical' },
+      { icon:'📍', key:'LOCATION RESOLVED', val:'Le Marais District, Paris, France', note:'Specific neighbourhood. Narrows daily routine.', cls:'critical', valCls:'critical' },
+      { icon:'📶', key:'NETWORK SSID', val:'WIFI: CafeDeFlore_Guest', note:'Connected wifi name stored in metadata.', cls:'warning', valCls:'warning' },
+      { icon:'🕐', key:'TIMESTAMP', val:'2024-03-16 09:22:11 UTC+1', note:'Morning — likely daily routine location.', cls:'' },
+    ]
+  },
+  hotel: {
+    thumb: '🏨',
+    thumbBg: 'linear-gradient(135deg,#2e1a0a,#4a2d0d)',
+    name: 'IMG_20240314_223015.jpg',
+    meta: '5.1 MB · Canon EOS R6 · Mar 14, 2024',
+    rows: [
+      { icon:'📸', key:'DEVICE', val:'Canon EOS R6 Mark II', note:'Same device as Eiffel Tower photo — confirmed same person.', cls:'' },
+      { icon:'🌐', key:'GPS COORDINATES', val:'48.8737° N, 2.3074° E', note:'CRITICAL: Precise hotel location embedded.', cls:'critical', valCls:'critical' },
+      { icon:'📍', key:'LOCATION RESOLVED', val:'9th Arrondissement, Paris, France', note:'Residential/hotel district. Likely overnight location.', cls:'critical', valCls:'critical' },
+      { icon:'🏨', key:'NEARBY LANDMARK', val:'~200m from Moulin Rouge', note:'Exact block identified via GPS + mapping.', cls:'warning', valCls:'warning' },
+      { icon:'🕐', key:'TIMESTAMP', val:'2024-03-14 22:30:15 UTC+1', note:'Late night — confirms overnight stay location.', cls:'' },
+    ]
+  }
+};
+
+function showExif(id) {
+  const data = EXIF_DATA[id];
+  if (!data) return;
+
+  // Remove scanning effect from clicked photo
+  document.querySelectorAll('.grid-item.scanning').forEach(el => el.classList.remove('scanning'));
+
+  const photoRow = document.getElementById('exifPhotoRow');
+  photoRow.innerHTML = `
+    <div class="exif-thumb" style="background:${data.thumbBg}">${data.thumb}</div>
+    <div class="exif-photo-info">
+      <div class="exif-photo-name">${data.name}</div>
+      <div class="exif-photo-meta">${data.meta}</div>
+    </div>
+  `;
+
+  const rowsEl = document.getElementById('exifRows');
+  rowsEl.innerHTML = data.rows.map(r => `
+    <div class="exif-row ${r.cls}">
+      <div class="exif-icon">${r.icon}</div>
+      <div>
+        <div class="exif-key">${r.key}</div>
+        <div class="exif-val ${r.valCls||''}">${r.val}</div>
+        <div class="exif-note">${r.note}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const panel = document.getElementById('exifPanel');
+  panel.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function showNoExif() {
+  alert('No EXIF metadata found in this photo.\n\nLocation data was stripped before upload.');
+}
+
+function closeExif() {
+  document.getElementById('exifPanel').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function handlePanelClick(e) {
+  if (e.target === document.getElementById('exifPanel')) closeExif();
+}
+</script>
+</body>
+</html>
