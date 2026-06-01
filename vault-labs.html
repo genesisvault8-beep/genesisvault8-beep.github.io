@@ -1150,7 +1150,7 @@ async function sendAI() {
 
     const message = `[LAB CONTEXT]: ${labContext}\n\n[USER QUESTION]: ${q}`;
 
-    const res = await fetch(`${AI_URL}/vault-ai`, {
+    const res = await fetch(`${AI_URL}/api/vault-ai`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body:    JSON.stringify({
