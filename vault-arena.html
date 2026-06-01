@@ -268,22 +268,8 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
       <div style="text-align:center">STREAK</div>
       <div style="text-align:right">VC EARNED</div>
     </div>
-    <div class="lb-row">
-      <div class="lb-rank gold">01</div>
-      <div class="lb-player"><div class="lb-avatar">S</div><div><div class="lb-name">specter_99</div><div class="lb-badge">SPECTRE</div></div></div>
-      <div class="lb-wins">47</div><div class="lb-losses">12</div><div class="lb-vc">4,200</div>
-    </div>
-    <div class="lb-row">
-      <div class="lb-rank silver">02</div>
-      <div class="lb-player"><div class="lb-avatar">N</div><div><div class="lb-name">null_byte</div><div class="lb-badge">SHADOW</div></div></div>
-      <div class="lb-wins">39</div><div class="lb-losses">8</div><div class="lb-vc">3,150</div>
-    </div>
-    <div class="lb-row">
-      <div class="lb-rank bronze">03</div>
-      <div class="lb-player"><div class="lb-avatar">0</div><div><div class="lb-name">0xdead</div><div class="lb-badge">OPERATOR</div></div></div>
-      <div class="lb-wins">31</div><div class="lb-losses">5</div><div class="lb-vc">2,400</div>
-    </div>
-    <div class="lb-row">
+    <div id="lbRows"><div class="lb-row" style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:10px;letter-spacing:2px;">// LOADING LEADERBOARD...</div></div>
+    <div class="lb-row" id="lbYouRow">
       <div class="lb-rank" style="color:var(--text-dim)">—</div>
       <div class="lb-player"><div class="lb-avatar" style="color:var(--text-dim);background:transparent">◌</div><div><div class="lb-name" style="color:var(--text-dim)" id="lbYouName">you</div><div class="lb-badge">GHOST</div></div></div>
       <div class="lb-wins" style="color:var(--text-dim)" id="lbYouWins">0</div>
@@ -318,7 +304,7 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 
 <script>
 // ── CONFIG ──
-const AI_BACKEND   = 'https://genesis-ai-backend.onrender.com';
+const AI_BACKEND   = 'https://genesis-ai-backend-wheat.vercel.app';
 const VAULT_BACKEND = 'https://youngbill44.pythonanywhere.com';
 const SANDBOX_PAGE = 'https://genesisvault8-beep.github.io/ai-sandbox.html';
 
@@ -331,6 +317,7 @@ let userVC = 0;
 window.addEventListener('load', () => {
   loadUser();
   loadSandboxes();
+  loadLeaderboard();
   startSessionTimers();
 });
 
@@ -437,8 +424,10 @@ function getIcon(type) {
 
 function escHtml(str) {
   return String(str || '')
-    .replace(/&amp;/g,'&').replace(/&quot;/g,'"')
-    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
 // ── MODAL ──
@@ -512,6 +501,42 @@ document.querySelectorAll('.match-spectate').forEach(btn => {
     window.location.href = `${SANDBOX_PAGE}?lab=${encodeURIComponent('https://genesisvault8-beep.github.io/lab-osint-image.html')}&title=${encodeURIComponent(labName)}&cost=0&match_id=spectate`;
   });
 });
+
+// ── LOAD LEADERBOARD ──
+async function loadLeaderboard() {
+  const lbRows = document.getElementById('lbRows');
+  try {
+    const r = await fetch(`${AI_BACKEND}/arena/leaderboard`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    const d = await r.json();
+    const players = Array.isArray(d) ? d : (d.leaderboard || d.players || []);
+    if (!players.length) {
+      lbRows.innerHTML = '<div class="lb-row" style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:10px;letter-spacing:2px;">// NO LEADERBOARD DATA YET</div>';
+      document.getElementById('totalPlayers').textContent = '0';
+      return;
+    }
+    document.getElementById('totalPlayers').textContent = players.length;
+    const rankClasses = ['gold','silver','bronze'];
+    lbRows.innerHTML = players.slice(0,10).map((p,i) => {
+      const rankClass = rankClasses[i] || '';
+      const rankNum = String(i+1).padStart(2,'0');
+      const initial = (p.username || '?')[0].toUpperCase();
+      return `<div class="lb-row">
+        <div class="lb-rank ${rankClass}">${rankNum}</div>
+        <div class="lb-player">
+          <div class="lb-avatar">${initial}</div>
+          <div><div class="lb-name">${escHtml(p.username)}</div><div class="lb-badge">${escHtml(p.rank||'GHOST')}</div></div>
+        </div>
+        <div class="lb-wins">${p.completed||0}</div>
+        <div class="lb-losses">${p.streak||0}</div>
+        <div class="lb-vc">${(p.vc_earned||0).toLocaleString()}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lbRows.innerHTML = '<div class="lb-row" style="grid-column:1/-1;text-align:center;color:var(--text-dim);font-size:10px;letter-spacing:2px;">// LEADERBOARD UNAVAILABLE</div>';
+  }
+}
 
 // Reload sandboxes every 60s to pick up new admin posts
 setInterval(loadSandboxes, 60000);
