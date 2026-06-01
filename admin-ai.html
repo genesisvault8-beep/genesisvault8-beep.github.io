@@ -414,9 +414,9 @@ body::before {
         </div>
 
         <div class="post-field">
-          <label class="post-label">LAB HTML — paste full HTML of the iframed lab below</label>
-          <textarea class="post-textarea" id="sb-html"
-            placeholder="<!DOCTYPE html>&#10;<html>&#10;...paste your lab HTML here...&#10;</html>"></textarea>
+          <label class="post-label">LAB URL — GitHub Pages URL of the lab (will be iframed)</label>
+          <input class="post-input" id="sb-url" type="url"
+            placeholder="https://genesisvault8-beep.github.io/lab-name.html">
         </div>
 
         <button class="post-submit-btn" id="sb-submit-btn" onclick="postSandbox()">[ POST SANDBOX TO ARENA ]</button>
@@ -942,10 +942,11 @@ async function postSandbox() {
   const diff     = document.getElementById('sb-diff').value;
   const cost     = parseInt(document.getElementById('sb-cost').value) || 50;
   const duration = document.getElementById('sb-duration').value.trim() || '~8 MIN';
-  const labHtml  = document.getElementById('sb-html').value.trim();
+  const labUrl   = document.getElementById('sb-url').value.trim();
 
   if (!title) { showFeedback('TITLE REQUIRED', false); return; }
-  if (!labHtml) { showFeedback('LAB HTML REQUIRED', false); return; }
+  if (!labUrl) { showFeedback('LAB URL REQUIRED', false); return; }
+  if (!labUrl.startsWith('http')) { showFeedback('ENTER A VALID URL', false); return; }
 
   btn.disabled = true;
   btn.textContent = '[ POSTING... ]';
@@ -958,7 +959,7 @@ async function postSandbox() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${adminToken}`
       },
-      body: JSON.stringify({ title, description: desc, attack_type: type, difficulty: diff, vc_cost: cost, duration, lab_html: labHtml, status: 'active' })
+      body: JSON.stringify({ title, description: desc, attack_type: type, difficulty: diff, vc_cost: cost, duration, lab_url: labUrl, status: 'active' })
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -967,7 +968,7 @@ async function postSandbox() {
       // Clear form
       document.getElementById('sb-title').value = '';
       document.getElementById('sb-desc').value = '';
-      document.getElementById('sb-html').value = '';
+      document.getElementById('sb-url').value = '';
       document.getElementById('sb-duration').value = '';
       loadPostedSandboxes();
     } else {
