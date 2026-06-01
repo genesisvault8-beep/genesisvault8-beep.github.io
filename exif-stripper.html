@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXIF STRIPPER // GENESIS VAULT</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.js"></script>
+<style>
+:root {
+  --bg: #04050a;
+  --panel: #070910;
+  --border: rgba(255,60,120,0.15);
+  --accent: #ff3c78;
+  --accent2: #00e5ff;
+  --accent3: #ffd60a;
+  --text: #e8d0d8;
+  --dim: #4a3a42;
+  --green: #00ff88;
+  --red: #ff3c78;
+  --blue: #00e5ff;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,60,120,0.008) 2px, rgba(255,60,120,0.008) 4px);
+  pointer-events:none;
+  z-index:0;
+}
+
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image: linear-gradient(rgba(255,60,120,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,60,120,0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events:none;
+  z-index:0;
+}
+
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 28px 18px 60px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 22px;
+  margin-bottom: 28px;
+}
+
+.logo { font-family:'Orbitron',monospace; font-size:10px; color:var(--dim); letter-spacing:4px; margin-bottom:10px; }
+
+h1 {
+  font-family:'Orbitron',monospace;
+  font-size: clamp(18px,5vw,30px);
+  font-weight:900;
+  letter-spacing:3px;
+  line-height:1.1;
+}
+
+h1 .ex { color:var(--accent); text-shadow: 0 0 30px var(--accent); }
+h1 .if { color:var(--accent2); text-shadow: 0 0 30px var(--accent2); }
+
+.subtitle { font-size:11px; color:var(--dim); margin-top:8px; letter-spacing:2px; }
+
+/* Upload zone */
+.upload-zone {
+  border: 2px dashed var(--border);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: rgba(255,60,120,0.02);
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(255,60,120,0.06); box-shadow: 0 0 30px rgba(255,60,120,0.1); }
+
+.upload-icon { font-size:48px; margin-bottom:16px; filter: drop-shadow(0 0 12px var(--accent)); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+.upload-title { font-family:'Orbitron',monospace; font-size:13px; letter-spacing:3px; color:var(--accent); margin-bottom:8px; }
+.upload-sub { font-size:10px; color:var(--dim); letter-spacing:2px; }
+
+#file-input { display:none; }
+
+/* Panel */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 22px;
+  margin-bottom: 16px;
+  position: relative;
+  animation: fadeIn 0.4s ease;
+}
+
+.panel::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -1px; left: 16px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9px;
+  font-family: 'Orbitron', monospace;
+  letter-spacing: 2px;
+  padding: 2px 10px;
+  font-weight: 700;
+}
+
+.panel.blue::before { background: var(--accent2); color: #000; }
+.panel.green::before { background: var(--green); color: #000; }
+.panel.yellow::before { background: var(--accent3); color: #000; }
+
+.section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  margin-bottom: 16px;
+}
+
+/* Image preview */
+.preview-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media(max-width:560px) { .preview-wrap { grid-template-columns: 1fr; } }
+
+.preview-card {
+  background: #030408;
+  border: 1px solid var(--border);
+  padding: 12px;
+  text-align: center;
+}
+
+.preview-card img {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 10px;
+}
+
+.preview-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  font-family: 'Orbitron', monospace;
+}
+
+.preview-label.dirty { color: var(--accent); }
+.preview-label.clean { color: var(--green); }
+
+/* EXIF fields */
+.exif-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.exif-item {
+  background: #030408;
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exif-key { font-size: 9px; letter-spacing: 2px; color: var(--dim); }
+.exif-val { font-size: 12px; color: var(--accent2); word-break: break-all; }
+.exif-val.danger { color: var(--accent); font-weight: bold; }
+.exif-val.warn { color: var(--accent3); }
+
+/* GPS DANGER banner */
+.gps-banner {
+  background: rgba(255,60,120,0.08);
+  border: 2px solid var(--accent);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.gps-banner.active { display: block; }
+
+.gps-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px var(--accent);
+}
+
+.gps-coords {
+  font-size: 16px;
+  color: var(--accent3);
+  font-family: 'Orbitron', monospace;
+  margin-bottom: 12px;
+}
+
+.map-wrap {
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.map-wrap iframe {
+  width: 100%;
+  height: 220px;
+  border: none;
+  display: block;
+}
+
+/* Stats bar */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: #030408;
+  border: 1px solid var(--border);
+  padding: 14px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.stat-num.safe { color: var(--green); }
+.stat-num.warn { color: var(--accent3); }
+.stat-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; }
+
+/* Buttons */
+.btn {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  padding: 12px 22px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { box-shadow: 0 0 24px var(--accent); }
+.btn-safe { background: var(--green); color: #000; }
+.btn-safe:hover { box-shadow: 0 0 24px var(--green); }
+.btn-ghost { background: transparent; color: var(--dim); border: 1px solid #1a1020; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+/* Risk score */
+.risk-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.risk-circle {
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  border: 3px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Orbitron', monospace;
+}
+
+.risk-num-big { font-size: 22px; font-weight: 900; color: var(--accent); }
+.risk-lbl-sm { font-size: 8px; letter-spacing: 1px; margin-top: 2px; color: var(--dim); }
+.risk-circle.safe { border-color: var(--green); }
+.risk-circle.safe .risk-num-big { color: var(--green); }
+.risk-circle.medium { border-color: var(--accent3); }
+.risk-circle.medium .risk-num-big { color: var(--accent3); }
+.risk-circle.high { border-color: var(--accent); box-shadow: 0 0 20px rgba(255,60,120,0.3); }
+
+.risk-body { flex: 1; min-width: 180px; }
+.risk-verdict { font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.risk-bar-track { height: 5px; background: #0a0810; margin-bottom: 10px; }
+.risk-bar-fill { height: 100%; transition: width 0.8s ease; }
+.risk-signals { font-size: 10px; line-height: 2; }
+.sig-bad { color: var(--accent); }
+.sig-warn { color: var(--accent3); }
+.sig-ok { color: var(--green); }
+
+/* Download success */
+.download-success {
+  background: rgba(0,255,136,0.06);
+  border: 1px solid var(--green);
+  padding: 16px;
+  text-align: center;
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.download-success.active { display: block; }
+.dl-title { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--green); letter-spacing: 3px; margin-bottom: 8px; }
+.dl-sub { font-size: 10px; color: var(--dim); }
+
+/* No EXIF */
+.no-exif {
+  text-align: center;
+  padding: 32px;
+  color: var(--dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+/* Tip */
+.tip { font-size: 10px; color: var(--dim); line-height: 1.8; margin-top: 10px; }
+
+/* Tag */
+.tag {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 8px;
+  letter-spacing: 1px;
+  margin: 2px;
+  font-family: 'Orbitron', monospace;
+}
+.tag-danger { background: rgba(255,60,120,0.15); border: 1px solid var(--accent); color: var(--accent); }
+.tag-warn { background: rgba(255,214,10,0.1); border: 1px solid var(--accent3); color: var(--accent3); }
+.tag-safe { background: rgba(0,255,136,0.08); border: 1px solid var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">// GENESIS VAULT — TOOLS</div>
+    <h1><span class="ex">EXIF</span> <span class="if">STRIPPER</span></h1>
+    <div class="subtitle">// EXPOSE · ANALYZE · STRIP HIDDEN PHOTO METADATA · PROTECT YOUR PRIVACY</div>
+  </header>
+
+  <!-- Upload -->
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+    <div class="upload-icon">📷</div>
+    <div class="upload-title">DROP PHOTO HERE OR TAP TO SELECT</div>
+    <div class="upload-sub">// JPEG · PNG · WEBP · HEIC — PROCESSED LOCALLY, NEVER UPLOADED</div>
+    <input type="file" id="file-input" accept="image/*" onchange="handleFile(this.files[0])">
+  </div>
+
+  <!-- GPS DANGER BANNER -->
+  <div class="gps-banner" id="gps-banner">
+    <div class="gps-title">🚨 GPS LOCATION EXPOSED</div>
+    <div style="font-size:11px;color:var(--text);margin-bottom:8px">This photo contains your exact GPS coordinates. Anyone who receives this image can pinpoint where it was taken.</div>
+    <div class="gps-coords" id="gps-coords"></div>
+    <div style="font-size:10px;color:var(--dim)">// Showing location on map — strip metadata to remove this</div>
+    <div class="map-wrap" id="map-wrap"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" style="display:none">
+
+    <!-- Preview -->
+    <div class="panel blue" data-label="PHOTO PREVIEW" style="padding-top:28px">
+      <div class="preview-wrap">
+        <div class="preview-card">
+          <img id="original-preview" src="" alt="Original">
+          <div class="preview-label dirty">// ORIGINAL — METADATA INTACT</div>
+        </div>
+        <div class="preview-card" id="clean-preview-card" style="display:none">
+          <img id="clean-preview" src="" alt="Clean">
+          <div class="preview-label clean">// CLEAN — METADATA STRIPPED ✓</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk score -->
+    <div class="panel" data-label="PRIVACY RISK" style="padding-top:28px">
+      <div class="risk-wrap" id="risk-wrap"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="panel yellow" data-label="METADATA SUMMARY" style="padding-top:28px">
+      <div class="stats-row" id="stats-row"></div>
+    </div>
+
+    <!-- EXIF data -->
+    <div class="panel" data-label="EXPOSED DATA" style="padding-top:28px">
+      <div class="section-title">// ALL HIDDEN METADATA FOUND IN THIS PHOTO</div>
+      <div id="exif-grid" class="exif-grid"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="panel green" data-label="STRIP & SAVE" style="padding-top:28px">
+      <div class="section-title">// REMOVE ALL METADATA FROM THIS PHOTO</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.9">
+        Clicking strip will create a new version of your photo with <span style="color:var(--green)">all EXIF data removed</span> — no GPS, no device info, no timestamps. The image quality is preserved. Your original is untouched.
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-safe" onclick="stripMetadata()">[ 🧹 STRIP ALL METADATA ]</button>
+        <button class="btn btn-ghost" onclick="resetTool()">[ SCAN ANOTHER ]</button>
+      </div>
+    </div>
+
+    <!-- Download success -->
+    <div class="download-success" id="dl-success">
+      <div class="dl-title">✓ METADATA STRIPPED SUCCESSFULLY</div>
+      <div class="dl-sub" id="dl-sub"></div>
+      <div id="dl-btn-wrap" style="margin-top:14px"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let originalFile = null;
+let originalDataURL = null;
+let cleanDataURL = null;
+
+// Drag and drop
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+  originalFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    originalDataURL = e.target.result;
+    document.getElementById('original-preview').src = originalDataURL;
+    analyzeEXIF(originalDataURL, file);
+  };
+  reader.readAsDataURL(file);
+}
+
+function analyzeEXIF(dataURL, file) {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('gps-banner').classList.remove('active');
+  document.getElementById('dl-success').classList.remove('active');
+  document.getElementById('clean-preview-card').style.display = 'none';
+  cleanDataURL = null;
+
+  let exifData = null;
+  let allFields = [];
+  let hasGPS = false;
+  let gpsLat = null, gpsLng = null;
+  let riskScore = 0;
+  const signals = [];
+
+  // Try piexifjs
+  try {
+    if (typeof piexif !== 'undefined' && dataURL.startsWith('data:image/jpeg')) {
+      exifData = piexif.load(dataURL);
+    }
+  } catch(e) {}
+
+  // Parse EXIF fields
+  if (exifData) {
+    const tagNames = {
+      '0th': piexif.ImageIFD,
+      'Exif': piexif.ExifIFD,
+      'GPS': piexif.GPSIFD,
+      '1st': piexif.ImageIFD
+    };
+
+    for (const ifd in exifData) {
+      if (ifd === 'thumbnail') continue;
+      for (const tag in exifData[ifd]) {
+        let tagName = tag;
+        let val = exifData[ifd][tag];
+
+        // Get human readable tag name
+        try {
+          const ifdObj = ifd === 'GPS' ? piexif.GPSIFD : piexif.ExifIFD;
+          for (const k in ifdObj) {
+            if (ifdObj[k] == tag) { tagName = k; break; }
+          }
+          for (const k in piexif.ImageIFD) {
+            if (piexif.ImageIFD[k] == tag) { tagName = k; break; }
+          }
+        } catch(e) {}
+
+        // Format value
+        let displayVal = '';
+        if (Array.isArray(val)) {
+          if (val.length === 2 && typeof val[0] === 'number') {
+            displayVal = (val[0] / (val[1] || 1)).toFixed(4);
+          } else {
+            displayVal = val.map(v => Array.isArray(v) ? (v[0]/(v[1]||1)).toFixed(4) : v).join(', ');
+          }
+        } else if (val instanceof Uint8Array || val instanceof Array) {
+          displayVal = '[binary data]';
+        } else {
+          displayVal = String(val);
+        }
+
+        // Determine sensitivity
+        let sensitivity = 'normal';
+        const dangerKeys = ['GPS','Latitude','Longitude','Location','GPSLatitude','GPSLongitude','GPSAltitude'];
+        const warnKeys = ['Make','Model','Software','DateTime','DateTimeOriginal','HostComputer','Artist','Copyright','SerialNumber'];
+        if (dangerKeys.some(k => tagName.includes(k))) sensitivity = 'danger';
+        else if (warnKeys.some(k => tagName.includes(k))) sensitivity = 'warn';
+
+        if (displayVal && displayVal !== '[binary data]' && displayVal.length < 200) {
+          allFields.push({ ifd, tag: tagName, val: displayVal, sensitivity });
+        }
+      }
+    }
+
+    // GPS extraction
+    if (exifData.GPS && exifData.GPS[piexif.GPSIFD.GPSLatitude]) {
+      try {
+        const latArr = exifData.GPS[piexif.GPSIFD.GPSLatitude];
+        const latRef = exifData.GPS[piexif.GPSIFD.GPSLatitudeRef] || 'N';
+        const lngArr = exifData.GPS[piexif.GPSIFD.GPSLongitude];
+        const lngRef = exifData.GPS[piexif.GPSIFD.GPSLongitudeRef] || 'E';
+
+        const toDecimal = (arr, ref) => {
+          const deg = arr[0][0] / arr[0][1];
+          const min = arr[1][0] / arr[1][1];
+          const sec = arr[2][0] / arr[2][1];
+          let d = deg + min/60 + sec/3600;
+          if (ref === 'S' || ref === 'W') d = -d;
+          return d;
+        };
+
+        gpsLat = toDecimal(latArr, latRef);
+        gpsLng = toDecimal(lngArr, lngRef);
+        hasGPS = true;
+      } catch(e) {}
+    }
+  }
+
+  // Also extract basic info from file itself
+  const basicFields = [];
+
+  // File info
+  basicFields.push({ ifd:'FILE', tag:'FileName', val: file.name, sensitivity:'normal' });
+  basicFields.push({ ifd:'FILE', tag:'FileSize', val: formatBytes(file.size), sensitivity:'normal' });
+  basicFields.push({ ifd:'FILE', tag:'FileType', val: file.type, sensitivity:'normal' });
+  basicFields.push({ ifd:'FILE', tag:'LastModified', val: new Date(file.lastModified).toLocaleString(), sensitivity:'warn' });
+
+  const combined = [...basicFields, ...allFields];
+
+  // Risk scoring
+  if (hasGPS) { riskScore += 40; signals.push({ type:'bad', msg:'GPS coordinates exposed — exact location revealed' }); }
+  const hasDevice = allFields.some(f => f.tag === 'Make' || f.tag === 'Model');
+  if (hasDevice) { riskScore += 20; signals.push({ type:'bad', msg:'Device make/model exposed — phone fingerprinting possible' }); }
+  const hasSoftware = allFields.some(f => f.tag === 'Software');
+  if (hasSoftware) { riskScore += 10; signals.push({ type:'warn', msg:'Software/OS version exposed' }); }
+  const hasDateTime = allFields.some(f => f.tag.includes('DateTime'));
+  if (hasDateTime) { riskScore += 10; signals.push({ type:'warn', msg:'Timestamp exposed — reveals when/where you were active' }); }
+  const hasSerial = allFields.some(f => f.tag.includes('Serial'));
+  if (hasSerial) { riskScore += 15; signals.push({ type:'bad', msg:'Device serial number exposed — unique device fingerprint' }); }
+  if (allFields.length === 0) signals.push({ type:'ok', msg:'No EXIF metadata found — already clean or not JPEG' });
+  else signals.push({ type:'ok', msg:`${combined.length} metadata fields found and analyzed` });
+
+  riskScore = Math.min(100, riskScore);
+
+  // Render
+  renderRisk(riskScore, signals);
+  renderStats(combined, hasGPS, allFields.length, file.size);
+  renderEXIFGrid(combined);
+
+  if (hasGPS && gpsLat && gpsLng) {
+    showGPSBanner(gpsLat, gpsLng);
+  }
+
+  document.getElementById('results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function renderRisk(score, signals) {
+  let level, color, verdict;
+  if (score >= 60) { level='high'; color='var(--accent)'; verdict='HIGH PRIVACY RISK — STRIP METADATA NOW'; }
+  else if (score >= 30) { level='medium'; color='var(--accent3)'; verdict='MODERATE RISK — SENSITIVE DATA FOUND'; }
+  else { level='safe'; color='var(--green)'; verdict='LOW RISK — MINIMAL METADATA'; }
+
+  const sigHtml = signals.map(s =>
+    `<span class="sig-${s.type==='bad'?'bad':s.type==='warn'?'warn':'ok'}">${s.type==='bad'?'✗':s.type==='warn'?'⚠':'✓'} ${escHtml(s.msg)}</span>`
+  ).join('<br>');
+
+  document.getElementById('risk-wrap').innerHTML = `
+    <div class="risk-circle ${level}">
+      <div class="risk-num-big">${score}</div>
+      <div class="risk-lbl-sm" style="color:${color}">${level.toUpperCase()}</div>
+    </div>
+    <div class="risk-body">
+      <div class="risk-verdict" style="color:${color}">${verdict}</div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" style="width:${score}%;background:${color}"></div></div>
+      <div class="risk-signals">${sigHtml}</div>
+    </div>`;
+}
+
+function renderStats(fields, hasGPS, exifCount, fileSize) {
+  const dangerCount = fields.filter(f => f.sensitivity === 'danger').length;
+  const warnCount = fields.filter(f => f.sensitivity === 'warn').length;
+
+  document.getElementById('stats-row').innerHTML = [
+    { label:'TOTAL FIELDS', val: fields.length, cls: fields.length > 10 ? '' : 'safe' },
+    { label:'DANGEROUS', val: dangerCount, cls: dangerCount > 0 ? '' : 'safe' },
+    { label:'SENSITIVE', val: warnCount, cls: warnCount > 0 ? 'warn' : 'safe' },
+    { label:'GPS DATA', val: hasGPS ? '⚠ YES' : '✓ NO', cls: hasGPS ? '' : 'safe' },
+    { label:'FILE SIZE', val: formatBytes(fileSize), cls: 'safe' },
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-num ${s.cls}" style="color:${s.cls===''?'var(--accent)':s.cls==='safe'?'var(--green)':'var(--accent3)'}">${s.val}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join('');
+}
+
+function renderEXIFGrid(fields) {
+  const el = document.getElementById('exif-grid');
+  if (!fields.length) {
+    el.innerHTML = '<div class="no-exif">// NO EXIF METADATA DETECTED IN THIS IMAGE</div>';
+    return;
+  }
+
+  el.innerHTML = fields.map(f => `
+    <div class="exif-item">
+      <div class="exif-key">// ${escHtml(f.ifd)} → ${escHtml(f.tag)}</div>
+      <div class="exif-val ${f.sensitivity === 'danger' ? 'danger' : f.sensitivity === 'warn' ? 'warn' : ''}">${escHtml(f.val)}</div>
+    </div>`).join('');
+}
+
+function showGPSBanner(lat, lng) {
+  const banner = document.getElementById('gps-banner');
+  document.getElementById('gps-coords').textContent = `${lat.toFixed(6)}°, ${lng.toFixed(6)}°`;
+
+  // OpenStreetMap embed (no API key needed, works in iframe)
+  const zoom = 15;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
+  document.getElementById('map-wrap').innerHTML = `<iframe src="${mapUrl}" loading="lazy"></iframe>`;
+
+  banner.classList.add('active');
+  banner.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function stripMetadata() {
+  if (!originalDataURL) return;
+
+  try {
+    // Method 1: piexifjs strip for JPEG
+    if (typeof piexif !== 'undefined' && originalDataURL.startsWith('data:image/jpeg')) {
+      const stripped = piexif.remove(originalDataURL);
+      cleanDataURL = stripped;
+    } else {
+      // Method 2: Canvas redraw (strips ALL metadata for any format)
+      cleanDataURL = await stripViaCanvas(originalDataURL);
+    }
+
+    // Show clean preview
+    document.getElementById('clean-preview').src = cleanDataURL;
+    document.getElementById('clean-preview-card').style.display = 'block';
+
+    // Show success + download
+    const originalSize = Math.round(originalDataURL.length * 0.75);
+    const cleanSize = Math.round(cleanDataURL.length * 0.75);
+    const saved = originalSize - cleanSize;
+
+    document.getElementById('dl-success').classList.add('active');
+    document.getElementById('dl-sub').textContent = `Metadata removed. Image ready to save.${saved > 0 ? ` Saved ${formatBytes(saved)}.` : ''}`;
+
+    // Create download button
+    const ext = originalFile.name.split('.').pop() || 'jpg';
+    const cleanName = originalFile.name.replace(/\.[^.]+$/, '') + '_clean.' + ext;
+
+    document.getElementById('dl-btn-wrap').innerHTML = `
+      <a id="dl-link" href="${cleanDataURL}" download="${cleanName}" style="text-decoration:none">
+        <button class="btn btn-safe">[ 💾 SAVE CLEAN IMAGE ]</button>
+      </a>
+      <div style="margin-top:10px;font-size:10px;color:var(--dim)">// On mobile: long press the image above → Save Image</div>`;
+
+    document.getElementById('dl-success').scrollIntoView({ behavior:'smooth', block:'start' });
+
+  } catch(e) {
+    alert('Could not strip metadata: ' + e.message);
+  }
+}
+
+function stripViaCanvas(dataURL) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      // Canvas toDataURL strips ALL metadata
+      const mimeType = originalFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      resolve(canvas.toDataURL(mimeType, 0.92));
+    };
+    img.onerror = reject;
+    img.src = dataURL;
+  });
+}
+
+function resetTool() {
+  originalFile = null;
+  originalDataURL = null;
+  cleanDataURL = null;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('gps-banner').classList.remove('active');
+  document.getElementById('dl-success').classList.remove('active');
+  document.getElementById('file-input').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
