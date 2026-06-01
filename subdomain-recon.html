@@ -469,7 +469,7 @@
 <div class="main">
   <div class="title-block">
     <h1>SUBDOMAIN RECON</h1>
-    <p>// crt.sh · hackertarget · alienvault · urlscan · status probe · WAF detect</p>
+    <p>// certspotter · hackertarget · rapiddns · urlscan · status probe · WAF detect</p>
   </div>
 
   <div class="input-panel">
@@ -481,14 +481,16 @@
     </div>
     <div class="options-row">
       <label class="checkbox-item">
-        <input type="checkbox" id="optCrt" checked> crt.sh
+        <input type="checkbox" id="optCrt" checked> certspotter
       </label>
       <label class="checkbox-item">
         <input type="checkbox" id="optHt" checked> hackertarget
       </label>
       <label class="checkbox-item">
-        <input type="checkbox" id="optOtx" checked> alienvault
+        <input type="checkbox" id="optOtx" checked> rapiddns
       </label>
+      <label class="checkbox-item">
+        <input type="checkbox" id="optThreat" checked> threatcrowd
       <label class="checkbox-item">
         <input type="checkbox" id="optUrlscan" checked> urlscan.io
       </label>
@@ -499,7 +501,7 @@
         <input type="checkbox" id="optWaf"> WAF detect
       </label>
     </div>
-    <p class="note">// Live data: crt.sh · HackerTarget · AlienVault OTX · urlscan.io · Cloudflare DoH resolver</p>
+    <p class="note">// Live data: HackerTarget · Certspotter · RapidDNS · ThreatCrowd · urlscan.io · Cloudflare DoH resolver</p>
   </div>
 
   <div class="progress-block" id="progressBlock">
@@ -667,30 +669,7 @@ function renderTable() {
   `).join('');
 }
 
-// ── Source 1: crt.sh ──────────────────────────────────────────────
-async function fetchCrtSh(domain) {
-  log('Querying crt.sh (certificate transparency)...', '#00e5ff');
-  try {
-    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://crt.sh/?q=%25.' + domain + '&output=json')}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const json = JSON.parse(data.contents);
-    const subs = new Set();
-    json.forEach(e => {
-      e.name_value.split('\n').forEach(s => {
-        s = s.trim().replace(/^\*\./, '');
-        if (s.endsWith('.' + domain) || s === domain) subs.add(s.toLowerCase());
-      });
-    });
-    log(`crt.sh: found ${subs.size} entries`, '#00ff9d');
-    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'crt.sh' }));
-  } catch(e) {
-    log('crt.sh: failed or rate limited', '#ff3e3e');
-    return [];
-  }
-}
-
-// ── Source 2: HackerTarget ────────────────────────────────────────
+// ── Source 1: HackerTarget (most reliable) ───────────────────────
 async function fetchHackerTarget(domain) {
   log('Querying HackerTarget...', '#00e5ff');
   try {
@@ -714,40 +693,111 @@ async function fetchHackerTarget(domain) {
   }
 }
 
-// ── Source 3: AlienVault OTX (no API key needed) ──────────────────
-async function fetchAlienVault(domain) {
-  log('Querying AlienVault OTX...', '#00e5ff');
+// ── Source 2: Certspotter (replaces certspotter — more reliable) ──────
+async function fetchCertspotter(domain) {
+  log('Querying Certspotter (cert transparency)...', '#00e5ff');
   try {
-    const url = `https://otx.alienvault.com/api/v1/indicators/domain/${domain}/passive_dns`;
+    const url = `https://api.certspotter.com/v1/issuances?domain=${domain}&include_subdomains=true&expand=dns_names`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if (!res.ok) throw new Error('OTX error');
+    if (!res.ok) throw new Error('Certspotter error');
     const data = await res.json();
     const subs = new Set();
-    (data.passive_dns || []).forEach(e => {
-      const h = (e.hostname || '').toLowerCase();
-      if (h.endsWith('.' + domain) || h === domain) subs.add(h);
+    data.forEach(cert => {
+      (cert.dns_names || []).forEach(name => {
+        const s = name.toLowerCase().replace(/^\*\./, '');
+        if (s.endsWith('.' + domain) || s === domain) subs.add(s);
+      });
     });
-    log(`AlienVault OTX: found ${subs.size} entries`, '#00ff9d');
-    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'alienvault' }));
+    log(`Certspotter: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'certspotter' }));
   } catch(e) {
-    log('AlienVault OTX: failed or blocked', '#ff3e3e');
+    log('Certspotter: failed, trying fallback...', '#ffe600');
+    return await fetchCrtShFallback(domain);
+  }
+}
+
+// ── Source 2b: certspotter fallback ────────────────────────────────────
+async function fetchCrtShFallback(domain) {
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://certspotter/?q=%25.' + domain + '&output=json')}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    const json = JSON.parse(data.contents);
+    const subs = new Set();
+    json.forEach(e => {
+      e.name_value.split('\n').forEach(s => {
+        s = s.trim().replace(/^\*\./, '');
+        if (s.endsWith('.' + domain) || s === domain) subs.add(s.toLowerCase());
+      });
+    });
+    log(`certspotter fallback: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'certspotter' }));
+  } catch(e) {
+    log('certspotter: also failed', '#ff3e3e');
     return [];
   }
 }
 
-// ── Source 4: urlscan.io (no API key needed) ─────────────────────
+// ── Source 3: RapidDNS (replaces AlienVault — CORS friendly) ─────
+async function fetchRapidDNS(domain) {
+  log('Querying RapidDNS...', '#00e5ff');
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://rapiddns.io/subdomain/' + domain + '?full=1&down=1')}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const data = await res.json();
+    const subs = new Set();
+    const regex = new RegExp('([a-zA-Z0-9._-]+\\.' + domain.replace('.','\\.')  + ')', 'g'); const matches = data.contents.match(regex) || [];
+    matches.forEach(s => {
+      const clean = s.toLowerCase().trim();
+      if (clean.endsWith('.' + domain) && clean !== domain) subs.add(clean);
+    });
+    // Also parse table rows
+    const tableRegex = new RegExp('<td>([^<]+\\.' + domain.replace('.', '\\.') + ')</td>', 'g'); const tableMatch = data.contents.match(tableRegex) || [];
+    tableMatch.forEach(td => {
+      const s = td.replace(/<[^>]+>/g, '').toLowerCase().trim();
+      if (s.endsWith('.' + domain)) subs.add(s);
+    });
+    log(`RapidDNS: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'rapiddns' }));
+  } catch(e) {
+    log('RapidDNS: failed', '#ff3e3e');
+    return [];
+  }
+}
+
+// ── Source 4: ThreatCrowd (passive DNS) ──────────────────────────
+async function fetchThreatCrowd(domain) {
+  log('Querying ThreatCrowd passive DNS...', '#00e5ff');
+  try {
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.threatcrowd.org/searchApi/v2/domain/report/?domain=' + domain)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    const json = JSON.parse(data.contents);
+    const subs = new Set();
+    (json.subdomains || []).forEach(s => {
+      const clean = s.toLowerCase().trim();
+      if (clean.endsWith('.' + domain) || clean === domain) subs.add(clean);
+    });
+    log(`ThreatCrowd: found ${subs.size} entries`, '#00ff9d');
+    return Array.from(subs).map(s => ({ sub: s, ip: '', source: 'threatcrowd' }));
+  } catch(e) {
+    log('ThreatCrowd: failed', '#ff3e3e');
+    return [];
+  }
+}
+
+// ── Source 5: urlscan.io ─────────────────────────────────────────
 async function fetchUrlscan(domain) {
   log('Querying urlscan.io...', '#00e5ff');
   try {
     const url = `https://urlscan.io/api/v1/search/?q=domain:${domain}&size=100`;
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error('urlscan error');
     const data = await res.json();
     const subs = new Set();
     (data.results || []).forEach(r => {
       const h = (r.page?.domain || '').toLowerCase();
       if (h.endsWith('.' + domain) || h === domain) subs.add(h);
-      // also check task URL
       try {
         const u = new URL(r.task?.url || '');
         const d = u.hostname.toLowerCase();
@@ -837,30 +887,37 @@ async function startScan() {
     });
   }
 
-  // Step 1: crt.sh
-  if (document.getElementById('optCrt').checked) {
-    setProgress(5, 'QUERYING CRT.SH...');
-    mergeSubs(await fetchCrtSh(domain));
-    if (stopRequested) return finishScan();
-  }
-
-  // Step 2: HackerTarget
+  // Step 1: HackerTarget
   if (document.getElementById('optHt').checked) {
-    setProgress(20, 'QUERYING HACKERTARGET...');
+    setProgress(5, 'QUERYING HACKERTARGET...');
     mergeSubs(await fetchHackerTarget(domain));
     if (stopRequested) return finishScan();
   }
 
-  // Step 3: AlienVault OTX
-  if (document.getElementById('optOtx').checked) {
-    setProgress(35, 'QUERYING ALIENVAULT OTX...');
-    mergeSubs(await fetchAlienVault(domain));
+  // Step 2: Certspotter
+  if (document.getElementById('optCrt').checked) {
+    setProgress(20, 'QUERYING CERTSPOTTER...');
+    mergeSubs(await fetchCertspotter(domain));
     if (stopRequested) return finishScan();
   }
 
-  // Step 4: urlscan.io
+  // Step 3: RapidDNS
+  if (document.getElementById('optOtx').checked) {
+    setProgress(35, 'QUERYING RAPIDDNS...');
+    mergeSubs(await fetchRapidDNS(domain));
+    if (stopRequested) return finishScan();
+  }
+
+  // Step 4: ThreatCrowd
+  if (document.getElementById('optThreat').checked) {
+    setProgress(45, 'QUERYING THREATCROWD...');
+    mergeSubs(await fetchThreatCrowd(domain));
+    if (stopRequested) return finishScan();
+  }
+
+  // Step 5: urlscan.io
   if (document.getElementById('optUrlscan').checked) {
-    setProgress(50, 'QUERYING URLSCAN.IO...');
+    setProgress(55, 'QUERYING URLSCAN.IO...');
     mergeSubs(await fetchUrlscan(domain));
     if (stopRequested) return finishScan();
   }
