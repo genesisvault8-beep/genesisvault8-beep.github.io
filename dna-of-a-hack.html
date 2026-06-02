@@ -75,13 +75,31 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font
 @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
 .breach-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  display:flex;
+  flex-direction:row;
   gap:1px;background:var(--border);
   border:1px solid var(--border);
-  border-radius:6px;overflow:hidden;
+  border-radius:6px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x mandatory;
+  scroll-padding:0;
   position:relative;
   max-width:960px;margin:0 auto;
+  /* hide scrollbar but keep scroll */
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.breach-grid::-webkit-scrollbar{display:none;}
+
+@media(min-width:700px){
+  .breach-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    overflow:hidden;
+    scroll-snap-type:none;
+  }
 }
 
 .breach-card{
@@ -92,6 +110,18 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font
   position:relative;
   overflow:hidden;
   animation:fadeIn 0.5s ease both;
+  /* mobile swipe snap */
+  scroll-snap-align:start;
+  flex-shrink:0;
+  width:80vw;
+  max-width:300px;
+}
+@media(min-width:700px){
+  .breach-card{
+    width:auto;
+    max-width:none;
+    scroll-snap-align:unset;
+  }
 }
 .breach-card::before{
   content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
@@ -175,9 +205,14 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font
   display:flex;gap:1px;background:var(--border);
   border-bottom:1px solid var(--border);
   flex-shrink:0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
 }
+.timeline-bar::-webkit-scrollbar{display:none;}
 .tb-stage{
-  flex:1;padding:0.5rem 0.4rem;
+  flex:1;min-width:60px;padding:0.5rem 0.4rem;
   text-align:center;
   background:var(--s1);
   font-family:var(--mono);font-size:0.52rem;
@@ -186,6 +221,7 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font
   transition:all 0.4s;cursor:pointer;
   border-bottom:2px solid transparent;
   line-height:1.3;
+  white-space:nowrap;
 }
 .tb-stage:hover{background:var(--s2);}
 .tb-stage.active{
@@ -420,6 +456,28 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font
   transition:all 0.2s;margin-top:0.5rem;
 }
 .btn-select-more:hover{border-color:var(--muted2);color:var(--text);}
+
+/* search bar */
+.sel-search-wrap{
+  margin-top:1.2rem;
+  max-width:400px;
+  margin-left:auto;margin-right:auto;
+}
+.sel-search{
+  width:100%;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:0.6rem 1rem;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  color:var(--text);
+  letter-spacing:0.05em;
+  outline:none;
+  transition:border-color 0.2s;
+}
+.sel-search:focus{border-color:var(--red);}
+.sel-search::placeholder{color:var(--muted);}
 </style>
 </head>
 <body>
@@ -430,6 +488,9 @@ html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font
     <div class="sel-eyebrow">● Documentary Series</div>
     <div class="sel-title">DNA OF A <span>HACK</span></div>
     <div class="sel-sub">Real world breaches. Animated step by step. Understand exactly how it happened — and what could have stopped it.</div>
+    <div class="sel-search-wrap">
+      <input type="text" id="breach-search" class="sel-search" placeholder="Search breaches, tags, techniques…" oninput="filterBreaches(this.value)">
+    </div>
   </div>
   <div class="breach-grid" id="breach-grid"></div>
 </div>
@@ -1113,28 +1174,51 @@ let typeInterval = null;
 // ══════════════════════════════════════════
 // RENDER SELECTION
 // ══════════════════════════════════════════
+function buildCard(b, i) {
+  const card = document.createElement('div');
+  card.className = 'breach-card';
+  card.style.animationDelay = `${0.1 + i*0.08}s`;
+  card.style.setProperty('--bc', b.color);
+  card.innerHTML = `
+    <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${b.color};opacity:0.8"></div>
+    <div class="bc-severity sev-${b.severity}">${b.severity.toUpperCase()}</div>
+    <div class="bc-year">${b.year}</div>
+    <div class="bc-title" style="color:${b.color};text-shadow:0 0 20px ${b.color}44">${b.title}</div>
+    <div class="bc-victim">${b.victim}</div>
+    <div class="bc-desc">${b.desc}</div>
+    <div class="bc-tags">
+      ${b.tags.map(t=>`<span class="bc-tag" style="color:${b.color};border-color:${b.color}44;background:${b.color}10">${t}</span>`).join('')}
+    </div>
+  `;
+  card.onclick = () => startBreach(b);
+  return card;
+}
+
 function renderSelection() {
   const grid = document.getElementById('breach-grid');
   grid.innerHTML = '';
-  BREACHES.forEach((b, i) => {
-    const card = document.createElement('div');
-    card.className = 'breach-card';
-    card.style.animationDelay = `${0.1 + i*0.08}s`;
-    card.style.setProperty('--bc', b.color);
-    card.innerHTML = `
-      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${b.color};opacity:0.8"></div>
-      <div class="bc-severity sev-${b.severity}">${b.severity.toUpperCase()}</div>
-      <div class="bc-year">${b.year}</div>
-      <div class="bc-title" style="color:${b.color};text-shadow:0 0 20px ${b.color}44">${b.title}</div>
-      <div class="bc-victim">${b.victim}</div>
-      <div class="bc-desc">${b.desc}</div>
-      <div class="bc-tags">
-        ${b.tags.map(t=>`<span class="bc-tag" style="color:${b.color};border-color:${b.color}44;background:${b.color}10">${t}</span>`).join('')}
-      </div>
-    `;
-    card.onclick = () => startBreach(b);
-    grid.appendChild(card);
-  });
+  BREACHES.forEach((b, i) => grid.appendChild(buildCard(b, i)));
+}
+
+function filterBreaches(query) {
+  const q = query.toLowerCase().trim();
+  const grid = document.getElementById('breach-grid');
+  grid.innerHTML = '';
+  const filtered = q
+    ? BREACHES.filter(b =>
+        b.title.toLowerCase().includes(q) ||
+        b.victim.toLowerCase().includes(q) ||
+        b.year.toLowerCase().includes(q) ||
+        b.desc.toLowerCase().includes(q) ||
+        b.tags.some(t => t.toLowerCase().includes(q)) ||
+        b.severity.toLowerCase().includes(q)
+      )
+    : BREACHES;
+  if(!filtered.length) {
+    grid.innerHTML = `<div style="padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.75rem;">NO BREACHES FOUND</div>`;
+    return;
+  }
+  filtered.forEach((b, i) => grid.appendChild(buildCard(b, i)));
 }
 
 // ══════════════════════════════════════════
@@ -1168,9 +1252,13 @@ function updateTimeline(idx) {
     else if(i === idx) el.classList.add('active');
   });
   document.getElementById('mtb-stage').textContent = `Stage ${idx+1} of ${currentBreach.stages.length}`;
+  // Scroll active stage into view in the timeline bar
+  const activeEl = document.getElementById(`tbst_${idx}`);
+  if(activeEl) activeEl.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
 }
 
 function jumpToStage(idx) {
+  if(typeInterval) clearInterval(typeInterval);
   currentStage = idx;
   renderStage(idx);
 }
@@ -1206,7 +1294,7 @@ function renderStage(idx) {
         ${stage.defense.map(d=>`<div class="db-item">${d}</div>`).join('')}
       </div>
 
-      ${idx===1 && currentBreach.impact ? renderImpact() : ''}
+      ${currentBreach.impact && idx === currentBreach.stages.length - 2 ? renderImpact() : ''}
 
       <div class="scene-nav">
         ${idx > 0 ? `<button class="nav-btn nav-prev" onclick="renderStage(${idx-1})">← Previous</button>` : '<div></div>'}
@@ -1287,11 +1375,57 @@ function typeWriter(text, targetId, callback) {
       i++;
     } else {
       clearInterval(typeInterval);
+      typeInterval = null;
       el.innerHTML = text;
       if(callback) callback();
     }
   }, speed);
+
+  // Tap anywhere on scene to skip typewriter
+  const area = document.getElementById('scene-area');
+  const skipHandler = () => {
+    if(typeInterval) {
+      clearInterval(typeInterval);
+      typeInterval = null;
+      el.innerHTML = text;
+      area.removeEventListener('click', skipHandler);
+      if(callback) callback();
+    }
+  };
+  area.addEventListener('click', skipHandler, { once: true });
 }
+
+// ══════════════════════════════════════════
+// SWIPE GESTURES
+// ══════════════════════════════════════════
+(function initSwipe() {
+  let startX = 0, startY = 0;
+  document.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if(!currentBreach) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    // Only fire if horizontal swipe (not scroll)
+    if(Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+    const activeScreen = document.querySelector('.screen.active');
+    if(!activeScreen || activeScreen.id !== 'screen-movie') return;
+    if(dx < 0 && currentStage < currentBreach.stages.length - 1) {
+      // Swipe left → next
+      if(typeInterval) clearInterval(typeInterval);
+      currentStage++;
+      renderStage(currentStage);
+    } else if(dx > 0 && currentStage > 0) {
+      // Swipe right → previous
+      if(typeInterval) clearInterval(typeInterval);
+      currentStage--;
+      renderStage(currentStage);
+    }
+  }, { passive: true });
+})();
 
 // ══════════════════════════════════════════
 // CREDITS
