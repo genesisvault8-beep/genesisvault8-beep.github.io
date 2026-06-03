@@ -290,6 +290,93 @@ body::before {
   display:flex; justify-content:space-between; padding:4px 12px;
   background:#000; font-size:8px; color:var(--dim); letter-spacing:1px; flex-shrink:0;
 }
+
+/* ── FIREWALL STYLES ── */
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; margin-bottom:12px; }
+.stat-card { background:var(--bg3); border:1px solid var(--border); padding:10px 8px; text-align:center; position:relative; overflow:hidden; }
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.stat-card.red::before   { background:var(--red); }
+.stat-card.warn::before  { background:var(--warn); }
+.stat-card.blue::before  { background:#00a8ff; }
+.stat-card.green::before { background:var(--green); }
+.stat-card.cyan::before  { background:var(--teal); }
+.stat-tag  { font-size:7px; color:var(--dim); letter-spacing:1px; display:block; margin-bottom:3px; }
+.stat-val  { font-size:1.2rem; font-weight:700; color:var(--teal); line-height:1; margin-bottom:3px; display:block; }
+.stat-label { font-size:9px; color:var(--dim); }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+@media(max-width:500px) { .grid-2 { grid-template-columns:1fr; } }
+.panel { background:var(--bg3); border:1px solid var(--border); margin-bottom:10px; }
+.panel-header { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--border); }
+.panel-title { font-size:9px; color:var(--teal); letter-spacing:2px; }
+.panel-sub   { font-size:8px; color:var(--dim); }
+.panel-body  { padding:10px 12px; }
+.type-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.type-label { font-size:9px; color:var(--dim); width:90px; flex-shrink:0; }
+.type-bar-wrap { flex:1; height:5px; background:rgba(255,255,255,0.05); overflow:hidden; }
+.type-bar-fill { height:100%; width:0; transition:width 0.6s ease; }
+.type-count { font-size:9px; color:var(--text); width:28px; text-align:right; }
+.ip-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); }
+.ip-row:last-child { border-bottom:none; }
+.ip-addr { font-size:10px; color:var(--text); }
+.ip-count { font-size:9px; color:var(--red); }
+.ping-row { display:flex; gap:6px; margin-bottom:8px; }
+.ping-input { flex:1; background:var(--bg); border:1px solid var(--border); color:#fff; font-family:'JetBrains Mono',monospace; font-size:10px; padding:7px 9px; outline:none; }
+.ping-input:focus { border-color:var(--teal-dim); }
+.ping-btn { background:transparent; border:1px solid var(--teal-dim); color:var(--teal); font-family:'JetBrains Mono',monospace; font-size:9px; padding:7px 12px; cursor:pointer; }
+.ping-result { font-size:9px; padding:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border); white-space:pre-wrap; display:none; }
+.ping-result.ok  { border-color:var(--teal-dim); color:var(--teal); }
+.ping-result.err { border-color:var(--red); color:var(--red); }
+.fw-filter-bar { display:flex; gap:5px; flex-wrap:wrap; padding:8px 12px; border-bottom:1px solid var(--border); }
+.fw-filter-btn { font-size:8px; padding:3px 8px; border:1px solid var(--border); color:var(--dim); background:transparent; cursor:pointer; letter-spacing:1px; font-family:'JetBrains Mono',monospace; }
+.fw-filter-btn.active { border-color:var(--teal-dim); color:var(--teal); background:var(--teal-dark); }
+.feed-header { display:grid; grid-template-columns:55px 100px 1fr 80px; gap:6px; padding:5px 12px; border-bottom:1px solid var(--border); font-size:8px; color:var(--dim); letter-spacing:1px; }
+.feed-item   { display:grid; grid-template-columns:55px 100px 1fr 80px; gap:6px; align-items:start; padding:7px 12px; border-bottom:1px solid rgba(15,42,53,0.5); }
+.feed-time,.feed-ip { font-size:9px; color:var(--dim); }
+.feed-path { font-size:9px; color:var(--text); }
+.payload-preview { font-size:8px; color:var(--dim); margin-top:2px; }
+.feed-type { font-size:8px; padding:2px 5px; text-align:center; }
+.feed-type.sqli,.feed-type.cmd_injection,.feed-type.path_traversal { background:rgba(255,51,102,0.1); color:var(--red); border:1px solid rgba(255,51,102,0.3); }
+.feed-type.xss,.feed-type.oversized_payload { background:rgba(255,170,0,0.1); color:var(--warn); border:1px solid rgba(255,170,0,0.3); }
+.feed-type.bad_origin,.feed-type.no_origin { background:rgba(0,168,255,0.1); color:#00a8ff; border:1px solid rgba(0,168,255,0.3); }
+.feed-type.bad_agent { background:rgba(0,245,196,0.1); color:var(--teal); border:1px solid rgba(0,245,196,0.3); }
+.alert-banner { background:rgba(255,51,102,0.08); border:1px solid var(--red); border-left:3px solid var(--red); padding:8px 12px; margin-bottom:12px; font-size:10px; color:var(--red); display:none; letter-spacing:1px; }
+
+/* ── INBOX STYLES ── */
+.broadcast-box { background:var(--bg3); border:1px solid var(--border); border-left:3px solid var(--warn); padding:12px; margin-bottom:12px; }
+.broadcast-label { font-size:8px; color:var(--dim); letter-spacing:2px; margin-bottom:7px; display:block; }
+.broadcast-area { width:100%; background:var(--bg); border:1px solid var(--border); color:#fff; font-family:'JetBrains Mono',monospace; font-size:11px; padding:9px; outline:none; resize:vertical; min-height:60px; }
+.broadcast-area:focus { border-color:var(--warn); }
+.broadcast-btn { width:100%; margin-top:8px; background:rgba(255,170,0,0.08); border:1px solid var(--warn); color:var(--warn); font-family:'JetBrains Mono',monospace; font-size:10px; padding:10px; cursor:pointer; letter-spacing:2px; }
+.broadcast-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.status-msg { font-size:9px; margin-top:5px; display:none; }
+.status-msg.ok  { color:var(--green); }
+.status-msg.err { color:var(--red); }
+.thread-item { background:var(--bg3); border:1px solid var(--border); padding:10px 12px; margin-bottom:5px; cursor:pointer; }
+.thread-item.unread { border-left:3px solid var(--teal); }
+.thread-header { display:flex; justify-content:space-between; margin-bottom:3px; }
+.thread-from { font-size:11px; color:#fff; display:flex; align-items:center; gap:5px; }
+.thread-time { font-size:8px; color:var(--dim); }
+.thread-subject { font-size:11px; color:var(--text); margin-bottom:2px; }
+.thread-preview { font-size:9px; color:var(--dim); }
+.unread-dot { width:5px; height:5px; border-radius:50%; background:var(--teal); flex-shrink:0; }
+.conv-view { display:none; }
+.conv-view.open { display:flex; flex-direction:column; }
+.conv-header-bar { display:flex; align-items:center; gap:8px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.conv-back { background:transparent; border:1px solid var(--border); color:var(--dim); font-family:'JetBrains Mono',monospace; font-size:9px; padding:4px 8px; cursor:pointer; }
+.conv-title-text { font-size:10px; color:var(--teal); flex:1; letter-spacing:1px; }
+.conv-user-text  { font-size:9px; color:var(--dim); }
+.conv-bubbles { background:var(--bg); border:1px solid var(--border); padding:10px; min-height:160px; max-height:300px; overflow-y:auto; margin-bottom:8px; display:flex; flex-direction:column; gap:7px; }
+.bubble { padding:7px 10px; max-width:85%; font-size:12px; line-height:1.5; }
+.bubble.from-user  { background:rgba(0,245,196,0.05); border:1px solid rgba(0,245,196,0.15); align-self:flex-start; }
+.bubble.from-admin { background:rgba(255,170,0,0.05); border:1px solid rgba(255,170,0,0.2); align-self:flex-end; }
+.bubble-meta { font-size:8px; color:var(--dim); margin-bottom:3px; }
+.conv-input-row { display:flex; gap:6px; }
+.reply-input { flex:1; background:var(--bg); border:1px solid var(--border); color:#fff; font-family:'JetBrains Mono',monospace; font-size:11px; padding:9px; outline:none; }
+.reply-input:focus { border-color:var(--teal-dim); }
+.send-btn { background:var(--teal-dark); border:1px solid var(--teal-dim); color:var(--teal); font-family:'JetBrains Mono',monospace; font-size:9px; padding:9px 12px; cursor:pointer; }
+#inbox-toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg3); border:1px solid var(--teal); color:var(--teal); font-size:10px; padding:7px 14px; opacity:0; transition:all 0.3s; pointer-events:none; z-index:2000; white-space:nowrap; }
+#inbox-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.tab-badge { background:var(--red); color:#fff; font-size:7px; padding:1px 4px; border-radius:8px; margin-left:4px; }
 </style>
 </head>
 <body>
@@ -320,11 +407,13 @@ body::before {
   <div class="tabs">
     <div class="tab active" data-tab="engines">ENGINES</div>
     <div class="tab" data-tab="rotation">ROTATION</div>
-    <div class="tab" data-tab="sandbox">SANDBOX</div>
+    <div class="tab" data-tab="htmlcreator">HTML CREATOR</div>
     <div class="tab" data-tab="users">USERS</div>
     <div class="tab" data-tab="logs">LOGS</div>
     <div class="tab" data-tab="failures">FAILURES</div>
     <div class="tab" data-tab="leaderboard">SPEED</div>
+    <div class="tab" data-tab="firewall">⚔ FIREWALL</div>
+    <div class="tab" data-tab="inbox" id="tab-inbox-btn">✉ INBOX <span class="tab-badge" id="unread-badge" style="display:none">0</span></div>
   </div>
 
   <div id="content">
@@ -361,72 +450,76 @@ body::before {
       <div id="engines-list"><div class="loading">LOADING PROVIDERS...</div></div>
     </div>
 
-    <!-- SANDBOX TAB -->
-    <div class="section" id="tab-sandbox">
+    <!-- HTML CREATOR TAB -->
+    <div class="section" id="tab-htmlcreator">
 
-      <!-- POST NEW SANDBOX -->
-      <div class="post-form">
-        <div class="post-form-title">⚔ POST NEW SANDBOX LAB</div>
-
-        <div class="post-field">
-          <label class="post-label">LAB TITLE</label>
-          <input class="post-input" id="sb-title" placeholder="e.g. OSINT Image Attack" maxlength="80">
+      <!-- MODE TOGGLE: AI Generate vs Paste & Convert -->
+      <div class="mode-bar">
+        <div class="mode-bar-title">CREATION MODE</div>
+        <div class="mode-btns">
+          <div class="mode-btn active" id="hc-mode-ai" onclick="setHCMode('ai')">⚡ AI GENERATE</div>
+          <div class="mode-btn" id="hc-mode-paste" onclick="setHCMode('paste')">📋 PASTE & CONVERT</div>
         </div>
-
-        <div class="post-field">
-          <label class="post-label">DESCRIPTION (shown on arena card)</label>
-          <input class="post-input" id="sb-desc" placeholder="e.g. Watch CIPHER extract GPS from photos..." maxlength="200">
-        </div>
-
-        <div class="post-row">
-          <div class="post-field">
-            <label class="post-label">ATTACK TYPE</label>
-            <select class="post-select" id="sb-type">
-              <option value="OSINT">OSINT</option>
-              <option value="XSS">XSS</option>
-              <option value="SQLI">SQLi</option>
-              <option value="IDOR">IDOR</option>
-              <option value="AUTH">AUTH BYPASS</option>
-              <option value="RCE">RCE</option>
-              <option value="CSRF">CSRF</option>
-              <option value="RECON">RECON</option>
-            </select>
-          </div>
-          <div class="post-field">
-            <label class="post-label">DIFFICULTY</label>
-            <select class="post-select" id="sb-diff">
-              <option value="easy">EASY</option>
-              <option value="medium">MEDIUM</option>
-              <option value="hard">HARD</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="post-row">
-          <div class="post-field">
-            <label class="post-label">VC COST (entry fee)</label>
-            <input class="post-input" id="sb-cost" type="number" value="50" min="0" max="999">
-          </div>
-          <div class="post-field">
-            <label class="post-label">DURATION LABEL</label>
-            <input class="post-input" id="sb-duration" placeholder="~8 MIN" maxlength="20">
-          </div>
-        </div>
-
-        <div class="post-field">
-          <label class="post-label">LAB URL — GitHub Pages URL of the lab (will be iframed)</label>
-          <input class="post-input" id="sb-url" type="url"
-            placeholder="https://genesisvault8-beep.github.io/lab-name.html">
-        </div>
-
-        <button class="post-submit-btn" id="sb-submit-btn" onclick="postSandbox()">[ POST SANDBOX TO ARENA ]</button>
-        <div class="post-feedback" id="sb-feedback"></div>
       </div>
 
-      <!-- POSTED SANDBOXES LIST -->
-      <div class="section-title" style="margin-top:16px;">ACTIVE SANDBOXES</div>
-      <button class="refresh-btn" onclick="loadPostedSandboxes()">↻ REFRESH LIST</button>
-      <div class="posted-list" id="posted-list"><div class="loading">LOADING...</div></div>
+      <!-- AI GENERATE MODE -->
+      <div id="hc-ai-panel">
+        <div class="post-form">
+          <div class="post-form-title">⚡ AI HTML GENERATOR</div>
+          <div class="post-field">
+            <label class="post-label">FILENAME</label>
+            <input class="post-input" id="hc-filename" placeholder="my-tool.html" maxlength="60">
+          </div>
+          <div class="post-field">
+            <label class="post-label">DESCRIBE WHAT YOU WANT TO BUILD</label>
+            <textarea class="post-textarea" id="hc-prompt" placeholder="e.g. A phishing awareness quiz tool with 5 questions, score tracking, and a results screen. Dark theme."></textarea>
+          </div>
+          <button class="post-submit-btn" id="hc-generate-btn" onclick="hcGenerate()">[ GENERATE HTML ]</button>
+          <div class="post-feedback" id="hc-gen-feedback"></div>
+        </div>
+      </div>
+
+      <!-- PASTE & CONVERT MODE -->
+      <div id="hc-paste-panel" style="display:none;">
+        <div class="post-form">
+          <div class="post-form-title">📋 PASTE HTML → DOWNLOAD</div>
+          <div class="post-field">
+            <label class="post-label">FILENAME</label>
+            <input class="post-input" id="hc-paste-filename" placeholder="my-file.html" maxlength="60">
+          </div>
+          <div class="post-field">
+            <label class="post-label">PASTE YOUR HTML BELOW</label>
+            <textarea class="post-textarea" id="hc-paste-input" placeholder="Paste any HTML here..." style="min-height:200px;font-size:9px;"></textarea>
+          </div>
+          <button class="post-submit-btn" onclick="hcPasteDownload()">[ CONVERT TO DOWNLOAD ]</button>
+        </div>
+      </div>
+
+      <!-- OUTPUT AREA -->
+      <div id="hc-output-area" style="display:none;">
+        <div class="section-title" style="margin-top:4px;">OUTPUT</div>
+        <div class="test-bench" style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div class="test-bench-title" id="hc-output-label">GENERATED FILE</div>
+            <button class="test-send-btn" onclick="hcDownload()">⬇ DOWNLOAD</button>
+          </div>
+          <textarea id="hc-output-code" class="post-textarea" style="min-height:220px;font-size:9px;" spellcheck="false"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="refresh-btn" style="margin-bottom:0;flex:1;" onclick="hcPreview()">👁 PREVIEW</button>
+            <button class="refresh-btn" style="margin-bottom:0;flex:1;" onclick="hcDownload()">⬇ DOWNLOAD</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVIEW IFRAME -->
+      <div id="hc-preview-area" style="display:none;">
+        <div class="section-title">LIVE PREVIEW</div>
+        <div style="border:1px solid var(--teal-dark);margin-bottom:14px;position:relative;">
+          <iframe id="hc-preview-frame" style="width:100%;height:320px;border:none;background:#fff;"></iframe>
+        </div>
+        <button class="refresh-btn" onclick="document.getElementById('hc-preview-area').style.display='none'">✕ CLOSE PREVIEW</button>
+      </div>
+
     </div>
 
     <!-- ROTATION TAB -->
@@ -462,6 +555,112 @@ body::before {
       <div class="section-title">SPEED LEADERBOARD</div>
       <button class="run-leaderboard-btn" onclick="runLeaderboard()">⚡ RUN SPEED TEST ALL PROVIDERS</button>
       <div id="leaderboard-list"><div class="empty">RUN SPEED TEST TO SEE RANKINGS</div></div>
+    </div>
+
+    <!-- FIREWALL TAB -->
+    <div class="section" id="tab-firewall">
+      <div class="alert-banner" id="fw-alert-banner">⚠ ALERT — HIGH ATTACK VOLUME DETECTED IN LAST 24H</div>
+      <div class="stats-row">
+        <div class="stat-card red">
+          <span class="stat-tag">// total</span>
+          <span class="stat-val" id="s-total">—</span>
+          <span class="stat-label">Blocked</span>
+        </div>
+        <div class="stat-card warn">
+          <span class="stat-tag">// last 24h</span>
+          <span class="stat-val" id="s-24h">—</span>
+          <span class="stat-label">Recent Attacks</span>
+        </div>
+        <div class="stat-card blue">
+          <span class="stat-tag">// top threat</span>
+          <span class="stat-val" id="s-top-type" style="font-size:0.85rem;padding-top:5px;">—</span>
+          <span class="stat-label">Dominant Attack</span>
+        </div>
+        <div class="stat-card red">
+          <span class="stat-tag">// top attacker</span>
+          <span class="stat-val" id="s-top-ip" style="font-size:0.75rem;padding-top:6px;">—</span>
+          <span class="stat-label">Most Active IP</span>
+        </div>
+        <div class="stat-card green">
+          <span class="stat-tag">// backend</span>
+          <span class="stat-val" id="s-backend" style="font-size:0.85rem;padding-top:5px;">—</span>
+          <span class="stat-label">API Status</span>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// Attack Type Breakdown</span><span class="panel-sub">by volume</span></div>
+          <div class="panel-body" id="fw-type-breakdown"><div class="loading">No data yet</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">// Top Attacking IPs</span><span class="panel-sub">most blocked</span></div>
+          <div class="panel-body" id="fw-top-ips"><div class="loading">No data yet</div></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:10px;">
+        <div class="panel-header"><span class="panel-title">// Backend Ping Checker</span><span class="panel-sub">test if endpoint is live</span></div>
+        <div class="panel-body">
+          <div class="ping-row">
+            <input class="ping-input" type="text" id="fw-ping-url" value="https://youngbill44.pythonanywhere.com/api/ping" placeholder="URL to ping"/>
+            <button class="ping-btn" onclick="fwDoPing()">[ PING ]</button>
+          </div>
+          <div class="ping-result" id="fw-ping-result"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-header"><span class="panel-title">// Live Block Feed</span><span class="panel-sub" id="fw-feed-count">0 entries</span></div>
+        <div class="fw-filter-bar">
+          <button class="fw-filter-btn active" onclick="fwFilter('all',this)">ALL</button>
+          <button class="fw-filter-btn" onclick="fwFilter('sqli',this)">SQLi</button>
+          <button class="fw-filter-btn" onclick="fwFilter('xss',this)">XSS</button>
+          <button class="fw-filter-btn" onclick="fwFilter('bad_origin',this)">BAD ORIGIN</button>
+          <button class="fw-filter-btn" onclick="fwFilter('no_origin',this)">NO ORIGIN</button>
+          <button class="fw-filter-btn" onclick="fwFilter('bad_agent',this)">BAD AGENT</button>
+          <button class="fw-filter-btn" onclick="fwFilter('path_traversal',this)">PATH TRAV</button>
+          <button class="fw-filter-btn" onclick="fwFilter('cmd_injection',this)">CMD INJ</button>
+        </div>
+        <div class="feed-header"><span>TIME</span><span>IP</span><span>PATH / ATTACK</span><span>TYPE</span></div>
+        <div id="fw-live-feed"><div class="loading">Loading feed...</div></div>
+      </div>
+    </div>
+
+    <!-- INBOX TAB -->
+    <div class="section" id="tab-inbox">
+
+      <div class="broadcast-box">
+        <span class="broadcast-label">// BROADCAST TO ALL MEMBERS</span>
+        <textarea class="broadcast-area" id="broadcast-msg" placeholder="// Type your announcement here..."></textarea>
+        <div class="status-msg" id="broadcast-status"></div>
+        <button class="broadcast-btn" id="btn-broadcast" onclick="sendBroadcast()">[ BROADCAST TO ALL ]</button>
+      </div>
+
+      <div id="inbox-view">
+        <div class="panel-header" style="margin-bottom:8px;padding:0;">
+          <span class="panel-title">// USER MESSAGES</span>
+          <div style="display:flex;gap:5px;">
+            <button class="fw-filter-btn active" onclick="inboxSetFilter('all',this)">ALL</button>
+            <button class="fw-filter-btn" onclick="inboxSetFilter('unread',this)">UNREAD</button>
+          </div>
+        </div>
+        <div id="threads-list"><div class="loading">Loading inbox...</div></div>
+      </div>
+
+      <div class="conv-view" id="conv-view" style="margin-bottom:14px;">
+        <div class="conv-header-bar">
+          <button class="conv-back" onclick="closeConv()">← BACK</button>
+          <div class="conv-title-text" id="conv-title">// THREAD</div>
+          <div class="conv-user-text" id="conv-user"></div>
+        </div>
+        <div class="conv-bubbles" id="conv-bubbles"></div>
+        <div class="conv-input-row">
+          <input class="reply-input" type="text" id="reply-input" placeholder="// Type your reply..." onkeydown="if(event.key==='Enter')sendReply()"/>
+          <button class="send-btn" onclick="sendReply()">[ REPLY ]</button>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -566,7 +765,9 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (t === 'rotation') { document.getElementById('status-left').textContent = 'KEY ROTATION'; loadRotation(); }
     if (t === 'leaderboard') { document.getElementById('status-left').textContent = 'SPEED TEST'; }
     if (t === 'engines') { document.getElementById('status-left').textContent = `MODE: ${currentMode.toUpperCase()}`; }
-    if (t === 'sandbox') { document.getElementById('status-left').textContent = 'SANDBOX MANAGER'; loadPostedSandboxes(); }
+    if (t === 'htmlcreator') { document.getElementById('status-left').textContent = 'HTML CREATOR'; }
+    if (t === 'firewall') { document.getElementById('status-left').textContent = 'FIREWALL MONITOR'; loadFirewall(); }
+    if (t === 'inbox')    { document.getElementById('status-left').textContent = 'INBOX'; loadInbox(); }
   });
 });
 
@@ -932,21 +1133,111 @@ async function runLeaderboard() {
   });
 
   setStatus('SPEED TEST COMPLETE');
-}// ── SANDBOX POSTING ──
+}
+
+// ── HTML CREATOR ──
+let hcCurrentFilename = 'output.html';
+let hcCurrentCode = '';
+
+function setHCMode(mode) {
+  document.getElementById('hc-mode-ai').classList.toggle('active', mode === 'ai');
+  document.getElementById('hc-mode-paste').classList.toggle('active', mode === 'paste');
+  document.getElementById('hc-ai-panel').style.display = mode === 'ai' ? 'block' : 'none';
+  document.getElementById('hc-paste-panel').style.display = mode === 'paste' ? 'block' : 'none';
+}
+
+async function hcGenerate() {
+  const prompt   = document.getElementById('hc-prompt').value.trim();
+  const filename = document.getElementById('hc-filename').value.trim() || 'tool.html';
+  const btn      = document.getElementById('hc-generate-btn');
+  const feedback = document.getElementById('hc-gen-feedback');
+
+  if (!prompt) { feedback.textContent = 'DESCRIBE WHAT YOU WANT TO BUILD'; feedback.className = 'post-feedback err'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '[ GENERATING... ]';
+  feedback.textContent = 'AI IS WRITING YOUR HTML...';
+  feedback.className = 'post-feedback ok';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are an expert HTML developer. The user will describe a tool or page they want. 
+You must respond with ONLY the complete, working HTML code — no explanation, no markdown, no backticks. 
+Output raw HTML starting with <!DOCTYPE html>. 
+Make it fully self-contained with all CSS and JS inline. 
+Make it visually polished and functional.`,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const html = data.content.map(b => b.text || '').join('');
+    // Strip any accidental backticks
+    const clean = html.replace(/^```html?\n?/i, '').replace(/```$/,'').trim();
+
+    hcCurrentCode = clean;
+    hcCurrentFilename = filename.endsWith('.html') ? filename : filename + '.html';
+
+    document.getElementById('hc-output-code').value = clean;
+    document.getElementById('hc-output-label').textContent = '📄 ' + hcCurrentFilename;
+    document.getElementById('hc-output-area').style.display = 'block';
+    document.getElementById('hc-preview-area').style.display = 'none';
+
+    feedback.textContent = '✓ HTML GENERATED — EDIT, PREVIEW OR DOWNLOAD BELOW';
+    feedback.className = 'post-feedback ok';
+  } catch(e) {
+    feedback.textContent = 'ERROR: ' + e.message;
+    feedback.className = 'post-feedback err';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '[ GENERATE HTML ]';
+}
+
+function hcPasteDownload() {
+  const code     = document.getElementById('hc-paste-input').value.trim();
+  const filename = document.getElementById('hc-paste-filename').value.trim() || 'file.html';
+  if (!code) return;
+  hcCurrentCode = code;
+  hcCurrentFilename = filename.endsWith('.html') ? filename : filename + '.html';
+  document.getElementById('hc-output-code').value = code;
+  document.getElementById('hc-output-label').textContent = '📄 ' + hcCurrentFilename;
+  document.getElementById('hc-output-area').style.display = 'block';
+  document.getElementById('hc-preview-area').style.display = 'none';
+}
+
+function hcDownload() {
+  const code     = document.getElementById('hc-output-code').value;
+  const filename = hcCurrentFilename || 'output.html';
+  const blob     = new Blob([code], { type: 'text/html' });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  setStatus('DOWNLOADED: ' + filename);
+}
+
+function hcPreview() {
+  const code  = document.getElementById('hc-output-code').value;
+  const frame = document.getElementById('hc-preview-frame');
+  document.getElementById('hc-preview-area').style.display = 'block';
+  frame.srcdoc = code;
+}
+
+// ── (legacy stub kept so nothing breaks) ──
 async function postSandbox() {
   const btn      = document.getElementById('sb-submit-btn');
   const feedback = document.getElementById('sb-feedback');
-  const title    = document.getElementById('sb-title').value.trim();
-  const desc     = document.getElementById('sb-desc').value.trim();
-  const type     = document.getElementById('sb-type').value;
-  const diff     = document.getElementById('sb-diff').value;
-  const cost     = parseInt(document.getElementById('sb-cost').value) || 50;
-  const duration = document.getElementById('sb-duration').value.trim() || '~8 MIN';
-  const labUrl   = document.getElementById('sb-url').value.trim();
+  const title    = '';
+  const labUrl   = '';
 
-  if (!title) { showFeedback('TITLE REQUIRED', false); return; }
-  if (!labUrl) { showFeedback('LAB URL REQUIRED', false); return; }
-  if (!labUrl.startsWith('http')) { showFeedback('ENTER A VALID URL', false); return; }
+  if (!title) { return; }
+  if (!labUrl) { return; }
+  if (!labUrl.startsWith('http')) { return; }
 
   btn.disabled = true;
   btn.textContent = '[ POSTING... ]';
@@ -1035,6 +1326,277 @@ async function deleteSandbox(id, btn) {
     btn.textContent = 'ERR';
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// FIREWALL
+// ══════════════════════════════════════════════════════════════════════
+const MAIN_API = 'https://youngbill44.pythonanywhere.com';
+let fwAllLogs = [];
+let fwActiveFilter = 'all';
+
+async function loadFirewall() {
+  await Promise.all([loadFirewallStats(), loadFWLogs(), checkBackend()]);
+}
+
+async function loadFirewallStats() {
+  try {
+    const res  = await fetch(`${MAIN_API}/api/admin/firewall/stats`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const s = data.stats;
+    document.getElementById('s-total').textContent    = s.total_blocked ?? 0;
+    document.getElementById('s-24h').textContent      = s.last_24h ?? 0;
+    const byType = s.by_attack_type || {};
+    const topType = Object.entries(byType).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('s-top-type').textContent = topType ? topType[0].toUpperCase() : 'NONE';
+    const topIp = (s.top_ips||[])[0];
+    document.getElementById('s-top-ip').textContent   = topIp ? topIp.ip : 'NONE';
+    document.getElementById('fw-alert-banner').style.display = (s.last_24h >= 10) ? 'block' : 'none';
+    renderFWTypeBreakdown(byType, s.total_blocked);
+    renderFWTopIPs(s.top_ips || []);
+    document.getElementById('s-backend').textContent  = 'ONLINE';
+    document.getElementById('s-backend').style.color  = 'var(--teal)';
+  } catch(e) {
+    document.getElementById('s-backend').textContent = 'ERROR';
+    document.getElementById('s-backend').style.color = 'var(--red)';
+  }
+}
+
+function renderFWTypeBreakdown(byType, total) {
+  const el = document.getElementById('fw-type-breakdown');
+  if (!Object.keys(byType).length) { el.innerHTML='<div class="loading">No attacks logged</div>'; return; }
+  const colors = { sqli:'#ff3366', xss:'#ffaa00', bad_origin:'#00a8ff', no_origin:'#00a8ff', bad_agent:'#00f5c4', path_traversal:'#ff3366', cmd_injection:'#ff3366', oversized_payload:'#ffaa00' };
+  const sorted = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0][1];
+  el.innerHTML = sorted.map(([type,count]) => `
+    <div class="type-row">
+      <span class="type-label">${type.replace(/_/g,' ')}</span>
+      <div class="type-bar-wrap"><div class="type-bar-fill" data-pct="${(count/max*100).toFixed(1)}" style="background:${colors[type]||'#4a7a8a'}"></div></div>
+      <span class="type-count">${count}</span>
+    </div>`).join('');
+  setTimeout(() => { document.querySelectorAll('.type-bar-fill').forEach(e => e.style.width = e.dataset.pct+'%'); }, 50);
+}
+
+function renderFWTopIPs(ips) {
+  const el = document.getElementById('fw-top-ips');
+  if (!ips.length) { el.innerHTML='<div class="loading">No IPs logged</div>'; return; }
+  el.innerHTML = ips.map((item,i) => `<div class="ip-row"><span class="ip-addr">${i+1}. ${esc(item.ip)}</span><span class="ip-count">${item.count} hits</span></div>`).join('');
+}
+
+async function loadFWLogs() {
+  try {
+    const res  = await fetch(`${MAIN_API}/api/admin/firewall/logs?limit=200`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    if (!res.ok) return;
+    const data = await res.json();
+    fwAllLogs = data.logs || [];
+    renderFWFeed(fwAllLogs);
+  } catch(e) {}
+}
+
+function renderFWFeed(logs) {
+  const filtered = fwActiveFilter === 'all' ? logs : logs.filter(l => l.attack_type === fwActiveFilter);
+  document.getElementById('fw-feed-count').textContent = `${filtered.length} entries`;
+  const feed = document.getElementById('fw-live-feed');
+  if (!filtered.length) { feed.innerHTML=`<div class="loading">${fwActiveFilter==='all'?'No attacks recorded yet.':`No "${fwActiveFilter}" attacks.`}</div>`; return; }
+  feed.innerHTML = filtered.map(log => `
+    <div class="feed-item">
+      <span class="feed-time">${fwFmtTime(log.blocked_at)}</span>
+      <span class="feed-ip">${esc(log.ip||'—')}</span>
+      <div>
+        <div class="feed-path">${esc((log.method||'GET')+' '+(log.path||'/'))}</div>
+        ${log.payload_snippet?`<div class="payload-preview">${esc((log.payload_snippet||'').slice(0,100))}</div>`:''}
+      </div>
+      <span class="feed-type ${log.attack_type||''}">${esc((log.attack_type||'unknown').replace(/_/g,' '))}</span>
+    </div>`).join('');
+}
+
+function fwFilter(type, btn) {
+  fwActiveFilter = type;
+  document.querySelectorAll('.fw-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFWFeed(fwAllLogs);
+}
+
+async function checkBackend() {
+  try {
+    const t0 = Date.now();
+    const res = await fetch(`${MAIN_API}/api/ping`);
+    document.getElementById('s-backend').textContent = res.ok ? 'ONLINE' : 'DOWN';
+    document.getElementById('s-backend').style.color = res.ok ? 'var(--teal)' : 'var(--red)';
+  } catch(e) {
+    document.getElementById('s-backend').textContent = 'DOWN';
+    document.getElementById('s-backend').style.color = 'var(--red)';
+  }
+}
+
+async function fwDoPing() {
+  const url = document.getElementById('fw-ping-url').value.trim();
+  if (!url) return;
+  const el = document.getElementById('fw-ping-result');
+  el.style.display='block'; el.className='ping-result'; el.textContent='> Pinging...';
+  try {
+    const t0 = Date.now();
+    const res = await fetch(url, { mode:'cors' });
+    const ms  = Date.now() - t0;
+    const body = await res.text();
+    el.className = `ping-result ${res.ok?'ok':'err'}`;
+    el.textContent = `> HTTP ${res.status} — ${ms}ms\n> ${body.slice(0,120)}`;
+  } catch(e) {
+    el.className='ping-result err';
+    el.textContent=`> CONNECTION FAILED\n> ${e.message}`;
+  }
+}
+
+function fwFmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// INBOX
+// ══════════════════════════════════════════════════════════════════════
+let allThreads = [];
+let inboxFilter = 'all';
+let activeThread = null;
+
+async function loadInbox() {
+  document.getElementById('threads-list').innerHTML = '<div class="loading">Loading inbox...</div>';
+  try {
+    const res  = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    const data = await res.json();
+    allThreads = data.threads || data.messages || [];
+    const unread = allThreads.filter(t => t.unread).length;
+    const badge = document.getElementById('unread-badge');
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? 'inline' : 'none';
+    renderThreads();
+  } catch(e) {
+    document.getElementById('threads-list').innerHTML = `<div class="loading">ERROR: ${esc(e.message)}</div>`;
+  }
+}
+
+function inboxSetFilter(f, btn) {
+  inboxFilter = f;
+  document.querySelectorAll('#inbox-view .fw-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderThreads();
+}
+
+function renderThreads() {
+  const list = document.getElementById('threads-list');
+  const filtered = inboxFilter === 'unread' ? allThreads.filter(t => t.unread) : allThreads;
+  if (!filtered.length) { list.innerHTML = '<div class="loading">No messages</div>'; return; }
+  list.innerHTML = '';
+  filtered.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'thread-item' + (t.unread ? ' unread' : '');
+    div.innerHTML = `
+      <div class="thread-header">
+        <span class="thread-from">${t.unread?'<span class="unread-dot"></span>':''}${esc(t.username||t.from||'User')}</span>
+        <span class="thread-time">${t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</span>
+      </div>
+      <div class="thread-subject">${esc(t.subject||'Message')}</div>
+      <div class="thread-preview">${esc((t.last_message||t.preview||'').slice(0,80))}</div>`;
+    div.onclick = () => openConv(t);
+    list.appendChild(div);
+  });
+}
+
+function openConv(thread) {
+  activeThread = thread;
+  document.getElementById('inbox-view').style.display = 'none';
+  const conv = document.getElementById('conv-view');
+  conv.classList.add('open');
+  document.getElementById('conv-title').textContent = '// ' + (thread.subject || 'THREAD');
+  document.getElementById('conv-user').textContent  = thread.username || '';
+  const bubbles = document.getElementById('conv-bubbles');
+  const msgs = thread.messages || [];
+  if (!msgs.length) { bubbles.innerHTML = '<div class="loading">No messages in thread</div>'; return; }
+  bubbles.innerHTML = '';
+  msgs.forEach(m => {
+    const b = document.createElement('div');
+    b.className = 'bubble ' + (m.from_admin ? 'from-admin' : 'from-user');
+    b.innerHTML = `<div class="bubble-meta">${m.from_admin?'ADMIN':'USER'} · ${m.created_at?new Date(m.created_at).toLocaleString():''}</div>${esc(m.content||m.text||'')}`;
+    bubbles.appendChild(b);
+  });
+  bubbles.scrollTop = bubbles.scrollHeight;
+}
+
+function closeConv() {
+  activeThread = null;
+  document.getElementById('conv-view').classList.remove('open');
+  document.getElementById('inbox-view').style.display = 'block';
+}
+
+async function sendReply() {
+  if (!activeThread) return;
+  const input = document.getElementById('reply-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  try {
+    await fetch(`${MAIN_API}/api/admin/messages/${activeThread.id}/reply`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    });
+    const bubbles = document.getElementById('conv-bubbles');
+    const b = document.createElement('div');
+    b.className = 'bubble from-admin';
+    b.innerHTML = `<div class="bubble-meta">ADMIN · just now</div>${esc(text)}`;
+    bubbles.appendChild(b);
+    bubbles.scrollTop = bubbles.scrollHeight;
+    inboxToast('REPLY SENT');
+  } catch(e) { inboxToast('SEND FAILED'); }
+}
+
+async function sendBroadcast() {
+  const msg  = document.getElementById('broadcast-msg').value.trim();
+  const btn  = document.getElementById('btn-broadcast');
+  const stat = document.getElementById('broadcast-status');
+  if (!msg) return;
+  btn.disabled = true; btn.textContent = '[ SENDING... ]';
+  try {
+    const res = await fetch(`${MAIN_API}/api/admin/broadcast`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    });
+    stat.className = 'status-msg ' + (res.ok ? 'ok' : 'err');
+    stat.textContent = res.ok ? '✓ BROADCAST SENT TO ALL MEMBERS' : '✗ BROADCAST FAILED';
+    stat.style.display = 'block';
+    if (res.ok) document.getElementById('broadcast-msg').value = '';
+    setTimeout(() => stat.style.display = 'none', 3000);
+  } catch(e) {
+    stat.className = 'status-msg err';
+    stat.textContent = '✗ ERROR: ' + e.message;
+    stat.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = '[ BROADCAST TO ALL ]';
+}
+
+function inboxToast(msg) {
+  let t = document.getElementById('inbox-toast');
+  if (!t) { t = document.createElement('div'); t.id='inbox-toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Load inbox badge count on init
+const _origInit = window.onload;
+window.addEventListener('load', () => {
+  setTimeout(async () => {
+    if (!adminToken) return;
+    try {
+      const res = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+      const data = await res.json();
+      const threads = data.threads || data.messages || [];
+      const unread = threads.filter(t => t.unread).length;
+      if (unread > 0) { const b = document.getElementById('unread-badge'); b.textContent = unread; b.style.display = 'inline'; }
+    } catch(e) {}
+  }, 2000);
+});
 </script>
 </body>
 </html>
