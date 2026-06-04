@@ -386,8 +386,10 @@ body::before {
   <div class="auth-logo">GENESIS VAULT</div>
   <div class="auth-sub">// ADMIN AI CONTROL //</div>
   <div class="auth-box">
-    <label class="auth-label">ADMIN TOKEN</label>
-    <input type="password" class="auth-input" id="token-input" placeholder="paste your admin token..." autocomplete="off">
+    <label class="auth-label">AI ENGINE TOKEN (Vercel)</label>
+    <input type="password" class="auth-input" id="token-input" placeholder="Vercel admin token..." autocomplete="off">
+    <label class="auth-label" style="margin-top:10px;">MAIN BACKEND TOKEN (PythonAnywhere)</label>
+    <input type="password" class="auth-input" id="main-token-input" placeholder="PythonAnywhere admin token..." autocomplete="off">
     <button class="auth-btn" id="auth-btn">AUTHENTICATE</button>
     <div class="auth-err" id="auth-err"></div>
   </div>
@@ -677,7 +679,7 @@ body::before {
 const AI_URL   = 'https://genesis-ai-backend-wheat.vercel.app';
 const MAIN_API = 'https://youngbill44.pythonanywhere.com';
 let adminToken = ''; // Vercel token — for AI engine endpoints
-let mainToken  = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token') || ''; // PythonAnywhere token
+let mainToken  = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token') || sessionStorage.getItem('admin_token') || '';
 let currentMode = 'auto';
 let activeEngine = null;
 
@@ -703,8 +705,10 @@ document.getElementById('auth-btn').addEventListener('click', authenticate);
 document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') authenticate(); });
 
 async function authenticate() {
-  const token = document.getElementById('token-input').value.trim();
-  if (!token) return showErr('TOKEN REQUIRED');
+  const token     = document.getElementById('token-input').value.trim();
+  const mainTok   = document.getElementById('main-token-input').value.trim();
+  if (!token) return showErr('AI ENGINE TOKEN REQUIRED');
+  if (!mainTok) return showErr('MAIN BACKEND TOKEN REQUIRED');
   document.getElementById('auth-btn').textContent = 'VERIFYING...';
   document.getElementById('auth-err').textContent = '';
   try {
@@ -713,14 +717,17 @@ async function authenticate() {
       signal: AbortSignal.timeout(15000)
     });
     if (res.status === 401) {
-      showErr('INVALID TOKEN. ACCESS DENIED.');
+      showErr('INVALID AI TOKEN. ACCESS DENIED.');
       document.getElementById('auth-btn').textContent = 'AUTHENTICATE';
       return;
     }
     const data = await res.json();
     if (data.providers) {
       adminToken = token;
+      mainToken  = mainTok;
       sessionStorage.setItem('admin_token', token);
+      sessionStorage.setItem('gv_admin_token', mainTok);
+      localStorage.setItem('gv_admin_token', mainTok);
       currentMode = data.mode || 'auto';
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('main-ui').style.display = 'flex';
@@ -741,8 +748,13 @@ async function authenticate() {
 function showErr(msg) { document.getElementById('auth-err').textContent = msg; }
 
 window.addEventListener('load', () => {
-  const saved = sessionStorage.getItem('admin_token');
-  if (saved) { document.getElementById('token-input').value = saved; authenticate(); }
+  const saved     = sessionStorage.getItem('admin_token');
+  const savedMain = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token');
+  if (saved && savedMain) {
+    document.getElementById('token-input').value = saved;
+    document.getElementById('main-token-input').value = savedMain;
+    authenticate();
+  }
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
