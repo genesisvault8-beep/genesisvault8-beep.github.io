@@ -1160,24 +1160,15 @@ async function hcGenerate() {
   feedback.className = 'post-feedback ok';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(`${AI_URL}/admin/generate-html`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `You are an expert HTML developer. The user will describe a tool or page they want. 
-You must respond with ONLY the complete, working HTML code — no explanation, no markdown, no backticks. 
-Output raw HTML starting with <!DOCTYPE html>. 
-Make it fully self-contained with all CSS and JS inline. 
-Make it visually polished and functional.`,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+      body: JSON.stringify({ prompt })
     });
+    if (res.status === 401) { logout401(); return; }
     const data = await res.json();
-    const html = data.content.map(b => b.text || '').join('');
-    // Strip any accidental backticks
-    const clean = html.replace(/^```html?\n?/i, '').replace(/```$/,'').trim();
+    if (data.error) throw new Error(data.error);
+    const clean = data.html;
 
     hcCurrentCode = clean;
     hcCurrentFilename = filename.endsWith('.html') ? filename : filename + '.html';
