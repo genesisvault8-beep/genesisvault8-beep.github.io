@@ -1456,7 +1456,7 @@ async function loadInbox() {
   try {
     const res  = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
     const data = await res.json();
-    allThreads = data.threads || data.messages || [];
+    allThreads = data.threads || [];
     const unread = allThreads.filter(t => t.unread).length;
     const badge = document.getElementById('unread-badge');
     badge.textContent = unread;
@@ -1484,17 +1484,17 @@ function renderThreads() {
     div.className = 'thread-item' + (t.unread ? ' unread' : '');
     div.innerHTML = `
       <div class="thread-header">
-        <span class="thread-from">${t.unread?'<span class="unread-dot"></span>':''}${esc(t.username||t.from||'User')}</span>
-        <span class="thread-time">${t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</span>
+        <span class="thread-from">${t.unread?'<span class="unread-dot"></span>':''}${esc(t.username||'User')}</span>
+        <span class="thread-time">${t.last_message_at ? new Date(t.last_message_at).toLocaleDateString() : ''}</span>
       </div>
       <div class="thread-subject">${esc(t.subject||'Message')}</div>
-      <div class="thread-preview">${esc((t.last_message||t.preview||'').slice(0,80))}</div>`;
+      <div class="thread-preview">${esc((t.last_message||'').slice(0,80))}</div>`;
     div.onclick = () => openConv(t);
     list.appendChild(div);
   });
 }
 
-function openConv(thread) {
+async function openConv(thread) {
   activeThread = thread;
   document.getElementById('inbox-view').style.display = 'none';
   const conv = document.getElementById('conv-view');
@@ -1502,16 +1502,32 @@ function openConv(thread) {
   document.getElementById('conv-title').textContent = '// ' + (thread.subject || 'THREAD');
   document.getElementById('conv-user').textContent  = thread.username || '';
   const bubbles = document.getElementById('conv-bubbles');
-  const msgs = thread.messages || [];
-  if (!msgs.length) { bubbles.innerHTML = '<div class="loading">No messages in thread</div>'; return; }
-  bubbles.innerHTML = '';
-  msgs.forEach(m => {
-    const b = document.createElement('div');
-    b.className = 'bubble ' + (m.from_admin ? 'from-admin' : 'from-user');
-    b.innerHTML = `<div class="bubble-meta">${m.from_admin?'ADMIN':'USER'} · ${m.created_at?new Date(m.created_at).toLocaleString():''}</div>${esc(m.content||m.text||'')}`;
-    bubbles.appendChild(b);
-  });
-  bubbles.scrollTop = bubbles.scrollHeight;
+  bubbles.innerHTML = '<div class="loading">Loading messages...</div>';
+
+  // Mark as read
+  try {
+    await fetch(`${MAIN_API}/api/admin/messages/${thread.id}/read`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+  } catch(e) {}
+
+  // Load full thread messages
+  try {
+    const res  = await fetch(`${MAIN_API}/api/admin/messages/${thread.id}`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    const data = await res.json();
+    const msgs = data.messages || [];
+    if (!msgs.length) { bubbles.innerHTML = '<div class="loading">No messages in thread</div>'; return; }
+    bubbles.innerHTML = '';
+    msgs.forEach(m => {
+      const b = document.createElement('div');
+      b.className = 'bubble ' + (m.from_admin ? 'from-admin' : 'from-user');
+      b.innerHTML = `<div class="bubble-meta">${m.from_admin?'ADMIN':'USER'} · ${m.created_at?new Date(m.created_at).toLocaleString():''}</div>${esc(m.message||m.content||'')}`;
+      bubbles.appendChild(b);
+    });
+    bubbles.scrollTop = bubbles.scrollHeight;
+  } catch(e) {
+    bubbles.innerHTML = `<div class="loading">ERROR: ${esc(e.message)}</div>`;
+  }
 }
 
 function closeConv() {
