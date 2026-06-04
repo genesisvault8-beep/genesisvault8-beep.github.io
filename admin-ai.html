@@ -386,10 +386,8 @@ body::before {
   <div class="auth-logo">GENESIS VAULT</div>
   <div class="auth-sub">// ADMIN AI CONTROL //</div>
   <div class="auth-box">
-    <label class="auth-label">AI ENGINE TOKEN (Vercel)</label>
-    <input type="password" class="auth-input" id="token-input" placeholder="Vercel admin token..." autocomplete="off">
-    <label class="auth-label" style="margin-top:10px;">MAIN BACKEND TOKEN (PythonAnywhere)</label>
-    <input type="password" class="auth-input" id="main-token-input" placeholder="PythonAnywhere admin token..." autocomplete="off">
+    <label class="auth-label">ADMIN TOKEN</label>
+    <input type="password" class="auth-input" id="token-input" placeholder="paste your admin token..." autocomplete="off">
     <button class="auth-btn" id="auth-btn">AUTHENTICATE</button>
     <div class="auth-err" id="auth-err"></div>
   </div>
@@ -676,12 +674,10 @@ body::before {
 </div>
 
 <script>
-const AI_URL   = 'https://genesis-ai-backend-wheat.vercel.app';
-const MAIN_API = 'https://youngbill44.pythonanywhere.com';
-let adminToken = ''; // Vercel token — for AI engine endpoints
-let mainToken  = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token') || sessionStorage.getItem('admin_token') || '';
+const AI_URL = 'https://genesis-ai-backend-wheat.vercel.app';
+let adminToken = '';
 let currentMode = 'auto';
-let activeEngine = null;
+let activeEngine = null; // for radio-style single toggle
 
 // ── HELPERS ──
 function esc(s) {
@@ -705,29 +701,23 @@ document.getElementById('auth-btn').addEventListener('click', authenticate);
 document.getElementById('token-input').addEventListener('keydown', e => { if (e.key === 'Enter') authenticate(); });
 
 async function authenticate() {
-  const token     = document.getElementById('token-input').value.trim();
-  const mainTok   = document.getElementById('main-token-input').value.trim();
-  if (!token) return showErr('AI ENGINE TOKEN REQUIRED');
-  if (!mainTok) return showErr('MAIN BACKEND TOKEN REQUIRED');
+  const token = document.getElementById('token-input').value.trim();
+  if (!token) return showErr('TOKEN REQUIRED');
   document.getElementById('auth-btn').textContent = 'VERIFYING...';
   document.getElementById('auth-err').textContent = '';
   try {
     const res = await fetch(`${AI_URL}/admin/ai-status`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-      signal: AbortSignal.timeout(15000)
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.status === 401) {
-      showErr('INVALID AI TOKEN. ACCESS DENIED.');
+      showErr('INVALID TOKEN. ACCESS DENIED.');
       document.getElementById('auth-btn').textContent = 'AUTHENTICATE';
       return;
     }
     const data = await res.json();
     if (data.providers) {
       adminToken = token;
-      mainToken  = mainTok;
       sessionStorage.setItem('admin_token', token);
-      sessionStorage.setItem('gv_admin_token', mainTok);
-      localStorage.setItem('gv_admin_token', mainTok);
       currentMode = data.mode || 'auto';
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('main-ui').style.display = 'flex';
@@ -748,13 +738,8 @@ async function authenticate() {
 function showErr(msg) { document.getElementById('auth-err').textContent = msg; }
 
 window.addEventListener('load', () => {
-  const saved     = sessionStorage.getItem('admin_token');
-  const savedMain = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token');
-  if (saved && savedMain) {
-    document.getElementById('token-input').value = saved;
-    document.getElementById('main-token-input').value = savedMain;
-    authenticate();
-  }
+  const saved = sessionStorage.getItem('admin_token');
+  if (saved) { document.getElementById('token-input').value = saved; authenticate(); }
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
@@ -910,7 +895,7 @@ async function loadRotation() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/rotation-stats`, {
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -958,7 +943,7 @@ async function loadUsers() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/user-stats`, {
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -996,7 +981,7 @@ async function loadLogs() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/recent-logs`, {
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -1032,7 +1017,7 @@ async function loadFailures() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/failures`, {
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -1071,7 +1056,7 @@ async function runLeaderboard() {
   let providers = [];
   try {
     const res = await fetch(`${AI_URL}/admin/ai-status`, {
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     const data = await res.json();
     providers = data.providers.filter(p => p.hasKey);
@@ -1175,15 +1160,24 @@ async function hcGenerate() {
   feedback.className = 'post-feedback ok';
 
   try {
-    const res = await fetch(`${AI_URL}/admin/generate-html`, {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-      body: JSON.stringify({ prompt })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are an expert HTML developer. The user will describe a tool or page they want. 
+You must respond with ONLY the complete, working HTML code — no explanation, no markdown, no backticks. 
+Output raw HTML starting with <!DOCTYPE html>. 
+Make it fully self-contained with all CSS and JS inline. 
+Make it visually polished and functional.`,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
-    if (res.status === 401) { logout401(); return; }
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    const clean = data.html;
+    const html = data.content.map(b => b.text || '').join('');
+    // Strip any accidental backticks
+    const clean = html.replace(/^```html?\n?/i, '').replace(/```$/,'').trim();
 
     hcCurrentCode = clean;
     hcCurrentFilename = filename.endsWith('.html') ? filename : filename + '.html';
@@ -1290,7 +1284,7 @@ async function loadPostedSandboxes() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/arena/matches`, {
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -1324,7 +1318,7 @@ async function deleteSandbox(id, btn) {
   try {
     const res = await fetch(`${AI_URL}/admin/delete-sandbox/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${mainToken}` }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     loadPostedSandboxes();
@@ -1337,6 +1331,10 @@ async function deleteSandbox(id, btn) {
 // FIREWALL
 // ══════════════════════════════════════════════════════════════════════
 const MAIN_API = 'https://youngbill44.pythonanywhere.com';
+// PythonAnywhere uses the same token saved by main admin login
+function getMainToken() {
+  return sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token') || adminToken;
+}
 let fwAllLogs = [];
 let fwActiveFilter = 'all';
 
@@ -1346,7 +1344,7 @@ async function loadFirewall() {
 
 async function loadFirewallStats() {
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/firewall/stats`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/firewall/stats`, { headers: { 'Authorization': `Bearer ${getMainToken()}` } });
     if (!res.ok) return;
     const data = await res.json();
     const s = data.stats;
@@ -1391,7 +1389,7 @@ function renderFWTopIPs(ips) {
 
 async function loadFWLogs() {
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/firewall/logs?limit=200`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/firewall/logs?limit=200`, { headers: { 'Authorization': `Bearer ${getMainToken()}` } });
     if (!res.ok) return;
     const data = await res.json();
     fwAllLogs = data.logs || [];
@@ -1469,9 +1467,9 @@ let activeThread = null;
 async function loadInbox() {
   document.getElementById('threads-list').innerHTML = '<div class="loading">Loading inbox...</div>';
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${getMainToken()}` } });
     const data = await res.json();
-    allThreads = data.threads || [];
+    allThreads = data.threads || data.messages || [];
     const unread = allThreads.filter(t => t.unread).length;
     const badge = document.getElementById('unread-badge');
     badge.textContent = unread;
@@ -1499,17 +1497,17 @@ function renderThreads() {
     div.className = 'thread-item' + (t.unread ? ' unread' : '');
     div.innerHTML = `
       <div class="thread-header">
-        <span class="thread-from">${t.unread?'<span class="unread-dot"></span>':''}${esc(t.username||'User')}</span>
-        <span class="thread-time">${t.last_message_at ? new Date(t.last_message_at).toLocaleDateString() : ''}</span>
+        <span class="thread-from">${t.unread?'<span class="unread-dot"></span>':''}${esc(t.username||t.from||'User')}</span>
+        <span class="thread-time">${t.created_at ? new Date(t.created_at).toLocaleDateString() : ''}</span>
       </div>
       <div class="thread-subject">${esc(t.subject||'Message')}</div>
-      <div class="thread-preview">${esc((t.last_message||'').slice(0,80))}</div>`;
+      <div class="thread-preview">${esc((t.last_message||t.preview||'').slice(0,80))}</div>`;
     div.onclick = () => openConv(t);
     list.appendChild(div);
   });
 }
 
-async function openConv(thread) {
+function openConv(thread) {
   activeThread = thread;
   document.getElementById('inbox-view').style.display = 'none';
   const conv = document.getElementById('conv-view');
@@ -1517,32 +1515,16 @@ async function openConv(thread) {
   document.getElementById('conv-title').textContent = '// ' + (thread.subject || 'THREAD');
   document.getElementById('conv-user').textContent  = thread.username || '';
   const bubbles = document.getElementById('conv-bubbles');
-  bubbles.innerHTML = '<div class="loading">Loading messages...</div>';
-
-  // Mark as read
-  try {
-    await fetch(`${MAIN_API}/api/admin/messages/${thread.id}/read`, {
-      method: 'POST', headers: { 'Authorization': `Bearer ${mainToken}` }
-    });
-  } catch(e) {}
-
-  // Load full thread messages
-  try {
-    const res  = await fetch(`${MAIN_API}/api/admin/messages/${thread.id}`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
-    const data = await res.json();
-    const msgs = data.messages || [];
-    if (!msgs.length) { bubbles.innerHTML = '<div class="loading">No messages in thread</div>'; return; }
-    bubbles.innerHTML = '';
-    msgs.forEach(m => {
-      const b = document.createElement('div');
-      b.className = 'bubble ' + (m.from_admin ? 'from-admin' : 'from-user');
-      b.innerHTML = `<div class="bubble-meta">${m.from_admin?'ADMIN':'USER'} · ${m.created_at?new Date(m.created_at).toLocaleString():''}</div>${esc(m.message||m.content||'')}`;
-      bubbles.appendChild(b);
-    });
-    bubbles.scrollTop = bubbles.scrollHeight;
-  } catch(e) {
-    bubbles.innerHTML = `<div class="loading">ERROR: ${esc(e.message)}</div>`;
-  }
+  const msgs = thread.messages || [];
+  if (!msgs.length) { bubbles.innerHTML = '<div class="loading">No messages in thread</div>'; return; }
+  bubbles.innerHTML = '';
+  msgs.forEach(m => {
+    const b = document.createElement('div');
+    b.className = 'bubble ' + (m.from_admin ? 'from-admin' : 'from-user');
+    b.innerHTML = `<div class="bubble-meta">${m.from_admin?'ADMIN':'USER'} · ${m.created_at?new Date(m.created_at).toLocaleString():''}</div>${esc(m.content||m.text||'')}`;
+    bubbles.appendChild(b);
+  });
+  bubbles.scrollTop = bubbles.scrollHeight;
 }
 
 function closeConv() {
@@ -1560,7 +1542,7 @@ async function sendReply() {
   try {
     await fetch(`${MAIN_API}/api/admin/messages/${activeThread.id}/reply`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${mainToken}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${getMainToken()}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text })
     });
     const bubbles = document.getElementById('conv-bubbles');
@@ -1582,7 +1564,7 @@ async function sendBroadcast() {
   try {
     const res = await fetch(`${MAIN_API}/api/admin/broadcast`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${mainToken}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${getMainToken()}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg })
     });
     stat.className = 'status-msg ' + (res.ok ? 'ok' : 'err');
@@ -1609,9 +1591,9 @@ function inboxToast(msg) {
 const _origInit = window.onload;
 window.addEventListener('load', () => {
   setTimeout(async () => {
-    if (!mainToken) return;
+    if (!adminToken) return;
     try {
-      const res = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
+      const res = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${getMainToken()}` } });
       const data = await res.json();
       const threads = data.threads || data.messages || [];
       const unread = threads.filter(t => t.unread).length;
