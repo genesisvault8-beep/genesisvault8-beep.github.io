@@ -676,9 +676,10 @@ body::before {
 <script>
 const AI_URL   = 'https://genesis-ai-backend-wheat.vercel.app';
 const MAIN_API = 'https://youngbill44.pythonanywhere.com';
-let adminToken = '';
+let adminToken = ''; // Vercel token — for AI engine endpoints
+let mainToken  = sessionStorage.getItem('gv_admin_token') || localStorage.getItem('gv_admin_token') || ''; // PythonAnywhere token
 let currentMode = 'auto';
-let activeEngine = null; // for radio-style single toggle
+let activeEngine = null;
 
 // ── HELPERS ──
 function esc(s) {
@@ -708,7 +709,8 @@ async function authenticate() {
   document.getElementById('auth-err').textContent = '';
   try {
     const res = await fetch(`${AI_URL}/admin/ai-status`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { 'Authorization': `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000)
     });
     if (res.status === 401) {
       showErr('INVALID TOKEN. ACCESS DENIED.');
@@ -896,7 +898,7 @@ async function loadRotation() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/rotation-stats`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -944,7 +946,7 @@ async function loadUsers() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/user-stats`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -982,7 +984,7 @@ async function loadLogs() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/recent-logs`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -1018,7 +1020,7 @@ async function loadFailures() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/admin/failures`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -1057,7 +1059,7 @@ async function runLeaderboard() {
   let providers = [];
   try {
     const res = await fetch(`${AI_URL}/admin/ai-status`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     const data = await res.json();
     providers = data.providers.filter(p => p.hasKey);
@@ -1276,7 +1278,7 @@ async function loadPostedSandboxes() {
   list.innerHTML = '<div class="loading">LOADING...</div>';
   try {
     const res = await fetch(`${AI_URL}/arena/matches`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     const data = await res.json();
@@ -1310,7 +1312,7 @@ async function deleteSandbox(id, btn) {
   try {
     const res = await fetch(`${AI_URL}/admin/delete-sandbox/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${adminToken}` }
+      headers: { 'Authorization': `Bearer ${mainToken}` }
     });
     if (res.status === 401) { logout401(); return; }
     loadPostedSandboxes();
@@ -1332,7 +1334,7 @@ async function loadFirewall() {
 
 async function loadFirewallStats() {
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/firewall/stats`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/firewall/stats`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
     if (!res.ok) return;
     const data = await res.json();
     const s = data.stats;
@@ -1377,7 +1379,7 @@ function renderFWTopIPs(ips) {
 
 async function loadFWLogs() {
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/firewall/logs?limit=200`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/firewall/logs?limit=200`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
     if (!res.ok) return;
     const data = await res.json();
     fwAllLogs = data.logs || [];
@@ -1455,7 +1457,7 @@ let activeThread = null;
 async function loadInbox() {
   document.getElementById('threads-list').innerHTML = '<div class="loading">Loading inbox...</div>';
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
     const data = await res.json();
     allThreads = data.threads || [];
     const unread = allThreads.filter(t => t.unread).length;
@@ -1508,13 +1510,13 @@ async function openConv(thread) {
   // Mark as read
   try {
     await fetch(`${MAIN_API}/api/admin/messages/${thread.id}/read`, {
-      method: 'POST', headers: { 'Authorization': `Bearer ${adminToken}` }
+      method: 'POST', headers: { 'Authorization': `Bearer ${mainToken}` }
     });
   } catch(e) {}
 
   // Load full thread messages
   try {
-    const res  = await fetch(`${MAIN_API}/api/admin/messages/${thread.id}`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    const res  = await fetch(`${MAIN_API}/api/admin/messages/${thread.id}`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
     const data = await res.json();
     const msgs = data.messages || [];
     if (!msgs.length) { bubbles.innerHTML = '<div class="loading">No messages in thread</div>'; return; }
@@ -1546,7 +1548,7 @@ async function sendReply() {
   try {
     await fetch(`${MAIN_API}/api/admin/messages/${activeThread.id}/reply`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${mainToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text })
     });
     const bubbles = document.getElementById('conv-bubbles');
@@ -1568,7 +1570,7 @@ async function sendBroadcast() {
   try {
     const res = await fetch(`${MAIN_API}/api/admin/broadcast`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${mainToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: msg })
     });
     stat.className = 'status-msg ' + (res.ok ? 'ok' : 'err');
@@ -1595,9 +1597,9 @@ function inboxToast(msg) {
 const _origInit = window.onload;
 window.addEventListener('load', () => {
   setTimeout(async () => {
-    if (!adminToken) return;
+    if (!mainToken) return;
     try {
-      const res = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+      const res = await fetch(`${MAIN_API}/api/admin/messages`, { headers: { 'Authorization': `Bearer ${mainToken}` } });
       const data = await res.json();
       const threads = data.threads || data.messages || [];
       const unread = threads.filter(t => t.unread).length;
