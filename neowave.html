@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
 <title>NeoWave — Private P2P Messenger</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
@@ -355,7 +358,18 @@
   }
   .origin-strip span { color:var(--wave-dim); }
 
-  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .share-fab { display:none !important; }
+  .wave-typing-anim {
+    display:inline-block;
+    animation:waveflow 1.2s ease-in-out infinite;
+    font-size:16px; letter-spacing:2px;
+  }
+  @keyframes waveflow {
+    0%,100% { opacity:0.4; transform:translateY(0); }
+    50% { opacity:1; transform:translateY(-3px); }
+  }
+  .share-in-input { display:none; }
+  @media (max-width:600px) { .share-in-input { display:flex; } }
 
   /* MOBILE SHARE MODAL */
   #share-modal {
@@ -440,7 +454,6 @@
     .sidebar.open { left:0; }
     .sidebar-overlay { display:none !important; }
     .blip, .file-blip { max-width:88%; }
-    .share-fab { display:flex; }
     .sidebar-toggle { display:flex; }
     .connect-card { padding:24px 18px; width:94%; border-radius:14px; }
     .connect-icon { font-size:36px; margin-bottom:8px; }
@@ -567,6 +580,7 @@
       <div class="input-row">
         <div class="input-wrap">
           <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="Send file">📎</button>
+          <button class="attach-btn share-in-input" onclick="openShareModal()" title="Share Wave">🔗</button>
           <input type="file" id="file-input" onchange="handleFileSelect(event)" />
           <textarea id="message-input" rows="1" placeholder="Write a blip..." oninput="onInput(event)" onkeydown="onKeyDown(event)"></textarea>
         </div>
@@ -581,7 +595,6 @@
   </div>
 </div>
 
-<button class="share-fab" onclick="openShareModal()" title="Share Wave">🔗</button>
 <div class="origin-strip">NEOWAVE // <span>PRIVATE P2P MESSENGER</span> // NO SERVERS · NO SURVEILLANCE · CREATED BY <span>GENESIS GROUP</span></div>
 <div class="toast" id="toast"></div>
 
@@ -992,13 +1005,13 @@ function showLiveTyping(peerId, text, name, color) {
       <div class="blip-header">
         <div class="blip-avatar" style="background:${color}22;color:${color}">${initial}</div>
         <span class="blip-name" style="color:${color}">${escHtml(name)}</span>
-        <span class="blip-time" style="color:var(--wave-dim);font-size:10px">live</span>
+        <span class="blip-time" style="color:var(--wave-dim);font-size:10px">typing</span>
       </div>
-      <div class="blip-bubble live" id="live-${peerId}"></div>`;
+      <div class="blip-bubble live" id="live-${peerId}">
+        <span class="wave-typing-anim">🌊🌊🌊</span>
+      </div>`;
     blips.appendChild(div); liveBlips[peerId] = div; el = div;
   }
-  const b = document.getElementById('live-'+peerId);
-  if (b) b.textContent = text;
   scrollDown();
 }
 function clearLiveTyping(peerId) {
