@@ -604,7 +604,7 @@
 // ══════════════════════════════════════
 const COLORS = ['#0077ff','#00c8ff','#f0a500','#00e896','#ff6090','#aa77ff','#ff9040'];
 const NAMES  = ['Wavelet','Surge','Ripple','Tide','Current','Drift','Flow'];
-const CHUNK_SIZE = 16384; // 16KB chunks for file transfer
+const CHUNK_SIZE = 4096; // 4KB chunks — more reliable on mobile P2P
 
 let myPeer   = null;
 let myId     = null;
@@ -752,10 +752,10 @@ function handleData(data, fromId, conn) {
   else if (data.type === 'FILE_CHUNK') {
     const inc = incomingFiles[data.fileId];
     if (inc) {
-      inc.chunks[data.index] = data.chunk;
+      inc.chunks[data.index] = data.chunk; // store by index for ordering
       inc.received++;
       const pct = Math.round((inc.received / inc.meta.totalChunks) * 100);
-      updateFileProgress(data.fileId, pct);
+      updateFileProgress('recv_'+data.fileId, pct);
       if (inc.received === inc.meta.totalChunks) finalizeFile(data.fileId);
     }
     if (isHost) broadcast(data, fromId);
@@ -857,7 +857,7 @@ function sendFile(file) {
       sendToAll({ type:'FILE_CHUNK', fileId, index, chunk });
       updateFileProgress('send_'+fileId, Math.round(((index+1)/totalChunks)*100));
       index++;
-      setTimeout(sendNextChunk, 5);
+      setTimeout(sendNextChunk, 30); // 30ms delay between chunks for mobile
     }
     sendNextChunk();
   };
