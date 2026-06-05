@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
 <title>NeoWave — Private P2P Messenger</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
@@ -297,7 +297,8 @@
   /* CONNECT SCREEN */
   #connect-screen {
     display:none; position:fixed; inset:0; background:var(--bg); z-index:100;
-    align-items:center; justify-content:center; flex-direction:column; gap:18px;
+    align-items:flex-start; justify-content:center; flex-direction:column; 
+    padding-top:12vh; overflow-y:auto;
   }
   #connect-screen.show { display:flex; }
   .connect-card {
@@ -359,7 +360,8 @@
   /* MOBILE SHARE MODAL */
   #share-modal {
     display:none; position:fixed; inset:0; background:rgba(4,8,15,0.92);
-    z-index:200; align-items:center; justify-content:center; backdrop-filter:blur(8px);
+    z-index:200; align-items:flex-start; justify-content:center; 
+    backdrop-filter:blur(8px); padding-top:10vh; overflow-y:auto;
   }
   #share-modal.show { display:flex; }
   .share-card {
@@ -398,7 +400,8 @@
   /* HOST NAME MODAL */
   #host-name-modal {
     display:none; position:fixed; inset:0; background:rgba(4,8,15,0.92);
-    z-index:300; align-items:center; justify-content:center; backdrop-filter:blur(8px);
+    z-index:300; align-items:flex-start; justify-content:center; 
+    backdrop-filter:blur(8px); padding-top:15vh; overflow-y:auto;
   }
   #host-name-modal.show { display:flex; }
 
