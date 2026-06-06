@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Logic Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0a00;
+    --panel: #1a1200;
+    --border: #3a2a00;
+    --gold: #ffd700;
+    --gold-dim: #cc9900;
+    --gold-dark: #1a1000;
+    --red: #ff3c3c;
+    --green: #00ff41;
+    --blue: #00aaff;
+    --text: #f0e0c8;
+    --dim: #7a6a4a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    padding: 12px;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(255,215,0,0.01) 2px, rgba(255,215,0,0.01) 4px
+    );
+  }
+
+  header {
+    text-align: center;
+    padding: 16px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(255,215,0,0.4);
+  }
+
+  header p { font-size: 0.7rem; color: var(--dim); letter-spacing: 2px; margin-top: 4px; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 65px;
+    padding: 10px 4px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dark);
+    box-shadow: 0 0 10px rgba(255,215,0,0.2);
+  }
+
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 6px var(--gold);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    margin-top: 10px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: #080500;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(255,215,0,0.15);
+  }
+
+  textarea { resize: vertical; min-height: 60px; }
+  select option { background: var(--bg); }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+
+  .btn:hover { background: var(--gold-dark); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+  .btn-green { border-color: var(--green); color: var(--green); }
+  .btn-red { border-color: var(--red); color: var(--red); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .stat-box {
+    background: #080500;
+    border: 1px solid var(--border);
+    padding: 8px 4px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-num.red { color: var(--red); text-shadow: 0 0 8px rgba(255,60,60,0.4); }
+  .stat-num.green { color: var(--green); }
+  .stat-num.gold { color: var(--gold); }
+  .stat-num.yellow { color: #ffaa00; }
+  .stat-label { font-size: 0.5rem; color: var(--dim); letter-spacing: 1px; margin-top: 2px; }
+
+  .progress-bar { height: 3px; background: var(--border); margin: 10px 0; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--gold); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--gold); }
+
+  .check-item {
+    border: 1px solid var(--border);
+    padding: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+
+  .check-item.done { border-color: var(--green); background: rgba(0,255,65,0.03); }
+  .check-item.vuln { border-color: var(--red); background: rgba(255,60,60,0.05); }
+  .check-item.skip { border-color: var(--dim); opacity: 0.5; }
+
+  .check-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .check-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--gold);
+    flex-shrink: 0;
+    min-width: 24px;
+  }
+
+  .check-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text);
+    letter-spacing: 1px;
+    flex: 1;
+  }
+
+  .check-desc {
+    font-size: 0.7rem;
+    color: var(--dim);
+    line-height: 1.5;
+    margin-bottom: 8px;
+    padding-left: 34px;
+  }
+
+  .payout {
+    font-size: 0.65rem;
+    color: var(--gold);
+    padding-left: 34px;
+    margin-bottom: 8px;
+  }
+
+  .check-actions {
+    display: flex;
+    gap: 6px;
+    padding-left: 34px;
+    flex-wrap: wrap;
+  }
+
+  .mini-btn {
+    padding: 4px 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    border: 1px solid;
+    background: transparent;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .mini-btn.vuln { border-color: var(--red); color: var(--red); }
+  .mini-btn.safe { border-color: var(--green); color: var(--green); }
+  .mini-btn.skip { border-color: var(--dim); color: var(--dim); }
+  .mini-btn.vuln:hover { background: rgba(255,60,60,0.1); }
+  .mini-btn.safe:hover { background: rgba(0,255,65,0.1); }
+
+  .status-badge {
+    font-size: 0.58rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+
+  .badge-vuln { background: rgba(255,60,60,0.2); color: var(--red); }
+  .badge-safe { background: rgba(0,255,65,0.1); color: var(--green); }
+  .badge-skip { background: rgba(74,74,122,0.2); color: var(--dim); }
+  .badge-pending { background: rgba(255,215,0,0.1); color: var(--gold); }
+
+  .check-note { margin-top: 6px; padding-left: 34px; }
+  .check-note input { font-size: 0.72rem; padding: 5px 8px; }
+
+  .section-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    padding: 8px 0 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  .report-box {
+    background: #050300;
+    border: 1px solid var(--border);
+    padding: 12px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--text);
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+
+  .hint { font-size: 0.62rem; color: var(--dim); margin-top: 4px; line-height: 1.5; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* SESSION BAR */
+  .session-bar {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .sess-btn {
+    padding: 5px 10px; background: var(--panel);
+    border: 1px solid var(--border); color: var(--dim);
+    font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    font-size: 0.62rem; letter-spacing: 1px; cursor: pointer;
+    text-transform: uppercase; transition: all 0.2s;
+  }
+  .sess-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .sess-save { margin-left: auto; font-size: 0.58rem; color: var(--green); letter-spacing: 1px; }
+
+  /* HISTORY PANEL */
+  .history-panel {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 12px; margin-bottom: 12px;
+  }
+  .history-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    font-size: 0.7rem; cursor: pointer;
+  }
+  .history-item:hover { color: var(--gold); }
+  .history-item:last-child { border-bottom: none; }
+  .history-del { margin-left: auto; color: var(--red); cursor: pointer; padding: 2px 6px; }
+
+  /* CVSS HELPER */
+  .cvss-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .cvss-row { display: flex; flex-direction: column; gap: 5px; }
+  .cvss-label { font-size: 0.62rem; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+  .cvss-opts { display: flex; gap: 5px; flex-wrap: wrap; }
+  .cvss-btn {
+    padding: 4px 10px; background: transparent;
+    border: 1px solid var(--border); color: var(--dim);
+    font-family: 'Rajdhani', sans-serif; font-size: 0.65rem;
+    font-weight: 600; cursor: pointer; letter-spacing: 1px;
+    text-transform: uppercase; transition: all 0.15s;
+  }
+  .cvss-btn.selected { border-color: var(--gold); color: var(--gold); background: var(--gold-dark); }
+  .cvss-result {
+    padding: 10px; border: 1px solid var(--border);
+    font-family: 'Rajdhani', sans-serif; font-size: 0.85rem;
+    font-weight: 700; letter-spacing: 2px; text-align: center;
+    color: var(--gold);
+  }
+  .cvss-result.critical { border-color: var(--red); color: var(--red); background: rgba(255,60,60,0.05); }
+  .cvss-result.high { border-color: #ff8800; color: #ff8800; background: rgba(255,136,0,0.05); }
+  .cvss-result.medium { border-color: #ffcc00; color: #ffcc00; }
+  .cvss-result.low { border-color: var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💰 Logic Tester</h1>
+  <p>business logic vulnerability hunter</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('setup')">SETUP</button>
+  <button class="tab" onclick="switchTab('price')">PRICE</button>
+  <button class="tab" onclick="switchTab('coupon')">COUPON</button>
+  <button class="tab" onclick="switchTab('workflow')">FLOW</button>
+  <button class="tab" onclick="switchTab('race')">RACE</button>
+  <button class="tab" onclick="switchTab('report')">REPORT</button>
+</div>
+<div class="session-bar">
+  <button class="sess-btn" onclick="exportSession()">⬇ EXPORT</button>
+  <label class="sess-btn" for="importFile">⬆ IMPORT</label>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSession(event)">
+  <button class="sess-btn" onclick="showHistory()">📋 HISTORY</button>
+  <span class="sess-save" id="saveStatus">●  AUTO-SAVED</span>
+</div>
+<div id="historyPanel" class="history-panel" style="display:none"></div>
+
+<!-- SETUP -->
+<div id="tab-setup" class="panel active">
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Target Setup</div>
+    <label>Target Domain</label>
+    <input type="text" id="target" placeholder="https://target.com" />
+    <label>Program Name</label>
+    <input type="text" id="program" placeholder="e.g. Acme Corp on HackerOne" />
+    <label>App Type</label>
+    <select id="appType">
+      <option>E-commerce / Shopping</option>
+      <option>SaaS / Subscription</option>
+      <option>Marketplace</option>
+      <option>Food Delivery</option>
+      <option>Travel / Booking</option>
+      <option>Finance / Payments</option>
+      <option>Other</option>
+    </select>
+    <label>Test Account Email</label>
+    <input type="text" id="testEmail" placeholder="your-test@email.com" />
+    <label>Observations / Notes</label>
+    <textarea id="notes" placeholder="Note any interesting features, pricing, coupons you see..."></textarea>
+    <button class="btn" onclick="saveSetup()">SAVE & START TESTING →</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Why This Pays</div>
+    <p class="hint">► Business logic bugs can't be found by scanners — only human testers.</p>
+    <p class="hint">► Low duplicate rate because most hunters skip this entirely.</p>
+    <p class="hint">► Real financial impact = higher severity = higher payout.</p>
+    <p class="hint" style="color:var(--gold);margin-top:8px">► Typical payouts: $500 - $10,000+</p>
+  </div>
+</div>
+
+<!-- PRICE MANIPULATION -->
+<div id="tab-price" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="p-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="p-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="p-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num gold" id="p-total">7</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="p-progress"></div></div>
+  <div class="section-label">Price Manipulation Tests</div>
+  <div id="price-checks"></div>
+</div>
+
+<!-- COUPON ABUSE -->
+<div id="tab-coupon" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="c-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="c-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="c-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num gold" id="c-total">5</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="c-progress"></div></div>
+  <div class="section-label">Coupon & Discount Abuse Tests</div>
+  <div id="coupon-checks"></div>
+</div>
+
+<!-- WORKFLOW BYPASS -->
+<div id="tab-workflow" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="w-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="w-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="w-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num gold" id="w-total">6</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="w-progress"></div></div>
+  <div class="section-label">Workflow & Process Bypass Tests</div>
+  <div id="workflow-checks"></div>
+</div>
+
+<!-- RACE CONDITIONS -->
+<div id="tab-race" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="r-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="r-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="r-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num gold" id="r-total">6</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="r-progress"></div></div>
+  <div class="section-label">Race Condition & Concurrency Tests</div>
+  <div id="race-checks"></div>
+</div>
+
+<!-- REPORT -->
+<div id="tab-report" class="panel">
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>CVSS Severity Helper</div>
+    <div class="cvss-grid" id="cvssGrid">
+      <div class="cvss-row">
+        <span class="cvss-label">Financial Impact</span>
+        <div class="cvss-opts" data-key="financial">
+          <button class="cvss-btn" data-val="1">Minimal</button>
+          <button class="cvss-btn" data-val="2">Moderate</button>
+          <button class="cvss-btn" data-val="3">Significant</button>
+          <button class="cvss-btn" data-val="4">Severe</button>
+        </div>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">Exploitability</span>
+        <div class="cvss-opts" data-key="exploit">
+          <button class="cvss-btn" data-val="1">Hard</button>
+          <button class="cvss-btn" data-val="2">Moderate</button>
+          <button class="cvss-btn" data-val="3">Easy</button>
+          <button class="cvss-btn" data-val="4">Trivial</button>
+        </div>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">Auth Required</span>
+        <div class="cvss-opts" data-key="auth">
+          <button class="cvss-btn" data-val="1">Admin</button>
+          <button class="cvss-btn" data-val="2">User</button>
+          <button class="cvss-btn" data-val="3">None</button>
+        </div>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">Scale of Abuse</span>
+        <div class="cvss-opts" data-key="scale">
+          <button class="cvss-btn" data-val="1">One-time</button>
+          <button class="cvss-btn" data-val="2">Repeatable</button>
+          <button class="cvss-btn" data-val="3">Automated</button>
+        </div>
+      </div>
+    </div>
+    <div class="cvss-result" id="cvssResult">← Score your findings above</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Generate Report</div>
+    <label>Severity Override</label>
+    <select id="reportSeverity">
+      <option>Critical</option>
+      <option selected>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+    <button class="btn btn-green" onclick="generateReport()">⚡ GENERATE H1 REPORT</button>
+    <button class="btn" onclick="copyReport()" style="margin-top:6px">COPY REPORT</button>
+    <button class="btn" onclick="exportSession()" style="margin-top:6px;border-color:var(--blue);color:var(--blue)">⬇ EXPORT SESSION (.json)</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Report Preview</div>
+    <div class="report-box" id="reportBox">Complete tests then generate report...</div>
+  </div>
+  <button class="btn btn-red" onclick="clearAll()" style="margin-top:6px">⚠ CLEAR ALL DATA</button>
+</div>
+
+<script>
+let setup = {};
+let results = {};
+const STORAGE_KEY = 'blt_session';
+const HISTORY_KEY = 'blt_history';
+let cvssScores = {};
+
+const priceChecks = [
+  { id:'p1', title:'Negative Quantity', desc:'Add item to cart. Intercept the request and change quantity to -1 or -100. If total price becomes negative or credits are added to your account — VULNERABLE.', pay:'💰 High-Critical. Direct financial impact.' },
+  { id:'p2', title:'Zero Price Item', desc:'Intercept add-to-cart or checkout request. Change the price parameter to 0 or 0.00. If order goes through at zero cost — VULNERABLE.', pay:'💰 Critical. Free items = major financial loss for company.' },
+  { id:'p3', title:'Price Tampering in Request', desc:'Find where price is sent in the request body (not just displayed). Change price to 1 (one cent). If checkout accepts the modified price — VULNERABLE.', pay:'💰 Critical. Server must never trust client-side price.' },
+  { id:'p4', title:'Currency Switching', desc:'If app supports multiple currencies, add item in USD. Switch currency to a weaker one (e.g. INR, NGN). Check if price converts properly or stays as same number in cheaper currency.', pay:'💰 Medium-High. Can buy $100 item for equivalent of $1.' },
+  { id:'p5', title:'Quantity Race Condition', desc:'For limited stock items, send 10+ simultaneous purchase requests at exact same time. If you can purchase more than the limit allows — VULNERABLE race condition.', pay:'💰 Medium. Overselling / inventory bypass.' },
+  { id:'p6', title:'Decimal/Float Manipulation', desc:'Try quantities like 0.1, 0.01, 1.9999 or very large numbers like 999999. Check if any cause unexpected pricing calculations or errors that reveal logic flaws.', pay:'💰 Medium. Floating point abuse.' },
+  { id:'p7', title:'Refund + Keep Item', desc:'Purchase an item. Request a refund. Check if you can still access/download/use the item after refund is processed. Digital goods especially vulnerable.', pay:'💰 High. Get item for free via refund abuse.' }
+];
+
+const couponChecks = [
+  { id:'c1', title:'Coupon Stacking', desc:'Apply one valid coupon. Then try applying a second coupon on the same order. Most apps should block this. If multiple coupons apply — VULNERABLE.', pay:'💰 Medium. Stacking = excessive discount.' },
+  { id:'c2', title:'Expired Coupon Reuse', desc:'Find an old/expired coupon code (check old emails, internet, social media). Try applying it. If expired coupon still works — VULNERABLE. Expiry not enforced.', pay:'💰 Medium. Coupons must be invalidated server-side.' },
+  { id:'c3', title:'One-Time Coupon Reuse', desc:'Use a "one time use" coupon. Complete the order. Try to use the same coupon again on a new order. If it works again — VULNERABLE.', pay:'💰 Medium-High. Infinite discount abuse.' },
+  { id:'c4', title:'Coupon on Wrong Items', desc:'Get a coupon for Category A items. Apply it to Category B items that it should not apply to. Check if restriction is enforced server-side or only front-end.', pay:'💰 Medium. Front-end only validation is VULNERABLE.' },
+  { id:'c5', title:'Referral Abuse', desc:'If app has referral program, refer yourself using a second account. Claim both referrer and referee bonus. Check if same device/IP/payment method is blocked.', pay:'💰 Medium. Self-referral = infinite credit generation.' }
+];
+
+const workflowChecks = [
+  { id:'w1', title:'Skip Payment Step', desc:'Start checkout. Note the URL/endpoint at each step. After payment page, try directly navigating to the order confirmation URL. If order is confirmed without payment — CRITICAL.', pay:'💰 Critical. Free purchases by skipping payment.' },
+  { id:'w2', title:'Free Trial to Paid Feature Access', desc:'Sign up for free trial. Note URLs of premium features. After trial expires, try accessing those URLs directly. If premium features still accessible — VULNERABLE.', pay:'💰 High. Unauthorized access to paid features.' },
+  { id:'w3', title:'Downgrade to Access Higher Plan', desc:'Subscribe to highest plan. Downgrade to free. Check if features/data from paid plan are still accessible. Downgrade should restrict access immediately.', pay:'💰 Medium-High. Feature access after downgrade.' },
+  { id:'w4', title:'Order Status Manipulation', desc:'After placing order, intercept status update requests. Try changing order status to "delivered" or "completed" before actual delivery. Can unlock early refund or reward.', pay:'💰 Medium. Status bypass for financial gain.' },
+  { id:'w5', title:'Concurrent Request Abuse', desc:'For any one-time action (redeem reward, claim bonus, use credit), send the same request simultaneously from multiple tabs/devices. If credited multiple times — race condition VULNERABLE.', pay:'💰 High. Double-spend / duplicate reward.' },
+  { id:'w6', title:'Parameter Pollution on Checkout', desc:'Send duplicate parameters in checkout request: price=100&price=1 or item_id=premiumX&item_id=freeY. Some servers take first value, some take last. Test which wins.', pay:'💰 Medium-High. Parameter confusion = price bypass.' }
+];
+
+const raceChecks = [
+  { id:'r1', title:'Double Spend — Wallet/Credit', desc:'If app has internal wallet or credits, initiate two withdrawals/spends simultaneously using Burp Suite Turbo Intruder or multiple browser tabs. If balance goes negative or both succeed — VULNERABLE.', pay:'💰 Critical. Infinite money generation.' },
+  { id:'r2', title:'Duplicate Order on Single Stock', desc:'For a "1 item left" product, fire 5-10 purchase requests simultaneously. Check if multiple orders are confirmed. Each confirmed order = item sold that doesn\'t exist.', pay:'💰 High. Oversell / inventory corruption.' },
+  { id:'r3', title:'Bonus Claim Race', desc:'Find a one-time bonus (signup bonus, referral reward, daily reward). Intercept the claim request. Send 10+ identical requests in parallel. If multiple bonuses credited — VULNERABLE.', pay:'💰 High. Infinite bonus farming.' },
+  { id:'r4', title:'Coupon Race Condition', desc:'Apply a "one time use" coupon. Before the order completes, fire multiple checkout requests simultaneously with the same coupon. If it applies more than once — VULNERABLE.', pay:'💰 Medium-High. Concurrent coupon abuse.' },
+  { id:'r5', title:'Vote / Like Inflation', desc:'On any rate-once action (vote, like, review), fire parallel requests. If count increments multiple times per account — VULNERABLE. Low severity but shows race condition pattern.', pay:'💰 Low-Medium. Integrity issue.' },
+  { id:'r6', title:'Password Reset Token Race', desc:'Request two password reset emails quickly. Use both tokens. Check if both are valid simultaneously — only the latest should work. If both work — token invalidation race condition.', pay:'💰 Medium. Auth logic flaw.' }
+];
+
+// ── RENDER ──
+function renderChecks(checks, containerId, prefix) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = checks.map((c, i) => `
+    <div class="check-item" id="item-${c.id}">
+      <div class="check-header">
+        <div class="check-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="check-title">${c.title}</div>
+        <span class="status-badge badge-pending" id="badge-${c.id}">PENDING</span>
+      </div>
+      <div class="check-desc">${c.desc}</div>
+      <div class="payout">${c.pay}</div>
+      <div class="check-actions">
+        <button class="mini-btn vuln" onclick="markResult('${c.id}','vuln','${prefix}')">🔴 VULN</button>
+        <button class="mini-btn safe" onclick="markResult('${c.id}','safe','${prefix}')">🟢 SAFE</button>
+        <button class="mini-btn skip" onclick="markResult('${c.id}','skip','${prefix}')">SKIP</button>
+      </div>
+      <div class="check-note">
+        <input type="text" id="note-${c.id}" placeholder="Add observation or evidence..." oninput="autoSave()" />
+      </div>
+    </div>
+  `).join('');
+}
+
+function markResult(id, result, prefix) {
+  const note = document.getElementById('note-'+id).value;
+  const check = [...priceChecks, ...couponChecks, ...workflowChecks, ...raceChecks].find(c => c.id === id);
+  results[id] = { result, note, title: check.title, desc: check.desc, pay: check.pay };
+  const item = document.getElementById('item-'+id);
+  item.className = 'check-item ' + (result==='vuln'?'vuln':result==='safe'?'done':'skip');
+  const badge = document.getElementById('badge-'+id);
+  badge.textContent = {vuln:'🔴 VULN',safe:'🟢 SAFE',skip:'SKIPPED'}[result];
+  badge.className = 'status-badge ' + {vuln:'badge-vuln',safe:'badge-safe',skip:'badge-skip'}[result];
+  updateStats(prefix);
+  autoSave();
+}
+
+function updateStats(prefix) {
+  const map = {p:priceChecks, c:couponChecks, w:workflowChecks, r:raceChecks};
+  const checks = map[prefix];
+  const ids = checks.map(c => c.id);
+  const relevant = Object.entries(results).filter(([k]) => ids.includes(k));
+  const vuln = relevant.filter(([,v]) => v.result==='vuln').length;
+  const safe = relevant.filter(([,v]) => v.result==='safe').length;
+  const skip = relevant.filter(([,v]) => v.result==='skip').length;
+  const done = vuln + safe + skip;
+  document.getElementById(prefix+'-vuln').textContent = vuln;
+  document.getElementById(prefix+'-safe').textContent = safe;
+  document.getElementById(prefix+'-skip').textContent = skip;
+  document.getElementById(prefix+'-progress').style.width = Math.round((done/checks.length)*100)+'%';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const tabs = ['setup','price','coupon','workflow','race','report'];
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function saveSetup() {
+  setup = {
+    target: document.getElementById('target').value,
+    program: document.getElementById('program').value,
+    appType: document.getElementById('appType').value,
+    email: document.getElementById('testEmail').value,
+    notes: document.getElementById('notes').value,
+  };
+  if(!setup.target) { alert('Enter target domain.'); return; }
+  autoSave();
+  saveToHistory();
+  switchTab('price');
+}
+
+// ── LOCALSTORAGE AUTO-SAVE ──
+function autoSave() {
+  // Sync notes from inputs into results
+  [...priceChecks,...couponChecks,...workflowChecks,...raceChecks].forEach(c => {
+    const el = document.getElementById('note-'+c.id);
+    if(el && results[c.id]) results[c.id].note = el.value;
+  });
+  const session = { setup, results, cvssScores, savedAt: Date.now() };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  const el = document.getElementById('saveStatus');
+  if(el) { el.textContent = '● SAVED'; setTimeout(()=>{ el.textContent='● AUTO-SAVED'; }, 1500); }
+}
+
+function loadSession(session) {
+  if(!session) return;
+  setup = session.setup || {};
+  results = session.results || {};
+  cvssScores = session.cvssScores || {};
+  // Restore setup fields
+  if(setup.target) document.getElementById('target').value = setup.target;
+  if(setup.program) document.getElementById('program').value = setup.program;
+  if(setup.appType) document.getElementById('appType').value = setup.appType;
+  if(setup.email) document.getElementById('testEmail').value = setup.email;
+  if(setup.notes) document.getElementById('notes').value = setup.notes;
+  // Restore results
+  Object.entries(results).forEach(([id, v]) => {
+    const prefixMap = {p:'p',c:'c',w:'w',r:'r'};
+    const prefix = prefixMap[id[0]];
+    const item = document.getElementById('item-'+id);
+    if(!item) return;
+    item.className = 'check-item '+(v.result==='vuln'?'vuln':v.result==='safe'?'done':'skip');
+    const badge = document.getElementById('badge-'+id);
+    badge.textContent = {vuln:'🔴 VULN',safe:'🟢 SAFE',skip:'SKIPPED'}[v.result];
+    badge.className = 'status-badge '+{vuln:'badge-vuln',safe:'badge-safe',skip:'badge-skip'}[v.result];
+    const noteEl = document.getElementById('note-'+id);
+    if(noteEl && v.note) noteEl.value = v.note;
+  });
+  ['p','c','w','r'].forEach(p => updateStats(p));
+  // Restore CVSS
+  Object.entries(cvssScores).forEach(([key, val]) => {
+    document.querySelectorAll(`[data-key="${key}"] .cvss-btn`).forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.val == val);
+    });
+  });
+  calcCVSS();
+}
+
+// ── HISTORY ──
+function saveToHistory() {
+  if(!setup.target) return;
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+  const existing = history.findIndex(h => h.target === setup.target);
+  const entry = { target: setup.target, program: setup.program, savedAt: Date.now() };
+  if(existing >= 0) history[existing] = entry; else history.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0,10)));
+}
+
+function showHistory() {
+  const panel = document.getElementById('historyPanel');
+  if(panel.style.display !== 'none') { panel.style.display='none'; return; }
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+  if(!history.length) { panel.innerHTML='<div style="font-size:0.7rem;color:var(--dim);padding:8px">No saved sessions yet.</div>'; }
+  else {
+    panel.innerHTML = '<div class="section-label" style="margin-bottom:8px">Saved Sessions</div>' +
+      history.map((h,i) => `
+        <div class="history-item" onclick="loadHistorySession(${i})">
+          <span style="color:var(--gold)">▶</span>
+          <span>${h.target}</span>
+          <span style="color:var(--dim);font-size:0.6rem">${h.program||''}</span>
+          <span style="color:var(--dim);font-size:0.58rem;margin-left:auto">${new Date(h.savedAt).toLocaleDateString()}</span>
+          <span class="history-del" onclick="event.stopPropagation();deleteHistory(${i})">✕</span>
+        </div>
+      `).join('');
+  }
+  panel.style.display = 'block';
+}
+
+function loadHistorySession(i) {
+  const session = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  if(session) { loadSession(session); document.getElementById('historyPanel').style.display='none'; }
+}
+
+function deleteHistory(i) {
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+  history.splice(i,1);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  showHistory();
+}
+
+// ── EXPORT / IMPORT ──
+function exportSession() {
+  autoSave();
+  const session = { setup, results, cvssScores, exportedAt: new Date().toISOString(), tool: 'Business Logic Tester' };
+  const blob = new Blob([JSON.stringify(session, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const target = setup.target ? setup.target.replace(/https?:\/\//,'').replace(/[^a-z0-9]/gi,'-') : 'session';
+  a.href = url; a.download = `blt-${target}-${Date.now()}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function importSession(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const session = JSON.parse(e.target.result);
+      loadSession(session);
+      autoSave();
+      alert('Session loaded: ' + (session.setup?.target || 'unknown target'));
+    } catch(err) { alert('Invalid session file.'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── CVSS HELPER ──
+document.addEventListener('click', e => {
+  if(e.target.classList.contains('cvss-btn')) {
+    const group = e.target.closest('.cvss-opts');
+    group.querySelectorAll('.cvss-btn').forEach(b => b.classList.remove('selected'));
+    e.target.classList.add('selected');
+    cvssScores[group.dataset.key] = parseInt(e.target.dataset.val);
+    calcCVSS();
+    autoSave();
+  }
+});
+
+function calcCVSS() {
+  const keys = ['financial','exploit','auth','scale'];
+  const filled = keys.filter(k => cvssScores[k]);
+  if(filled.length < 2) { document.getElementById('cvssResult').textContent = '← Score your findings above'; document.getElementById('cvssResult').className = 'cvss-result'; return; }
+  const sum = filled.reduce((a,k) => a + cvssScores[k], 0);
+  const max = filled.length === 4 ? 14 : filled.length * 4;
+  const pct = sum / max;
+  let label, cls, sel;
+  if(pct >= 0.85)      { label='CRITICAL'; cls='critical'; sel='Critical'; }
+  else if(pct >= 0.65) { label='HIGH';     cls='high';     sel='High'; }
+  else if(pct >= 0.4)  { label='MEDIUM';   cls='medium';   sel='Medium'; }
+  else                  { label='LOW';      cls='low';      sel='Low'; }
+  document.getElementById('cvssResult').textContent = `SUGGESTED SEVERITY: ${label}`;
+  document.getElementById('cvssResult').className = 'cvss-result ' + cls;
+  document.getElementById('reportSeverity').value = sel;
+}
+
+// ── REPORT ──
+function generateReport() {
+  const vulns = Object.entries(results).filter(([,v]) => v.result === 'vuln');
+  if(!vulns.length) { alert('No vulnerable tests found yet.'); return; }
+  const severity = document.getElementById('reportSeverity').value;
+  const vulnDetails = vulns.map(([id, v], i) => {
+    const note = v.note ? `\nEvidence/Observation: ${v.note}` : '';
+    return `### Finding ${i+1}: ${v.title}\n**How to reproduce:**\n${v.desc}${note}\n**Expected payout range:** ${v.pay}`;
+  }).join('\n\n');
+
+  const report = `## Title
+Business Logic Vulnerability: ${vulns.map(([,v])=>v.title).join(' + ')} on ${setup.target||'[target]'}
+
+## Severity
+${severity}
+
+## Summary
+Business logic vulnerabilities were discovered on ${setup.target||'[target]'} (${setup.appType||'web application'}) that allow an attacker to manipulate application workflows, pricing, or discount systems for financial gain. These vulnerabilities cannot be detected by automated scanners and require manual testing to identify.
+
+## Target
+- Program: ${setup.program||'[program]'}
+- Domain: ${setup.target||'[target]'}
+- Application Type: ${setup.appType||'[app type]'}
+- Test Account: ${setup.email||'[test email]'}
+${setup.notes ? '- Notes: ' + setup.notes : ''}
+
+## Vulnerability Details
+
+${vulnDetails}
+
+## Impact
+An attacker can exploit these vulnerabilities to:
+- Obtain goods or services without proper payment
+- Generate unauthorized discounts or credits
+- Bypass intended workflow restrictions
+- Cause direct financial loss to the organization
+- Abuse promotional systems at scale
+
+## Remediation
+${vulns.map(([,v]) => `- **${v.title}**: Implement server-side validation. Never trust client-supplied pricing, quantities, or workflow state. All business logic must be enforced on the server.`).join('\n')}
+
+## Steps to Reproduce
+${vulns.map(([,v], i) => `**${i+1}. ${v.title}**\n${v.desc}`).join('\n\n')}
+
+---
+*Report generated by Business Logic Tester*`;
+
+  document.getElementById('reportBox').textContent = report;
+  saveToHistory();
+}
+
+function copyReport() {
+  const text = document.getElementById('reportBox').textContent;
+  if(text.startsWith('Complete')) { alert('Generate report first.'); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => alert('Report copied!')).catch(() => fallbackCopy(text));
+  } else { fallbackCopy(text); }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta);
+  ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta); alert('Copied!');
+}
+
+function clearAll() {
+  if(confirm('Clear all data?')) {
+    results = {}; setup = {}; cvssScores = {};
+    localStorage.removeItem(STORAGE_KEY);
+    renderChecks(priceChecks, 'price-checks', 'p');
+    renderChecks(couponChecks, 'coupon-checks', 'c');
+    renderChecks(workflowChecks, 'workflow-checks', 'w');
+    renderChecks(raceChecks, 'race-checks', 'r');
+    ['p','c','w','r'].forEach(p => {
+      document.getElementById(p+'-vuln').textContent = 0;
+      document.getElementById(p+'-safe').textContent = 0;
+      document.getElementById(p+'-skip').textContent = 0;
+      document.getElementById(p+'-progress').style.width = '0%';
+    });
+    document.getElementById('reportBox').textContent = 'Complete tests then generate report...';
+    document.getElementById('cvssResult').textContent = '← Score your findings above';
+    document.getElementById('cvssResult').className = 'cvss-result';
+    ['target','program','testEmail','notes'].forEach(id => document.getElementById(id).value='');
+  }
+}
+
+// ── INIT ──
+renderChecks(priceChecks, 'price-checks', 'p');
+renderChecks(couponChecks, 'coupon-checks', 'c');
+renderChecks(workflowChecks, 'workflow-checks', 'w');
+renderChecks(raceChecks, 'race-checks', 'r');
+
+// Auto-load saved session
+const saved = localStorage.getItem(STORAGE_KEY);
+if(saved) { try { loadSession(JSON.parse(saved)); } catch(e) {} }
+</script>
+
+</body>
+</html>
