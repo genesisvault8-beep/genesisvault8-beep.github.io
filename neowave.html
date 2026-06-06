@@ -110,6 +110,14 @@
     color:var(--wave2); word-break:break-all; min-height:34px;
   }
   .wave-id-box.loading { color:var(--gray); animation:shimmer 1.5s infinite; }
+  .invite-input {
+    width:100%; margin-top:6px; padding:8px 11px;
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
+    color:var(--wave2); font-family:'Syne Mono',monospace; font-size:11px;
+    outline:none; word-break:break-all; cursor:text;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .invite-input:focus { border-color:var(--wave-dim); }
   @keyframes shimmer { 0%,100%{opacity:0.5} 50%{opacity:1} }
   .copy-btn {
     width:100%; margin-top:8px; padding:9px;
@@ -460,7 +468,7 @@
       background:var(--surface);
     }
     .sidebar.open { left:0; }
-    .sidebar-overlay { display:none; }
+    .sidebar-overlay { display:none !important; }
     .blip, .file-blip { max-width:88%; }
     .sidebar-toggle { display:flex; }
     .connect-card { padding:24px 18px; width:94%; border-radius:14px; }
@@ -568,8 +576,9 @@
     <div class="sidebar-section">
       <div class="sidebar-label">Your Wave ID</div>
       <div class="wave-id-box loading" id="wave-id-display">connecting...</div>
+      <input class="invite-input" id="invite-input" type="text" readonly placeholder="Generating link..." onclick="this.select()" />
       <button class="copy-btn" id="copy-btn" onclick="copyLink()">🔗 Copy Invite Link</button>
-      <div class="copy-hint">Share this link — guests connect directly, no server involved.</div>
+      <div class="copy-hint">Tap the link above to select it, or use Copy button.</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Privacy Shield</div>
@@ -681,6 +690,7 @@ function initHost() {
     myId = id;
     document.getElementById('wave-id-display').textContent = id;
     document.getElementById('wave-id-display').classList.remove('loading');
+    document.getElementById('invite-input').value = getInviteUrl();
     document.getElementById('share-id-display').textContent = getInviteUrl();
     setStatus('waiting','Waiting for guests');
     addParticipant('me', myName, myColor, 'You (Host)');
@@ -724,6 +734,7 @@ function guestJoin() {
         addParticipant('me', myName, myColor, 'You');
         addParticipant(hostPeerId,'Host',COLORS[0]);
         document.getElementById('wave-id-display').textContent = myId.slice(0,22)+'...';
+        document.getElementById('invite-input').value = getInviteUrl();
         document.getElementById('welcome-blip').innerHTML = `
           <div class="welcome-wave">🌊</div>
           <div class="welcome-title">You're in!</div>
@@ -1117,12 +1128,37 @@ function getInviteUrl() {
 
 function copyLink() {
   if (!myId) return;
-  navigator.clipboard.writeText(getInviteUrl()).then(() => {
-    const btn = document.getElementById('copy-btn');
-    btn.textContent = '✓ Link Copied!'; btn.classList.add('copied');
-    showToast('Invite link copied!','success');
-    setTimeout(() => { btn.textContent='🔗 Copy Invite Link'; btn.classList.remove('copied'); }, 2500);
-  });
+  const url = getInviteUrl();
+  const btn = document.getElementById('copy-btn');
+
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✓ Link Copied!'; btn.classList.add('copied');
+      showToast('Invite link copied!','success');
+      setTimeout(() => { btn.textContent='🔗 Copy Invite Link'; btn.classList.remove('copied'); }, 2500);
+    }).catch(() => fallbackCopy(url, btn));
+  } else {
+    fallbackCopy(url, btn);
+  }
+}
+
+function fallbackCopy(url, btn) {
+  // Select the invite input directly — works reliably on Android
+  const inp = document.getElementById('invite-input');
+  if (inp) {
+    inp.value = url;
+    inp.select();
+    inp.setSelectionRange(0, 99999);
+    try {
+      document.execCommand('copy');
+      btn.textContent = '✓ Link Copied!'; btn.classList.add('copied');
+      showToast('Invite link copied!','success');
+      setTimeout(() => { btn.textContent='🔗 Copy Invite Link'; btn.classList.remove('copied'); }, 2500);
+    } catch(e) {
+      showToast('Tap the link above to copy manually','');
+    }
+  }
 }
 
 function openShareModal() {
