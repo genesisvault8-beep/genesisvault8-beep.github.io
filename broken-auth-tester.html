@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Broken Auth Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0e;
+    --panel: #0f0f1a;
+    --border: #1a1a3a;
+    --blue: #00aaff;
+    --blue-dim: #0066cc;
+    --blue-dark: #000f1a;
+    --red: #ff3c3c;
+    --green: #00ff41;
+    --yellow: #ffd700;
+    --text: #c8d0f0;
+    --dim: #4a4a7a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    padding: 12px;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,170,255,0.012) 2px, rgba(0,170,255,0.012) 4px
+    );
+  }
+
+  header {
+    text-align: center;
+    padding: 16px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0,170,255,0.5);
+  }
+
+  header p { font-size: 0.7rem; color: var(--dim); letter-spacing: 2px; margin-top: 4px; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 4px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    border-color: var(--blue);
+    color: var(--blue);
+    background: var(--blue-dark);
+    box-shadow: 0 0 10px rgba(0,170,255,0.2);
+  }
+
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--blue);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue);
+    box-shadow: 0 0 6px var(--blue);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    margin-top: 10px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: #05050e;
+    border: 1px solid var(--border);
+    color: var(--blue);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 8px rgba(0,170,255,0.15);
+  }
+
+  textarea { resize: vertical; min-height: 60px; }
+  select option { background: var(--bg); }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+
+  .btn:hover, .btn:active { background: var(--blue-dark); box-shadow: 0 0 20px rgba(0,170,255,0.3); }
+  .btn-green { border-color: var(--green); color: var(--green); }
+  .btn-green:hover { background: rgba(0,255,65,0.05); }
+  .btn-red { border-color: var(--red); color: var(--red); }
+  .btn-yellow { border-color: var(--yellow); color: var(--yellow); }
+
+  /* Checklist */
+  .check-item {
+    border: 1px solid var(--border);
+    padding: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .check-item.done { border-color: var(--green); background: rgba(0,255,65,0.03); }
+  .check-item.vuln { border-color: var(--red); background: rgba(255,60,60,0.05); }
+  .check-item.skip { border-color: var(--dim); opacity: 0.5; }
+
+  .check-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .check-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--blue);
+    flex-shrink: 0;
+    min-width: 24px;
+  }
+
+  .check-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text);
+    letter-spacing: 1px;
+  }
+
+  .check-desc {
+    font-size: 0.7rem;
+    color: var(--dim);
+    line-height: 1.5;
+    margin-bottom: 8px;
+    padding-left: 34px;
+  }
+
+  .check-actions {
+    display: flex;
+    gap: 6px;
+    padding-left: 34px;
+  }
+
+  .mini-btn {
+    padding: 4px 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    border: 1px solid;
+    background: transparent;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .mini-btn.vuln { border-color: var(--red); color: var(--red); }
+  .mini-btn.safe { border-color: var(--green); color: var(--green); }
+  .mini-btn.skip { border-color: var(--dim); color: var(--dim); }
+  .mini-btn.vuln:hover { background: rgba(255,60,60,0.1); }
+  .mini-btn.safe:hover { background: rgba(0,255,65,0.1); }
+
+  .check-note {
+    margin-top: 6px;
+    padding-left: 34px;
+  }
+
+  .check-note input {
+    font-size: 0.72rem;
+    padding: 5px 8px;
+  }
+
+  .status-badge {
+    font-size: 0.6rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .badge-vuln { background: rgba(255,60,60,0.2); color: var(--red); }
+  .badge-safe { background: rgba(0,255,65,0.1); color: var(--green); }
+  .badge-skip { background: rgba(74,74,122,0.2); color: var(--dim); }
+  .badge-pending { background: rgba(0,170,255,0.1); color: var(--blue); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .stat-box {
+    background: #05050e;
+    border: 1px solid var(--border);
+    padding: 8px 4px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-num.red { color: var(--red); text-shadow: 0 0 8px rgba(255,60,60,0.4); }
+  .stat-num.green { color: var(--green); }
+  .stat-num.blue { color: var(--blue); }
+  .stat-num.yellow { color: var(--yellow); }
+  .stat-label { font-size: 0.5rem; color: var(--dim); letter-spacing: 1px; margin-top: 2px; }
+
+  .progress-bar { height: 3px; background: var(--border); margin: 10px 0; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--blue); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--blue); }
+
+  .report-box {
+    background: #02020e;
+    border: 1px solid var(--border);
+    padding: 12px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--text);
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+
+  .section-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--blue);
+    text-transform: uppercase;
+    padding: 8px 0 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  .hint { font-size: 0.62rem; color: var(--dim); margin-top: 4px; line-height: 1.5; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .session-bar { display:flex; align-items:center; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+  .sess-btn { padding:5px 10px; background:var(--panel); border:1px solid var(--border); color:var(--dim); font-family:'Rajdhani',sans-serif; font-weight:600; font-size:0.62rem; letter-spacing:1px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; }
+  .sess-btn:hover { border-color:var(--blue); color:var(--blue); }
+  .sess-save { margin-left:auto; font-size:0.58rem; color:var(--green); letter-spacing:1px; }
+  .history-panel { background:var(--panel); border:1px solid var(--border); padding:12px; margin-bottom:12px; }
+  .history-item { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.7rem; cursor:pointer; }
+  .history-item:hover { color:var(--blue); }
+  .history-item:last-child { border-bottom:none; }
+  .history-del { margin-left:auto; color:var(--red); cursor:pointer; padding:2px 6px; }
+  .cvss-grid { display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+  .cvss-row { display:flex; flex-direction:column; gap:5px; }
+  .cvss-label { font-size:0.62rem; color:var(--dim); letter-spacing:1px; text-transform:uppercase; }
+  .cvss-opts { display:flex; gap:5px; flex-wrap:wrap; }
+  .cvss-btn { padding:4px 10px; background:transparent; border:1px solid var(--border); color:var(--dim); font-family:'Rajdhani',sans-serif; font-size:0.65rem; font-weight:600; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:all 0.15s; }
+  .cvss-btn.selected { border-color:var(--blue); color:var(--blue); background:var(--blue-dark); }
+  .cvss-result { padding:10px; border:1px solid var(--border); font-family:'Rajdhani',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:2px; text-align:center; color:var(--blue); }
+  .cvss-result.critical { border-color:var(--red); color:var(--red); background:rgba(255,60,60,0.05); }
+  .cvss-result.high { border-color:#ff8800; color:#ff8800; background:rgba(255,136,0,0.05); }
+  .cvss-result.medium { border-color:var(--yellow); color:var(--yellow); }
+  .cvss-result.low { border-color:var(--green); color:var(--green); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔐 Auth Tester</h1>
+  <p>broken authentication vulnerability hunter</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('setup')">SETUP</button>
+  <button class="tab" onclick="switchTab('reset')">PWD RESET</button>
+  <button class="tab" onclick="switchTab('token')">TOKENS</button>
+  <button class="tab" onclick="switchTab('session')">SESSION</button>
+  <button class="tab" onclick="switchTab('report')">REPORT</button>
+</div>
+<div class="session-bar">
+  <button class="sess-btn" onclick="exportSession()">⬇ EXPORT</button>
+  <label class="sess-btn" for="importFile">⬆ IMPORT</label>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSession(event)">
+  <button class="sess-btn" onclick="showHistory()">📋 HISTORY</button>
+  <span class="sess-save" id="saveStatus">● AUTO-SAVED</span>
+</div>
+<div id="historyPanel" class="history-panel" style="display:none"></div>
+
+<!-- SETUP -->
+<div id="tab-setup" class="panel active">
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Target Setup</div>
+    <label>Target Domain</label>
+    <input type="text" id="target" placeholder="https://target.com" />
+    <label>Program Name</label>
+    <input type="text" id="program" placeholder="e.g. Acme Corp on HackerOne" />
+    <label>Your Test Account Email</label>
+    <input type="text" id="testEmail" placeholder="your-test@email.com" />
+    <label>Password Reset URL (if known)</label>
+    <input type="text" id="resetUrl" placeholder="https://target.com/forgot-password" />
+    <label>Login URL</label>
+    <input type="text" id="loginUrl" placeholder="https://target.com/login" />
+    <label>Notes / Scope</label>
+    <textarea id="notes" placeholder="Any scope notes or observations..."></textarea>
+    <button class="btn" onclick="saveSetup()">SAVE & START TESTING →</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>How To Use</div>
+    <p class="hint">1. Fill in target details above and save.</p>
+    <p class="hint">2. Go through each tab (PWD RESET, TOKENS, SESSION) and run each test manually.</p>
+    <p class="hint">3. Mark each test as VULNERABLE, SECURE, or SKIP.</p>
+    <p class="hint">4. Go to REPORT tab to generate your H1 report instantly.</p>
+    <p class="hint" style="margin-top:8px;color:var(--yellow)">► Broken auth bugs pay $500-$5000. They're often missed because hunters don't test systematically.</p>
+  </div>
+</div>
+
+<!-- PASSWORD RESET -->
+<div id="tab-reset" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="r-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="r-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="r-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num blue" id="r-total">6</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="r-progress"></div></div>
+
+  <div class="section-label">Password Reset Flow Tests</div>
+  <div id="reset-checks"></div>
+</div>
+
+<!-- TOKEN TESTS -->
+<div id="tab-token" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="t-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="t-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="t-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num blue" id="t-total">5</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="t-progress"></div></div>
+
+  <div class="section-label">Session Token Tests</div>
+  <div id="token-checks"></div>
+</div>
+
+<!-- SESSION TESTS -->
+<div id="tab-session" class="panel">
+  <div class="stats">
+    <div class="stat-box"><div class="stat-num red" id="s-vuln">0</div><div class="stat-label">VULN</div></div>
+    <div class="stat-box"><div class="stat-num green" id="s-safe">0</div><div class="stat-label">SAFE</div></div>
+    <div class="stat-box"><div class="stat-num yellow" id="s-skip">0</div><div class="stat-label">SKIP</div></div>
+    <div class="stat-box"><div class="stat-num blue" id="s-total">5</div><div class="stat-label">TOTAL</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="s-progress"></div></div>
+
+  <div class="section-label">Session Management Tests</div>
+  <div id="session-checks"></div>
+</div>
+
+<!-- REPORT -->
+<div id="tab-report" class="panel">
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>CVSS Severity Helper</div>
+    <div class="cvss-grid">
+      <div class="cvss-row">
+        <span class="cvss-label">Access Required</span>
+        <div class="cvss-opts" data-key="access">
+          <button class="cvss-btn" data-val="1">Admin</button>
+          <button class="cvss-btn" data-val="2">Auth User</button>
+          <button class="cvss-btn" data-val="3">None</button>
+        </div>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">Account Impact</span>
+        <div class="cvss-opts" data-key="impact">
+          <button class="cvss-btn" data-val="1">Minimal</button>
+          <button class="cvss-btn" data-val="2">Partial</button>
+          <button class="cvss-btn" data-val="3">Full Takeover</button>
+        </div>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">Exploitability</span>
+        <div class="cvss-opts" data-key="exploit">
+          <button class="cvss-btn" data-val="1">Complex</button>
+          <button class="cvss-btn" data-val="2">Moderate</button>
+          <button class="cvss-btn" data-val="3">Easy</button>
+          <button class="cvss-btn" data-val="4">Trivial</button>
+        </div>
+      </div>
+      <div class="cvss-row">
+        <span class="cvss-label">Persistence</span>
+        <div class="cvss-opts" data-key="persist">
+          <button class="cvss-btn" data-val="1">One-time</button>
+          <button class="cvss-btn" data-val="2">Session</button>
+          <button class="cvss-btn" data-val="3">Permanent</button>
+        </div>
+      </div>
+    </div>
+    <div class="cvss-result" id="cvssResult">← Score your findings above</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Generate Report</div>
+    <label>Severity Override</label>
+    <select id="reportSeverity">
+      <option>Critical</option>
+      <option selected>High</option>
+      <option>Medium</option>
+      <option>Low</option>
+    </select>
+    <button class="btn btn-green" onclick="generateReport()">⚡ GENERATE H1 REPORT</button>
+    <button class="btn btn-yellow" onclick="copyReport()" style="margin-top:6px">COPY REPORT</button>
+    <button class="btn" onclick="exportSession()" style="margin-top:6px;border-color:var(--blue);color:var(--blue)">⬇ EXPORT SESSION (.json)</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="dot"></div>Report Preview</div>
+    <div class="report-box" id="reportBox">Generate report after completing tests...</div>
+  </div>
+  <button class="btn btn-red" onclick="clearAll()" style="margin-top:6px">⚠ CLEAR ALL DATA</button>
+</div>
+
+<script>
+let setup = {}, results = {}, cvssScores = {};
+const STORAGE_KEY = 'bat_session';
+const HISTORY_KEY = 'bat_history';
+
+const resetChecks = [
+  { id:'r1', title:'Token Expiry Test', desc:'Request a password reset. Wait 30+ minutes without using it. Try to use the old reset link. If it still works, the token never expires — VULNERABLE.', pay:'High finding. Tokens should expire in 15-60 mins.' },
+  { id:'r2', title:'Token Reuse After Use', desc:'Request a reset, use the link to change your password. Then try to use the SAME reset link again. If it works a second time — VULNERABLE.', pay:'Medium-High. Tokens must be invalidated after use.' },
+  { id:'r3', title:'Old Token After New Request', desc:'Request reset link #1. Then request a NEW reset link #2. Try to use link #1. If it still works — VULNERABLE. Old tokens should be invalidated when new one is issued.', pay:'Medium-High finding.' },
+  { id:'r4', title:'Token Predictability', desc:'Request 3-5 reset tokens for your account. Look for patterns — sequential numbers, timestamps, short tokens (under 16 chars). Predictable tokens = VULNERABLE.', pay:'Critical if tokens are predictable.' },
+  { id:'r5', title:'Host Header Injection', desc:'Intercept the reset request (Burp/HTTP Toolkit). Change the Host header to your own domain (attacker.com). If the reset email link points to attacker.com — VULNERABLE.', pay:'High-Critical. Account takeover via token theft.' },
+  { id:'r6', title:'User Enumeration via Reset', desc:'Try resetting a valid email vs a fake email. If the response differs (different message, response time, status code) — user enumeration VULNERABLE.', pay:'Low-Medium. Useful for chaining attacks.' }
+];
+
+const tokenChecks = [
+  { id:'t1', title:'Token Valid After Logout', desc:'Log in and copy your session token/cookie. Log out. Try using the old token to access a protected endpoint. If it still works — VULNERABLE. Session not invalidated on logout.', pay:'High finding.' },
+  { id:'t2', title:'Token Valid After Password Change', desc:"Log in on Device A, copy token. Change your password. Try using Device A's old token. If still valid — VULNERABLE. All sessions should be killed on password change.", pay:'High finding.' },
+  { id:'t3', title:'JWT None Algorithm', desc:'If the app uses JWT: decode the token (jwt.io). Change the algorithm to "none" and remove the signature. If accepted — VULNERABLE. Critical JWT misconfiguration.', pay:'Critical. Full authentication bypass.' },
+  { id:'t4', title:'JWT Secret Weak/Guessable', desc:'Grab the JWT token. Try cracking it with hashcat or jwt_tool using common wordlists (secret, password, 123456, appname). If cracked — VULNERABLE.', pay:'Critical if cracked.' },
+  { id:'t5', title:'Concurrent Session Limit', desc:'Log in on 5+ different sessions/devices simultaneously. If all work with no notification or limit — potentially VULNERABLE depending on app type.', pay:'Low-Medium. Informational finding.' }
+];
+
+const sessionChecks = [
+  { id:'s1', title:'Session Fixation', desc:'Before logging in, note your session ID. Log in. Check if the session ID CHANGED after login. If it stays the same — VULNERABLE. Attacker can set session ID before you log in.', pay:'High finding.' },
+  { id:'s2', title:'Session ID in URL', desc:'Check if the session token appears in the URL (e.g. ?sessionid=xxxx or ?token=xxxx). If yes — VULNERABLE. URLs get logged in server logs, browser history, referrer headers.', pay:'Medium finding.' },
+  { id:'s3', title:'Missing Secure/HttpOnly Cookie Flags', desc:'Open DevTools → Application → Cookies. Check session cookie. If "Secure" or "HttpOnly" flags are missing — VULNERABLE. Allows cookie theft via XSS or HTTP.', pay:'Low-Medium. Good for chaining.' },
+  { id:'s4', title:'No Account Lockout', desc:'Try logging in with wrong password 20+ times rapidly. If no lockout, captcha, or rate limiting kicks in — VULNERABLE. Allows brute force attacks.', pay:'Medium finding.' },
+  { id:'s5', title:'Insufficient Session Timeout', desc:'Log in and leave the session completely idle for 24+ hours. Come back and try to use it. If still active — VULNERABLE. Sessions should timeout after inactivity.', pay:'Low-Medium finding.' }
+];
+
+function renderChecks(checks, containerId, prefix) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = checks.map((c, i) => `
+    <div class="check-item" id="item-${c.id}">
+      <div class="check-header">
+        <div class="check-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="check-title">${c.title}</div>
+        <span class="status-badge badge-pending" id="badge-${c.id}">PENDING</span>
+      </div>
+      <div class="check-desc">${c.desc}</div>
+      <div class="check-desc" style="color:var(--yellow);margin-top:2px">► ${c.pay}</div>
+      <div class="check-actions">
+        <button class="mini-btn vuln" onclick="markResult('${c.id}','vuln','${prefix}')">🔴 VULN</button>
+        <button class="mini-btn safe" onclick="markResult('${c.id}','safe','${prefix}')">🟢 SAFE</button>
+        <button class="mini-btn skip" onclick="markResult('${c.id}','skip','${prefix}')">SKIP</button>
+      </div>
+      <div class="check-note">
+        <input type="text" id="note-${c.id}" placeholder="Add observation..." style="margin-top:6px" oninput="autoSave()" />
+      </div>
+    </div>
+  `).join('');
+}
+
+function markResult(id, result, prefix) {
+  const note = document.getElementById('note-'+id).value;
+  const check = [...resetChecks,...tokenChecks,...sessionChecks].find(c => c.id === id);
+  results[id] = { result, note, title:check.title, desc:check.desc, pay:check.pay };
+  const item = document.getElementById('item-'+id);
+  item.className = 'check-item '+(result==='vuln'?'vuln':result==='safe'?'done':'skip');
+  const badge = document.getElementById('badge-'+id);
+  badge.textContent = {vuln:'🔴 VULN',safe:'🟢 SAFE',skip:'SKIPPED'}[result];
+  badge.className = 'status-badge '+{vuln:'badge-vuln',safe:'badge-safe',skip:'badge-skip'}[result];
+  updateStats(prefix);
+  autoSave();
+}
+
+function updateStats(prefix) {
+  const map = {r:resetChecks, t:tokenChecks, s:sessionChecks};
+  const checks = map[prefix];
+  const ids = checks.map(c => c.id);
+  const relevant = Object.entries(results).filter(([k]) => ids.includes(k));
+  const vuln = relevant.filter(([,v]) => v.result==='vuln').length;
+  const safe = relevant.filter(([,v]) => v.result==='safe').length;
+  const skip = relevant.filter(([,v]) => v.result==='skip').length;
+  const done = vuln+safe+skip;
+  document.getElementById(prefix+'-vuln').textContent = vuln;
+  document.getElementById(prefix+'-safe').textContent = safe;
+  document.getElementById(prefix+'-skip').textContent = skip;
+  document.getElementById(prefix+'-progress').style.width = Math.round((done/checks.length)*100)+'%';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const tabs = ['setup','reset','token','session','report'];
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function saveSetup() {
+  setup = {
+    target: document.getElementById('target').value,
+    program: document.getElementById('program').value,
+    email: document.getElementById('testEmail').value,
+    resetUrl: document.getElementById('resetUrl').value,
+    loginUrl: document.getElementById('loginUrl').value,
+    notes: document.getElementById('notes').value,
+  };
+  if(!setup.target) { alert('Enter target domain.'); return; }
+  autoSave(); saveToHistory(); switchTab('reset');
+}
+
+function autoSave() {
+  [...resetChecks,...tokenChecks,...sessionChecks].forEach(c => {
+    const el = document.getElementById('note-'+c.id);
+    if(el && results[c.id]) results[c.id].note = el.value;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({setup, results, cvssScores, savedAt:Date.now()}));
+  const el = document.getElementById('saveStatus');
+  if(el) { el.textContent='● SAVED'; setTimeout(()=>{ el.textContent='● AUTO-SAVED'; },1500); }
+}
+
+function loadSession(session) {
+  if(!session) return;
+  setup = session.setup||{}; results = session.results||{}; cvssScores = session.cvssScores||{};
+  if(setup.target)    document.getElementById('target').value    = setup.target;
+  if(setup.program)   document.getElementById('program').value   = setup.program;
+  if(setup.email)     document.getElementById('testEmail').value = setup.email;
+  if(setup.resetUrl)  document.getElementById('resetUrl').value  = setup.resetUrl;
+  if(setup.loginUrl)  document.getElementById('loginUrl').value  = setup.loginUrl;
+  if(setup.notes)     document.getElementById('notes').value     = setup.notes;
+  Object.entries(results).forEach(([id, v]) => {
+    const item = document.getElementById('item-'+id); if(!item) return;
+    item.className = 'check-item '+(v.result==='vuln'?'vuln':v.result==='safe'?'done':'skip');
+    const badge = document.getElementById('badge-'+id);
+    badge.textContent = {vuln:'🔴 VULN',safe:'🟢 SAFE',skip:'SKIPPED'}[v.result];
+    badge.className = 'status-badge '+{vuln:'badge-vuln',safe:'badge-safe',skip:'badge-skip'}[v.result];
+    const noteEl = document.getElementById('note-'+id);
+    if(noteEl && v.note) noteEl.value = v.note;
+  });
+  ['r','t','s'].forEach(p => updateStats(p));
+  Object.entries(cvssScores).forEach(([key,val]) => {
+    document.querySelectorAll(`[data-key="${key}"] .cvss-btn`).forEach(btn => btn.classList.toggle('selected', btn.dataset.val==val));
+  });
+  calcCVSS();
+}
+
+function saveToHistory() {
+  if(!setup.target) return;
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+  const existing = history.findIndex(h => h.target===setup.target);
+  const entry = {target:setup.target, program:setup.program, savedAt:Date.now()};
+  if(existing>=0) history[existing]=entry; else history.unshift(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0,10)));
+}
+
+function showHistory() {
+  const panel = document.getElementById('historyPanel');
+  if(panel.style.display!=='none') { panel.style.display='none'; return; }
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+  if(!history.length) { panel.innerHTML='<div style="font-size:0.7rem;color:var(--dim);padding:8px">No saved sessions yet.</div>'; }
+  else {
+    panel.innerHTML = '<div class="section-label" style="margin-bottom:8px">Saved Sessions</div>' +
+      history.map((h,i) => `
+        <div class="history-item" onclick="loadHistorySession(${i})">
+          <span style="color:var(--blue)">▶</span>
+          <span>${h.target}</span>
+          <span style="color:var(--dim);font-size:0.6rem">${h.program||''}</span>
+          <span style="color:var(--dim);font-size:0.58rem;margin-left:auto">${new Date(h.savedAt).toLocaleDateString()}</span>
+          <span class="history-del" onclick="event.stopPropagation();deleteHistory(${i})">✕</span>
+        </div>`).join('');
+  }
+  panel.style.display='block';
+}
+
+function loadHistorySession(i) {
+  const session = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  if(session) { loadSession(session); document.getElementById('historyPanel').style.display='none'; }
+}
+
+function deleteHistory(i) {
+  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+  history.splice(i,1);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  showHistory();
+}
+
+function exportSession() {
+  autoSave();
+  const session = {setup, results, cvssScores, exportedAt:new Date().toISOString(), tool:'Broken Auth Tester'};
+  const blob = new Blob([JSON.stringify(session,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const target = setup.target ? setup.target.replace(/https?:\/\//,'').replace(/[^a-z0-9]/gi,'-') : 'session';
+  a.href=url; a.download=`bat-${target}-${Date.now()}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function importSession(event) {
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { const s=JSON.parse(e.target.result); loadSession(s); autoSave(); alert('Session loaded: '+(s.setup?.target||'unknown')); }
+    catch(err) { alert('Invalid session file.'); }
+  };
+  reader.readAsText(file); event.target.value='';
+}
+
+document.addEventListener('click', e => {
+  if(e.target.classList.contains('cvss-btn')) {
+    const group = e.target.closest('.cvss-opts');
+    group.querySelectorAll('.cvss-btn').forEach(b => b.classList.remove('selected'));
+    e.target.classList.add('selected');
+    cvssScores[group.dataset.key] = parseInt(e.target.dataset.val);
+    calcCVSS(); autoSave();
+  }
+});
+
+function calcCVSS() {
+  const keys = ['access','impact','exploit','persist'];
+  const filled = keys.filter(k => cvssScores[k]);
+  if(filled.length<2) { document.getElementById('cvssResult').textContent='← Score your findings above'; document.getElementById('cvssResult').className='cvss-result'; return; }
+  const sum = filled.reduce((a,k)=>a+cvssScores[k],0);
+  const max = filled.length*4;
+  const pct = sum/max;
+  let label,cls,sel;
+  if(pct>=0.85)      { label='CRITICAL'; cls='critical'; sel='Critical'; }
+  else if(pct>=0.65) { label='HIGH';     cls='high';     sel='High'; }
+  else if(pct>=0.4)  { label='MEDIUM';   cls='medium';   sel='Medium'; }
+  else               { label='LOW';      cls='low';      sel='Low'; }
+  document.getElementById('cvssResult').textContent='SUGGESTED SEVERITY: '+label;
+  document.getElementById('cvssResult').className='cvss-result '+cls;
+  document.getElementById('reportSeverity').value=sel;
+}
+
+function generateReport() {
+  const vulns = Object.entries(results).filter(([,v]) => v.result==='vuln');
+  if(!vulns.length) { alert('No vulnerable tests found yet. Complete testing first.'); return; }
+  const severity = document.getElementById('reportSeverity').value;
+  const vulnDetails = vulns.map(([id,v],i) => {
+    const note = v.note ? `\nObservation: ${v.note}` : '';
+    return `### Finding ${i+1}: ${v.title}\n${v.desc}${note}`;
+  }).join('\n\n');
+
+  const report = `## Title
+Broken Authentication: ${vulns.map(([,v])=>v.title).join(', ')} on ${setup.target||'[target]'}
+
+## Severity
+${severity}
+
+## Summary
+Multiple broken authentication vulnerabilities were discovered on ${setup.target||'[target]'} that could allow an attacker to bypass authentication controls, take over user accounts, or maintain unauthorized access to the application.
+
+## Target
+- Program: ${setup.program||'[program]'}
+- Domain: ${setup.target||'[target]'}
+- Login URL: ${setup.loginUrl||'[login url]'}
+- Reset URL: ${setup.resetUrl||'[reset url]'}
+- Test Account: ${setup.email||'[test email]'}
+
+## Vulnerability Details
+
+${vulnDetails}
+
+## Impact
+The identified vulnerabilities could allow an attacker to:
+- Take over legitimate user accounts without knowing their password
+- Maintain persistent access even after a user logs out or changes their password
+- Bypass authentication controls entirely
+- Enumerate valid user accounts for targeted attacks
+
+## Remediation
+${vulns.map(([,v]) => `- **${v.title}**: Implement proper server-side controls to prevent this condition.`).join('\n')}
+- Ensure all session tokens are invalidated on logout and password change
+- Use cryptographically strong, non-predictable tokens with short expiry windows
+- Implement account lockout and rate limiting on authentication endpoints
+- Set Secure and HttpOnly flags on all session cookies
+
+## Steps to Reproduce
+${vulns.map(([,v],i) => `**${i+1}. ${v.title}**\n${v.desc}`).join('\n\n')}
+
+---
+*Report generated by Broken Auth Tester*`;
+
+  document.getElementById('reportBox').textContent = report;
+  saveToHistory();
+}
+
+function copyReport() {
+  const text = document.getElementById('reportBox').textContent;
+  if(text.startsWith('Generate')) { alert('Generate report first.'); return; }
+  if(navigator.clipboard&&navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(()=>alert('Report copied!')).catch(()=>fallbackCopy(text));
+  } else { fallbackCopy(text); }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value=text; document.body.appendChild(ta); ta.select();
+  document.execCommand('copy'); document.body.removeChild(ta); alert('Copied!');
+}
+
+function clearAll() {
+  if(confirm('Clear all data?')) {
+    results={}; setup={}; cvssScores={};
+    localStorage.removeItem(STORAGE_KEY);
+    renderChecks(resetChecks,'reset-checks','r');
+    renderChecks(tokenChecks,'token-checks','t');
+    renderChecks(sessionChecks,'session-checks','s');
+    ['r','t','s'].forEach(p => {
+      document.getElementById(p+'-vuln').textContent=0;
+      document.getElementById(p+'-safe').textContent=0;
+      document.getElementById(p+'-skip').textContent=0;
+      document.getElementById(p+'-progress').style.width='0%';
+    });
+    document.getElementById('reportBox').textContent='Generate report after completing tests...';
+    document.getElementById('cvssResult').textContent='← Score your findings above';
+    document.getElementById('cvssResult').className='cvss-result';
+    ['target','program','testEmail','resetUrl','loginUrl','notes'].forEach(id=>document.getElementById(id).value='');
+  }
+}
+
+renderChecks(resetChecks,'reset-checks','r');
+renderChecks(tokenChecks,'token-checks','t');
+renderChecks(sessionChecks,'session-checks','s');
+const saved = localStorage.getItem(STORAGE_KEY);
+if(saved) { try { loadSession(JSON.parse(saved)); } catch(e){} }
+</script>
+
+</body>
+</html>
