@@ -358,6 +358,14 @@
   }
   .origin-strip span { color:var(--wave-dim); }
 
+  .max-btn {
+    padding:8px; background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; color:var(--gray); font-family:'Syne',sans-serif;
+    font-size:14px; font-weight:700; cursor:pointer; transition:all 0.2s;
+  }
+  .max-btn.active { background:rgba(0,119,255,0.15); border-color:var(--wave); color:var(--wave2); }
+  .max-btn:hover { border-color:var(--wave-dim); color:var(--wave2); }
+
   .share-fab { display:none !important; }
   .wave-typing-anim {
     display:inline-block;
@@ -452,7 +460,7 @@
       background:var(--surface);
     }
     .sidebar.open { left:0; }
-    .sidebar-overlay { display:none !important; }
+    .sidebar-overlay { display:none; }
     .blip, .file-blip { max-width:88%; }
     .sidebar-toggle { display:flex; }
     .connect-card { padding:24px 18px; width:94%; border-radius:14px; }
@@ -477,8 +485,22 @@
   <div class="connect-card">
     <div class="connect-icon">🌊</div>
     <div class="connect-title">Start a <span>Wave</span></div>
-    <div class="connect-sub">Set your name before opening your Wave.</div>
+    <div class="connect-sub">Configure your private Wave before opening it.</div>
+
+    <div class="section-label" style="text-align:left;font-size:11px;color:var(--gray);letter-spacing:2px;margin-bottom:6px;">YOUR NAME</div>
     <input class="name-input" id="host-name-input" type="text" placeholder="Your name..." maxlength="20" />
+
+    <div class="section-label" style="text-align:left;font-size:11px;color:var(--gray);letter-spacing:2px;margin:12px 0 6px;">MAX PARTICIPANTS</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;">
+      <button class="max-btn active" onclick="selectMax(this,2)">2</button>
+      <button class="max-btn" onclick="selectMax(this,5)">5</button>
+      <button class="max-btn" onclick="selectMax(this,10)">10</button>
+      <button class="max-btn" onclick="selectMax(this,0)">∞</button>
+    </div>
+
+    <div class="section-label" style="text-align:left;font-size:11px;color:var(--gray);letter-spacing:2px;margin-bottom:6px;">PASSWORD <span style="color:var(--gray2);font-size:10px;">(optional)</span></div>
+    <input class="name-input" id="host-password-input" type="password" placeholder="Leave empty for no password..." maxlength="32" style="margin-bottom:16px;" />
+
     <button class="join-btn" onclick="hostStart()">🌊 Open Wave</button>
   </div>
 </div>
@@ -511,6 +533,7 @@
       <div class="connect-privacy-row"><span>📁</span> Files transfer peer-to-peer too</div>
     </div>
     <input class="name-input" id="guest-name" type="text" placeholder="Your name..." maxlength="20" />
+    <input class="name-input" id="guest-password" type="password" placeholder="Password (if required)..." maxlength="32" style="margin-bottom:4px;" />
     <button class="join-btn" onclick="guestJoin()">🌊 Join Wave</button>
     <div class="connect-status" id="connect-status"></div>
   </div>
@@ -611,6 +634,8 @@ let myId     = null;
 let myName   = 'Host';
 let myColor  = COLORS[0];
 let isHost   = true;
+let maxPeers = 2;
+let wavePassword = '';
 let connections  = {};
 let typingTimer  = null;
 let liveBlips    = {};
@@ -627,9 +652,17 @@ else { document.getElementById('host-name-modal').classList.add('show'); documen
 // ══════════════════════════════════════
 //  HOST NAME + START
 // ══════════════════════════════════════
+function selectMax(el, val) {
+  document.querySelectorAll('.max-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  maxPeers = val;
+}
+
 function hostStart() {
   const n = document.getElementById('host-name-input').value.trim();
+  const p = document.getElementById('host-password-input').value.trim();
   myName = n || 'Host';
+  wavePassword = p;
   document.getElementById('host-name-modal').classList.remove('show');
   initHost();
 }
@@ -682,7 +715,7 @@ function guestJoin() {
     const conn = myPeer.connect(hostPeerId, { reliable:true });
     conn.on('open', () => {
       connections[hostPeerId] = { conn, name:'Host', color:COLORS[0] };
-      conn.send({ type:'JOIN', name:myName, color:myColor });
+      conn.send({ type:'JOIN', name:myName, color:myColor, password: document.getElementById('guest-password').value.trim() });
       statusEl.textContent = '✓ Connected!'; statusEl.className = 'connect-status success';
       setTimeout(() => {
         document.getElementById('connect-screen').classList.remove('show');
@@ -711,6 +744,19 @@ function guestJoin() {
 function handleData(data, fromId, conn) {
 
   if (data.type === 'JOIN') {
+    // Check max participants
+    const currentPeers = Object.keys(connections).length;
+    if (maxPeers > 0 && currentPeers >= maxPeers) {
+      conn.send({ type:'REJECTED', reason:'Wave is full!' });
+      conn.close();
+      return;
+    }
+    // Check password
+    if (wavePassword && data.password !== wavePassword) {
+      conn.send({ type:'REJECTED', reason:'Wrong password!' });
+      conn.close();
+      return;
+    }
     connections[fromId] = { conn, name:data.name, color:data.color };
     addParticipant(fromId, data.name, data.color);
     updatePeerCount(); setStatus('online', data.name+' joined');
@@ -719,6 +765,7 @@ function handleData(data, fromId, conn) {
     addSystemBlip(data.name+' joined the Wave 🌊');
   }
   else if (data.type === 'WELCOME') {
+    if (!connections[fromId]) connections[fromId] = { conn, name:'Host', color:COLORS[0] };
     connections[fromId].name = data.name; connections[fromId].color = data.color;
     updateParticipant(fromId, data.name, data.color);
     data.peers?.forEach(p => addParticipant(p.id,p.name,p.color));
@@ -729,8 +776,13 @@ function handleData(data, fromId, conn) {
     addParticipant(data.id, data.name, data.color);
     updatePeerCount(); showToast('🌊 '+data.name+' joined','success');
   }
-  else if (data.type === 'PEER_LEFT') { removePeer(data.id); }
-  else if (data.type === 'TYPING')    { showLiveTyping(fromId, data.text, data.name, data.color); }
+  else if (data.type === 'REJECTED') {
+    showToast('❌ ' + data.reason, 'error');
+    setStatus('waiting', data.reason);
+    document.getElementById('connect-status').textContent = '✗ ' + data.reason;
+    document.getElementById('connect-status').className = 'connect-status error';
+  }
+  else if (data.type === 'TYPING')    { showLiveTyping(fromId, data.text, data.name, data.color); if(isHost) broadcast(data,fromId); }
   else if (data.type === 'STOP_TYPING') { clearLiveTyping(fromId); if(isHost) broadcast(data,fromId); }
   else if (data.type === 'MESSAGE') {
     clearLiveTyping(fromId);
@@ -744,7 +796,7 @@ function handleData(data, fromId, conn) {
     const senderName = connections[fromId]?.name || 'Someone';
     const senderColor = connections[fromId]?.color || COLORS[1];
     incomingFiles[data.fileId] = {
-      meta: data, chunks: [], received: 0,
+      meta: data, chunks: new Map(), received: 0,
       cardEl: createIncomingFileCard(data, senderName, senderColor, fromId)
     };
     if (isHost) broadcast(data, fromId);
@@ -752,11 +804,11 @@ function handleData(data, fromId, conn) {
   else if (data.type === 'FILE_CHUNK') {
     const inc = incomingFiles[data.fileId];
     if (inc) {
-      inc.chunks[data.index] = data.chunk; // store by index for ordering
+      inc.chunks.set(data.index, data.chunk); // Map for reliable ordering
       inc.received++;
       const pct = Math.round((inc.received / inc.meta.totalChunks) * 100);
       updateFileProgress('recv_'+data.fileId, pct);
-      if (inc.received === inc.meta.totalChunks) finalizeFile(data.fileId);
+      if (inc.chunks.size === inc.meta.totalChunks) finalizeFile(data.fileId);
     }
     if (isHost) broadcast(data, fromId);
   }
@@ -783,6 +835,7 @@ function sendMessage() {
   const input = document.getElementById('message-input');
   const text  = input.value.trim();
   if (!text) return;
+  if (text.length > 4000) { showToast('Message too long (max 4000 chars)','error'); return; }
   if (Object.keys(connections).length === 0) {
     showToast('No one connected yet — share your invite link!','error');
     return;
@@ -948,8 +1001,11 @@ function addImagePreviewToCard(fileId, url) {
 function finalizeFile(fileId) {
   const inc = incomingFiles[fileId];
   if (!inc) return;
-  // Reassemble
-  const allBytes = inc.chunks.flatMap(c => c);
+  // Reassemble in correct chunk order
+  const sortedChunks = Array.from(inc.chunks.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(entry => entry[1]);
+  const allBytes = sortedChunks.flatMap(c => c);
   const blob = new Blob([new Uint8Array(allBytes)], { type: inc.meta.mimeType });
   const url  = URL.createObjectURL(blob);
   // Image preview
