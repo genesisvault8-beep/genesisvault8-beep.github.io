@@ -1,5 +1,5 @@
 // GENESIS VAULT — SERVICE WORKER v1.0
-const CACHE_NAME = 'genesisvault-v1';
+const CACHE_NAME = 'genesisvault-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -7,8 +7,8 @@ const STATIC_ASSETS = [
   '/login.html',
   '/hire.html',
   '/terms.html',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  '/icon-192.png',
+  '/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap'
 ];
 
