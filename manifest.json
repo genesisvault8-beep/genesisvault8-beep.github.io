@@ -1,0 +1,41 @@
+{
+  "name": "Genesis Vault",
+  "short_name": "GENESISVAULT",
+  "description": "Cybersecurity Platform & Automation Hub — Tools, Labs, AI Terminal",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020608",
+  "theme_color": "#00f5c4",
+  "categories": ["education", "security", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Vault Labs",
+      "short_name": "Labs",
+      "description": "Access hacking labs",
+      "url": "/index.html#vault-labs"
+    },
+    {
+      "name": "Marketplace",
+      "short_name": "Market",
+      "description": "Browse tools",
+      "url": "/index.html#market"
+    }
+  ]
+}
