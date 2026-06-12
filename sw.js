@@ -1,5 +1,5 @@
-// GENESIS VAULT — SERVICE WORKER v1.0
-const CACHE_NAME = 'genesisvault-v2';
+// GENESIS VAULT — SERVICE WORKER v1.1
+const CACHE_NAME = 'genesisvault-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -7,14 +7,15 @@ const STATIC_ASSETS = [
   '/login.html',
   '/hire.html',
   '/terms.html',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap'
 ];
 
 // Install — cache static assets
 self.addEventListener('install', event => {
-  console.log('// VAULT SW: Installing...');
+  console.log('// VAULT SW: Installing v1.1...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(STATIC_ASSETS))
@@ -36,21 +37,18 @@ self.addEventListener('activate', event => {
 
 // Fetch — cache first, then network
 self.addEventListener('fetch', event => {
-  // Skip non-GET and cross-origin requests
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Cache valid responses
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       }).catch(() => {
-        // Offline fallback
         if (event.request.destination === 'document') {
           return caches.match('/index.html');
         }
