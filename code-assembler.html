@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Assembler</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d0d0d;--panel:#141414;--border:#222;
+  --blue:#3b82f6;--green:#22c55e;--amber:#f59e0b;
+  --red:#ef4444;--purple:#a855f7;--cyan:#06b6d4;
+  --text:#94a3b8;--white:#e2e8f0;--muted:#334155;--dim:#0a0a0a;
+}
+*{scrollbar-width:thin;scrollbar-color:var(--muted) var(--bg);}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;min-height:100vh;}
+
+.app{max-width:560px;margin:0 auto;padding:1rem;}
+
+/* HEADER */
+.hdr{text-align:center;padding:1.2rem 0 1rem;margin-bottom:1rem;border-bottom:1px solid var(--border);}
+.hdr h1{font-family:'Syne',sans-serif;font-size:1.6rem;color:var(--white);font-weight:800;letter-spacing:-.02em;}
+.hdr h1 span{color:var(--blue);}
+.hdr p{font-size:.68rem;color:var(--muted);margin-top:.3rem;letter-spacing:.05em;}
+
+/* STEPS */
+.steps{display:flex;gap:.3rem;margin-bottom:1rem;justify-content:center;}
+.step{display:flex;align-items:center;gap:.3rem;font-size:.58rem;color:var(--muted);}
+.step-num{width:18px;height:18px;border-radius:50%;border:1px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;}
+.step.active .step-num{background:var(--blue);border-color:var(--blue);color:#fff;}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff;}
+.step-arr{color:var(--muted);font-size:.7rem;}
+
+/* SECTION */
+.sec{background:var(--panel);border:1px solid var(--border);margin-bottom:.8rem;overflow:hidden;}
+.sec-hdr{padding:.55rem .8rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--dim);}
+.sec-hdr h3{font-size:.65rem;color:var(--white);letter-spacing:.08em;}
+.sec-body{padding:.8rem;}
+
+/* LANGUAGE DETECT */
+.lang-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.7rem;}
+.lang-tag{font-size:.6rem;padding:.22rem .55rem;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s;border-radius:2px;}
+.lang-tag:hover{border-color:var(--blue);color:var(--blue);}
+.lang-tag.active{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.1);}
+
+/* CHUNK INPUT */
+.chunk-input{width:100%;background:var(--dim);border:1px solid var(--border);color:var(--white);
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;padding:.7rem;outline:none;
+  resize:vertical;min-height:120px;line-height:1.6;transition:border-color .2s;}
+.chunk-input:focus{border-color:var(--blue);}
+.chunk-input::placeholder{color:var(--muted);font-size:.68rem;}
+
+/* BUTTONS */
+.btn{font-family:'JetBrains Mono',monospace;font-size:.68rem;padding:.55rem .9rem;
+  cursor:pointer;border:1px solid;transition:all .2s;letter-spacing:.05em;}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-blue:hover{background:#2563eb;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text);}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.btn-green{background:var(--green);border-color:var(--green);color:#000;font-weight:700;}
+.btn-green:hover{background:#16a34a;}
+.btn-red{background:transparent;border-color:var(--red);color:var(--red);}
+.btn-red:hover{background:rgba(239,68,68,.1);}
+.btn-row{display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;}
+.btn-full{width:100%;}
+
+/* CHUNKS LIST */
+.chunks-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.6rem;}
+.chunk-item{background:var(--dim);border:1px solid var(--border);padding:.55rem .7rem;display:flex;align-items:center;gap:.6rem;transition:border-color .2s;}
+.chunk-item:hover{border-color:var(--muted);}
+.chunk-num{width:24px;height:24px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0;font-weight:700;}
+.chunk-info{flex:1;}
+.chunk-lines{font-size:.7rem;color:var(--white);}
+.chunk-preview{font-size:.62rem;color:var(--muted);margin-top:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px;}
+.chunk-size{font-size:.58rem;color:var(--muted);}
+.chunk-btns{display:flex;gap:.3rem;flex-shrink:0;}
+.chunk-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.2rem .4rem;cursor:pointer;transition:all .2s;}
+.chunk-btn:hover{border-color:var(--red);color:var(--red);}
+.chunk-btn.up:hover{border-color:var(--blue);color:var(--blue);}
+.empty-chunks{text-align:center;padding:1.2rem;color:var(--muted);font-size:.72rem;border:1px dashed var(--border);}
+
+/* OPTIONS */
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem;}
+.opt-item{display:flex;align-items:center;gap:.5rem;font-size:.68rem;color:var(--text);cursor:pointer;}
+.opt-item input[type=checkbox]{accent-color:var(--blue);width:14px;height:14px;}
+
+/* PREVIEW */
+.preview-box{background:var(--dim);border:1px solid var(--border);padding:.7rem;
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;line-height:1.7;
+  max-height:280px;overflow-y:auto;color:var(--white);white-space:pre-wrap;word-break:break-all;position:relative;}
+.preview-empty{color:var(--muted);font-style:italic;}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:.8rem;flex-wrap:wrap;padding:.5rem .7rem;background:var(--dim);border-top:1px solid var(--border);font-size:.6rem;color:var(--muted);}
+.stat{display:flex;align-items:center;gap:.3rem;}
+.stat span{color:var(--white);}
+
+/* ALERT */
+.alert{padding:.55rem .8rem;border:1px solid;font-size:.68rem;margin-bottom:.6rem;display:none;line-height:1.5;}
+.alert.show{display:block;}
+.alert-green{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.06);}
+.alert-red{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.06);}
+.alert-amber{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.06);}
+
+/* OVERLAP BADGE */
+.overlap-badge{font-size:.58rem;padding:.15rem .4rem;background:rgba(245,158,11,.1);border:1px solid var(--amber);color:var(--amber);margin-left:.4rem;}
+
+/* DOWNLOAD AREA */
+.download-area{text-align:center;padding:1rem;border:1px dashed var(--border);}
+.dl-icon{font-size:2rem;margin-bottom:.4rem;}
+.dl-name{font-size:.72rem;color:var(--white);margin-bottom:.6rem;}
+
+/* TIPS */
+.tips{font-size:.65rem;color:var(--muted);line-height:1.8;padding:.6rem .8rem;border-top:1px solid var(--border);}
+.tips strong{color:var(--text);}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.fade-in{animation:fadeIn .25s ease both;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <h1>Code <span>Assembler</span></h1>
+    <p>PASTE SPLIT CODE CHUNKS · AUTO-FIX · DOWNLOAD COMPLETE FILE</p>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-num">1</div><span>Add Chunks</span></div>
+    <div class="step-arr">→</div>
+    <div class="step" id="step2"><div class="step-num">2</div><span>Assemble</span></div>
+    <div class="step-arr">→</div>
+    <div class="step" id="step3"><div class="step-num">3</div><span>Download</span></div>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert" id="alertBox"></div>
+
+  <!-- LANGUAGE SELECT -->
+  <div class="sec">
+    <div class="sec-hdr"><h3>1. SELECT FILE TYPE</h3><span id="detectedLang" style="font-size:.6rem;color:var(--green);"></span></div>
+    <div class="sec-body">
+      <div class="lang-row" id="langRow">
+        <div class="lang-tag active" data-ext="html" onclick="selectLang(this)">HTML</div>
+        <div class="lang-tag" data-ext="py" onclick="selectLang(this)">Python</div>
+        <div class="lang-tag" data-ext="js" onclick="selectLang(this)">JavaScript</div>
+        <div class="lang-tag" data-ext="css" onclick="selectLang(this)">CSS</div>
+        <div class="lang-tag" data-ext="php" onclick="selectLang(this)">PHP</div>
+        <div class="lang-tag" data-ext="java" onclick="selectLang(this)">Java</div>
+        <div class="lang-tag" data-ext="cpp" onclick="selectLang(this)">C++</div>
+        <div class="lang-tag" data-ext="ts" onclick="selectLang(this)">TypeScript</div>
+        <div class="lang-tag" data-ext="jsx" onclick="selectLang(this)">React JSX</div>
+        <div class="lang-tag" data-ext="txt" onclick="selectLang(this)">Plain Text</div>
+      </div>
+      <div style="display:flex;gap:.4rem;">
+        <input id="customFilename" style="flex:1;background:var(--dim);border:1px solid var(--border);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:.72rem;padding:.45rem .6rem;outline:none;" placeholder="filename (e.g. myapp)">
+        <span style="display:flex;align-items:center;font-size:.72rem;color:var(--muted);" id="extDisplay">.html</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CHUNK -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <h3>2. PASTE CODE CHUNK</h3>
+      <span style="font-size:.6rem;color:var(--muted)" id="chunkCountBadge">0 CHUNKS</span>
+    </div>
+    <div class="sec-body">
+      <textarea class="chunk-input" id="chunkInput" placeholder="Paste your code chunk here...&#10;&#10;Tip: Paste each part one by one.&#10;Overlapping lines will be removed automatically."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-blue" onclick="addChunk()" style="flex:1">+ ADD CHUNK</button>
+        <button class="btn btn-ghost" onclick="clearInput()">CLEAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHUNKS LIST -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <h3>3. CHUNKS ADDED</h3>
+      <button class="btn btn-ghost" onclick="clearAll()" style="font-size:.58rem;padding:.2rem .5rem;border-color:var(--border);">CLEAR ALL</button>
+    </div>
+    <div class="sec-body" style="padding:.5rem;">
+      <div id="chunksList"><div class="empty-chunks">No chunks yet.<br>Paste your first code chunk above.</div></div>
+    </div>
+  </div>
+
+  <!-- OPTIONS -->
+  <div class="sec">
+    <div class="sec-hdr"><h3>4. ASSEMBLY OPTIONS</h3></div>
+    <div class="sec-body">
+      <div class="options-grid">
+        <label class="opt-item"><input type="checkbox" id="optDeDupe" checked> Remove duplicates</label>
+        <label class="opt-item"><input type="checkbox" id="optFixIndent" checked> Fix indentation</label>
+        <label class="opt-item"><input type="checkbox" id="optTrimBlank" checked> Trim blank lines</label>
+        <label class="opt-item"><input type="checkbox" id="optOverlap" checked> Remove overlaps</label>
+      </div>
+      <button class="btn btn-blue btn-full" onclick="assembleCode()">
+        ⚙ ASSEMBLE CODE
+      </button>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="sec" id="previewSec" style="display:none;">
+    <div class="sec-hdr">
+      <h3>5. PREVIEW & DOWNLOAD</h3>
+      <div style="display:flex;gap:.4rem;">
+        <button class="btn btn-ghost" onclick="copyAll()" style="font-size:.6rem;padding:.2rem .6rem;">COPY ALL</button>
+      </div>
+    </div>
+    <div class="sec-body" style="padding:0;">
+      <div class="preview-box" id="previewBox"><span class="preview-empty">Assembled code will appear here...</span></div>
+      <div class="stats-bar" id="statsBar"></div>
+    </div>
+    <div class="sec-body">
+      <div class="download-area">
+        <div class="dl-icon">📥</div>
+        <div class="dl-name" id="dlName">myapp.html</div>
+        <button class="btn btn-green" onclick="downloadFile()" style="width:100%;font-size:.75rem;padding:.65rem;">
+          ⬇ DOWNLOAD COMPLETE FILE
+        </button>
+      </div>
+    </div>
+    <div class="tips">
+      <strong>Tips:</strong><br>
+      • If something looks wrong, re-order chunks using ↑↓ buttons<br>
+      • Toggle options above and re-assemble<br>
+      • Open downloaded file in Acode or VS Code to verify
+    </div>
+  </div>
+
+</div>
+
+<script>
+let chunks = [];
+let selectedExt = 'html';
+let assembledCode = '';
+
+// ── LANGUAGE ──
+function selectLang(el){
+  document.querySelectorAll('.lang-tag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  selectedExt = el.dataset.ext;
+  document.getElementById('extDisplay').textContent = '.'+selectedExt;
+  autoDetectHighlight();
+}
+
+function autoDetectHighlight(){
+  const text = document.getElementById('chunkInput').value;
+  if(!text) return;
+  let detected = '';
+  if(/<html|<!DOCTYPE|<head|<body|<div/i.test(text)) detected='html';
+  else if(/def |import |print\(|if __name__|class \w+:/i.test(text)) detected='py';
+  else if(/function |const |let |var |=>/i.test(text)) detected='js';
+  else if(/\{[\s\S]*:[\s\S]*\}|@media|\.[\w-]+\s*\{/i.test(text)) detected='css';
+  else if(/<\?php|echo |namespace /i.test(text)) detected='php';
+
+  if(detected){
+    document.querySelectorAll('.lang-tag').forEach(t=>{
+      if(t.dataset.ext===detected){ t.click(); }
+    });
+    document.getElementById('detectedLang').textContent = '// AUTO-DETECTED: '+detected.toUpperCase();
+  }
+}
+
+document.getElementById('chunkInput').addEventListener('input', autoDetectHighlight);
+
+// ── ADD CHUNK ──
+function addChunk(){
+  const val = document.getElementById('chunkInput').value.trim();
+  if(!val){ showAlert('Paste some code first!','amber'); return; }
+
+  const lines = val.split('\n');
+  chunks.push({
+    id: Date.now(),
+    content: val,
+    lines: lines.length,
+    size: new Blob([val]).size,
+    preview: lines[0].trim().slice(0,60) || '(empty first line)',
+  });
+
+  document.getElementById('chunkInput').value = '';
+  renderChunks();
+  showAlert(`Chunk ${chunks.length} added — ${lines.length} lines`,'green');
+  updateSteps(1);
+}
+
+function clearInput(){
+  document.getElementById('chunkInput').value = '';
+  document.getElementById('detectedLang').textContent = '';
+}
+
+// ── RENDER CHUNKS ──
+function renderChunks(){
+  const el = document.getElementById('chunksList');
+  document.getElementById('chunkCountBadge').textContent = chunks.length+' CHUNKS';
+
+  if(!chunks.length){
+    el.innerHTML='<div class="empty-chunks">No chunks yet.<br>Paste your first code chunk above.</div>';
+    return;
+  }
+
+  el.innerHTML = chunks.map((c,i)=>`
+    <div class="chunk-item fade-in">
+      <div class="chunk-num">${i+1}</div>
+      <div class="chunk-info">
+        <div class="chunk-lines">${c.lines} lines <span class="chunk-size">(${formatSize(c.size)})</span></div>
+        <div class="chunk-preview">${escapeHtml(c.preview)}</div>
+      </div>
+      <div class="chunk-btns">
+        ${i>0?`<button class="chunk-btn up" onclick="moveChunk(${i},-1)" title="Move up">↑</button>`:''}
+        ${i<chunks.length-1?`<button class="chunk-btn up" onclick="moveChunk(${i},1)" title="Move down">↓</button>`:''}
+        <button class="chunk-btn" onclick="deleteChunk(${i})" title="Remove">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function moveChunk(i, dir){
+  const ni = i+dir;
+  if(ni<0||ni>=chunks.length) return;
+  [chunks[i],chunks[ni]]=[chunks[ni],chunks[i]];
+  renderChunks();
+}
+
+function deleteChunk(i){
+  chunks.splice(i,1);
+  renderChunks();
+  if(!chunks.length) document.getElementById('previewSec').style.display='none';
+}
+
+function clearAll(){
+  if(chunks.length && !confirm('Clear all chunks?')) return;
+  chunks=[];
+  assembledCode='';
+  renderChunks();
+  document.getElementById('previewSec').style.display='none';
+  updateSteps(0);
+}
+
+// ── ASSEMBLE ──
+function assembleCode(){
+  if(!chunks.length){ showAlert('Add at least one chunk first!','amber'); return; }
+
+  const deDupe = document.getElementById('optDeDupe').checked;
+  const fixIndent = document.getElementById('optFixIndent').checked;
+  const trimBlank = document.getElementById('optTrimBlank').checked;
+  const removeOverlap = document.getElementById('optOverlap').checked;
+
+  let allLines = [];
+
+  // Concatenate all chunks
+  chunks.forEach((c,ci)=>{
+    const lines = c.content.split('\n');
+
+    if(removeOverlap && ci > 0 && allLines.length > 0){
+      // Find overlap: check if start of this chunk matches end of previous
+      const overlapSize = findOverlap(allLines, lines);
+      if(overlapSize > 0){
+        allLines = allLines.concat(lines.slice(overlapSize));
+        return;
+      }
+    }
+    allLines = allLines.concat(lines);
+  });
+
+  // Remove duplicate lines (consecutive)
+  if(deDupe){
+    const seen = new Set();
+    const deduped = [];
+    allLines.forEach(line=>{
+      const trimmed = line.trim();
+      // Only dedupe non-empty non-structural lines
+      if(trimmed && seen.has(trimmed) && !isStructuralLine(trimmed)){
+        return; // skip duplicate
+      }
+      seen.add(trimmed);
+      deduped.push(line);
+    });
+    allLines = deduped;
+  }
+
+  // Trim excessive blank lines
+  if(trimBlank){
+    const trimmed = [];
+    let blankCount = 0;
+    allLines.forEach(line=>{
+      if(line.trim()===''){
+        blankCount++;
+        if(blankCount<=1) trimmed.push(line);
+      } else {
+        blankCount=0;
+        trimmed.push(line);
+      }
+    });
+    allLines = trimmed;
+  }
+
+  // Fix basic indentation issues
+  if(fixIndent && selectedExt==='py'){
+    allLines = fixPythonIndent(allLines);
+  }
+
+  assembledCode = allLines.join('\n');
+
+  // Stats
+  const totalLines = allLines.length;
+  const totalChars = assembledCode.length;
+  const totalSize = new Blob([assembledCode]).size;
+
+  // Show preview
+  const previewBox = document.getElementById('previewBox');
+  previewBox.textContent = assembledCode;
+
+  // Stats bar
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat">Lines: <span>${totalLines.toLocaleString()}</span></div>
+    <div class="stat">Chars: <span>${totalChars.toLocaleString()}</span></div>
+    <div class="stat">Size: <span>${formatSize(totalSize)}</span></div>
+    <div class="stat">Chunks: <span>${chunks.length}</span></div>`;
+
+  // Filename
+  const fname = document.getElementById('customFilename').value.trim() || 'assembled';
+  const fullname = fname+'.'+selectedExt;
+  document.getElementById('dlName').textContent = fullname;
+
+  document.getElementById('previewSec').style.display='block';
+  document.getElementById('previewSec').scrollIntoView({behavior:'smooth'});
+  updateSteps(2);
+  showAlert(`✓ Assembly complete — ${totalLines} lines, ${formatSize(totalSize)}`,'green');
+}
+
+// ── OVERLAP DETECTION ──
+function findOverlap(prevLines, newLines){
+  const maxCheck = Math.min(20, prevLines.length, newLines.length);
+  for(let size=maxCheck; size>=2; size--){
+    const prevEnd = prevLines.slice(-size).map(l=>l.trim()).join('\n');
+    const newStart = newLines.slice(0,size).map(l=>l.trim()).join('\n');
+    if(prevEnd===newStart && prevEnd.trim()!=='') return size;
+  }
+  return 0;
+}
+
+function isStructuralLine(line){
+  // Lines that might legitimately repeat (brackets, imports etc)
+  return /^[{}()\[\]]+$/.test(line) ||
+    /^(import|from|#include|using|package)/.test(line) ||
+    line.length < 3;
+}
+
+function fixPythonIndent(lines){
+  // Basic: ensure consistent 4-space indentation
+  return lines.map(line=>{
+    const tabs = line.match(/^\t+/);
+    if(tabs) return '    '.repeat(tabs[0].length) + line.trimStart();
+    return line;
+  });
+}
+
+// ── DOWNLOAD ──
+function downloadFile(){
+  if(!assembledCode){ showAlert('Assemble code first!','amber'); return; }
+  const fname = (document.getElementById('customFilename').value.trim()||'assembled')+'.'+selectedExt;
+  const blob = new Blob([assembledCode], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=fname; a.click();
+  URL.revokeObjectURL(url);
+  updateSteps(3);
+  showAlert(`✓ Downloaded: ${fname}`,'green');
+}
+
+function copyAll(){
+  if(!assembledCode){ showAlert('Assemble code first!','amber'); return; }
+  navigator.clipboard.writeText(assembledCode).then(()=>{
+    showAlert('✓ Copied to clipboard!','green');
+  }).catch(()=>{
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = assembledCode;
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showAlert('✓ Copied!','green');
+  });
+}
+
+// ── STEPS ──
+function updateSteps(active){
+  const steps = [
+    document.getElementById('step1'),
+    document.getElementById('step2'),
+    document.getElementById('step3'),
+  ];
+  steps.forEach((s,i)=>{
+    s.classList.remove('active','done');
+    if(i<active) s.classList.add('done');
+    else if(i===active) s.classList.add('active');
+  });
+}
+
+// ── ALERT ──
+function showAlert(msg, type='green'){
+  const el = document.getElementById('alertBox');
+  el.textContent = msg;
+  el.className = `alert alert-${type} show fade-in`;
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'),3500);
+}
+
+// ── HELPERS ──
+function formatSize(bytes){
+  if(bytes<1024) return bytes+'B';
+  if(bytes<1048576) return (bytes/1024).toFixed(1)+'KB';
+  return (bytes/1048576).toFixed(1)+'MB';
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

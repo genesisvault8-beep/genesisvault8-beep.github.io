@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bump — Instant P2P Share</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0d0d0d;
+  --surface: #161616;
+  --card:    #1e1e1e;
+  --border:  #2a2a2a;
+  --orange:  #ff5c00;
+  --orange2: #ff8c42;
+  --orange-dim: #3a1800;
+  --white:   #f0f0f0;
+  --gray:    #666;
+  --gray2:   #333;
+  --green:   #00e676;
+  --blue:    #2979ff;
+  --r:       16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; overflow:hidden; position:fixed; width:100%; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── BG GLOW ── */
+.bg-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(255,92,0,0.08) 0%, transparent 65%);
+  transition: opacity 1s;
+}
+.bg-glow.active { background: radial-gradient(ellipse at 50% 60%, rgba(255,92,0,0.18) 0%, transparent 65%); }
+
+/* ── SCREENS ── */
+.screen {
+  display: none; position: fixed; inset: 0; z-index: 1;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; gap: 0;
+}
+.screen.show { display: flex; }
+
+/* ════════════════════════════════
+   SCREEN 1 — HOME
+════════════════════════════════ */
+#screen-home {
+  gap: 0;
+}
+
+.app-logo {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 40px;
+  animation: fadeUp 0.6s ease both;
+}
+.logo-mark {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--orange);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; box-shadow: 0 0 24px rgba(255,92,0,0.5);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse { 0%,100%{box-shadow:0 0 18px rgba(255,92,0,0.4)} 50%{box-shadow:0 0 36px rgba(255,92,0,0.7)} }
+.logo-text { font-size: 32px; font-weight: 900; letter-spacing: -0.03em; color: var(--white); }
+.logo-text span { color: var(--orange); }
+
+/* big bump orb */
+.bump-orb-wrap {
+  position: relative; width: 200px; height: 200px;
+  margin-bottom: 36px; cursor: pointer;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.bump-orb {
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--orange2), var(--orange));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px;
+  box-shadow: 0 0 0 0 rgba(255,92,0,0.4), 0 8px 40px rgba(255,92,0,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+  animation: orbFloat 4s ease-in-out infinite;
+  position: relative; z-index: 1;
+  user-select: none;
+}
+@keyframes orbFloat {
+  0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)}
+}
+.bump-orb:active { transform: scale(0.93) !important; }
+.bump-orb.bumping {
+  animation: bumpPop 0.4s ease forwards !important;
+  box-shadow: 0 0 0 40px rgba(255,92,0,0), 0 8px 40px rgba(255,92,0,0.5) !important;
+}
+@keyframes bumpPop {
+  0%{transform:scale(1)} 30%{transform:scale(0.88)} 60%{transform:scale(1.08)} 100%{transform:scale(1)}
+}
+
+/* ripple rings */
+.ripple-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid rgba(255,92,0,0.3);
+  animation: ringExpand 2.5s ease-out infinite;
+  pointer-events: none;
+}
+.ripple-ring:nth-child(2) { animation-delay: 0.8s; }
+.ripple-ring:nth-child(3) { animation-delay: 1.6s; }
+@keyframes ringExpand {
+  0%{transform:scale(1);opacity:0.5}
+  100%{transform:scale(1.8);opacity:0}
+}
+
+.home-title {
+  font-size: clamp(22px,6vw,28px); font-weight: 900;
+  letter-spacing: -0.02em; text-align: center; margin-bottom: 8px;
+  animation: fadeUp 0.6s 0.2s ease both; opacity: 0;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.home-sub {
+  font-size: 15px; color: var(--gray); text-align: center;
+  margin-bottom: 36px; line-height: 1.5;
+  animation: fadeUp 0.6s 0.3s ease both; opacity: 0;
+}
+
+.home-btns {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px;
+  animation: fadeUp 0.6s 0.4s ease both; opacity: 0;
+}
+.btn-primary {
+  width: 100%; padding: 16px; border: none; border-radius: var(--r);
+  background: var(--orange); color: white; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 16px; font-weight: 800; letter-spacing: 0.01em; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 20px rgba(255,92,0,0.35);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,92,0,0.5); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary {
+  width: 100%; padding: 15px; border: 1.5px solid var(--border); border-radius: var(--r);
+  background: transparent; color: var(--white); font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-secondary:hover { border-color: var(--orange); color: var(--orange); background: rgba(255,92,0,0.05); }
+
+.home-badge {
+  margin-top: 20px; display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--gray); font-family: 'Fira Mono', monospace;
+  animation: fadeUp 0.6s 0.5s ease both; opacity: 0;
+}
+.home-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* ════════════════════════════════
+   SCREEN 2 — CONTACT CARD SETUP
+════════════════════════════════ */
+#screen-card { gap: 16px; justify-content: flex-start; padding-top: 60px; overflow-y: auto; }
+
+.screen-header {
+  display: flex; align-items: center; gap: 12px; width: 100%; max-width: 360px; margin-bottom: 4px;
+}
+.back-btn {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--card);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: all 0.2s; flex-shrink: 0;
+}
+.back-btn:hover { border-color: var(--orange); background: var(--orange-dim); }
+.screen-title { font-size: 20px; font-weight: 800; }
+
+.avatar-pick {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--orange); display: flex; align-items: center; justify-content: center;
+  font-size: 36px; cursor: pointer; transition: transform 0.2s;
+  box-shadow: 0 0 20px rgba(255,92,0,0.3); flex-shrink: 0;
+}
+.avatar-pick:hover { transform: scale(1.05); }
+
+.field-group { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 360px; }
+.field-label { font-size: 11px; font-weight: 700; color: var(--gray); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
+.field-input {
+  width: 100%; padding: 13px 16px; background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--r); color: var(--white); font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 15px; outline: none; transition: border-color 0.2s;
+}
+.field-input:focus { border-color: var(--orange); }
+.field-input::placeholder { color: var(--gray2); }
+
+/* ════════════════════════════════
+   SCREEN 3 — SHOW QR (SENDER)
+════════════════════════════════ */
+#screen-qr { gap: 20px; }
+
+.qr-title { font-size: 22px; font-weight: 900; text-align: center; letter-spacing:-0.02em; }
+.qr-sub   { font-size: 14px; color: var(--gray); text-align: center; margin-top: -10px; line-height: 1.5; }
+
+.qr-box {
+  background: white; border-radius: 20px; padding: 20px;
+  box-shadow: 0 0 0 4px rgba(255,92,0,0.2), 0 20px 60px rgba(0,0,0,0.5);
+  position: relative; overflow: hidden;
+}
+.qr-box::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(255,92,0,0.08), transparent);
+  pointer-events:none;
+}
+#qr-canvas { display: block; }
+
+/* corner decorations */
+.qr-corner {
+  position: absolute; width: 20px; height: 20px;
+  border-color: var(--orange); border-style: solid;
+}
+.qr-corner.tl { top: 8px; left: 8px; border-width: 3px 0 0 3px; }
+.qr-corner.tr { top: 8px; right: 8px; border-width: 3px 3px 0 0; }
+.qr-corner.bl { bottom: 8px; left: 8px; border-width: 0 0 3px 3px; }
+.qr-corner.br { bottom: 8px; right: 8px; border-width: 0 3px 3px 0; }
+
+.qr-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 30px; font-size: 13px; font-family: 'Fira Mono', monospace; color: var(--gray);
+}
+.qr-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); animation: blink 1s step-end infinite; flex-shrink: 0; }
+@keyframes blink { 50%{opacity:0} }
+.qr-status.connected .qr-status-dot { background: var(--green); animation: none; box-shadow: 0 0 8px var(--green); }
+.qr-status.connected { border-color: rgba(0,230,118,0.3); color: var(--green); }
+
+/* shake hint */
+.shake-hint {
+  font-size: 13px; color: var(--gray); text-align: center; line-height: 1.5;
+  padding: 10px 16px; background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  width: 100%; max-width: 300px;
+}
+
+/* ════════════════════════════════
+   SCREEN 4 — SCAN QR (RECEIVER)
+════════════════════════════════ */
+#screen-scan { gap: 20px; }
+
+.scan-frame {
+  width: 260px; height: 260px; border-radius: 20px; position: relative;
+  background: var(--card); border: 1px solid var(--border); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.scan-line-anim {
+  position: absolute; left: 16px; right: 16px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--orange), transparent);
+  animation: scanMove 2s ease-in-out infinite; top: 20px;
+  box-shadow: 0 0 8px var(--orange);
+}
+@keyframes scanMove { 0%{top:20px} 50%{top:calc(100% - 20px)} 100%{top:20px} }
+#video-preview { width:100%; height:100%; object-fit:cover; display:none; }
+.scan-placeholder { text-align:center; color:var(--gray); }
+.scan-placeholder-icon { font-size:48px; margin-bottom:10px; }
+.scan-placeholder-text { font-size:13px; }
+
+.manual-input-wrap { width:100%; max-width:320px; }
+.manual-label { font-size:12px; color:var(--gray); text-align:center; margin-bottom:8px; font-family:'Fira Mono',monospace; }
+.manual-row { display:flex; gap:8px; }
+.manual-input {
+  flex:1; padding:12px 14px; background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--r); color:var(--white); font-family:'Fira Mono',monospace; font-size:13px; outline:none;
+  transition: border-color 0.2s;
+}
+.manual-input:focus { border-color:var(--orange); }
+.manual-input::placeholder { color:var(--gray2); }
+.manual-btn {
+  padding:12px 16px; background:var(--orange); border:none; border-radius:var(--r);
+  color:white; font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:14px;
+  cursor:pointer; transition:all 0.2s; white-space:nowrap;
+}
+.manual-btn:hover { background:var(--orange2); }
+
+/* ════════════════════════════════
+   SCREEN 5 — BUMP! (connected)
+════════════════════════════════ */
+#screen-bump { gap: 20px; }
+
+.bump-peer-info {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.bump-peer-avatar {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--orange);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  box-shadow: 0 0 20px rgba(255,92,0,0.3);
+}
+.bump-peer-name { font-size: 18px; font-weight: 800; }
+.bump-peer-sub  { font-size: 13px; color: var(--gray); font-family: 'Fira Mono', monospace; }
+
+/* the big bump button */
+.bump-btn-wrap {
+  position: relative; width: 180px; height: 180px; cursor: pointer;
+}
+.bump-btn {
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--orange2), var(--orange));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  box-shadow: 0 0 0 0 rgba(255,92,0,0.4), 0 8px 32px rgba(255,92,0,0.3);
+  transition: transform 0.15s; user-select: none; position: relative; z-index: 1;
+  font-size: 48px;
+}
+.bump-btn-label { font-size: 14px; font-weight: 800; color: white; letter-spacing: 0.05em; }
+.bump-btn:active { transform: scale(0.9); }
+.bump-btn.fired {
+  animation: bumpFire 0.5s ease forwards;
+}
+@keyframes bumpFire {
+  0%{transform:scale(1)} 25%{transform:scale(0.85)} 60%{transform:scale(1.12)} 100%{transform:scale(1)}
+}
+.bump-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid rgba(255,92,0,0.25);
+  animation: bumpRing 2s ease-out infinite; pointer-events: none;
+}
+.bump-ring:nth-child(2){animation-delay:0.7s}
+.bump-ring:nth-child(3){animation-delay:1.4s}
+@keyframes bumpRing { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(1.9);opacity:0} }
+
+.bump-ready-text {
+  font-size: 13px; color: var(--gray); text-align: center; line-height: 1.5;
+  font-family: 'Fira Mono', monospace;
+}
+.bump-ready-text.active { color: var(--orange); }
+
+/* share options */
+.share-options { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+.share-opt {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--r);
+  cursor: pointer; transition: all 0.2s;
+}
+.share-opt:hover { border-color: var(--orange); background: rgba(255,92,0,0.05); }
+.share-opt-icon { font-size: 22px; flex-shrink: 0; }
+.share-opt-label { font-size: 15px; font-weight: 700; }
+.share-opt-sub   { font-size: 12px; color: var(--gray); margin-top: 1px; }
+
+/* ════════════════════════════════
+   SCREEN 6 — TRANSFER
+════════════════════════════════ */
+#screen-transfer { gap: 18px; }
+
+.transfer-header { font-size: 20px; font-weight: 900; text-align: center; letter-spacing: -0.02em; }
+
+.transfer-anim {
+  width: 120px; height: 120px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.transfer-icon-main { font-size: 52px; animation: transferPulse 0.6s ease-in-out infinite alternate; }
+@keyframes transferPulse { from{transform:scale(1)} to{transform:scale(1.1)} }
+
+.transfer-item {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--r);
+  width: 100%; max-width: 320px;
+}
+.transfer-item-icon { font-size: 24px; flex-shrink: 0; }
+.transfer-item-info { flex: 1; min-width: 0; }
+.transfer-item-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.transfer-item-size { font-size: 12px; color: var(--gray); font-family: 'Fira Mono', monospace; margin-top: 2px; }
+.transfer-prog-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.transfer-prog-fill  { height: 100%; background: var(--orange); border-radius: 2px; width: 0%; transition: width 0.15s; box-shadow: 0 0 6px var(--orange); }
+.transfer-pct { font-family: 'Fira Mono', monospace; font-size: 12px; color: var(--orange); font-weight: 500; }
+
+.transfer-done {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+}
+.transfer-done-icon { font-size: 56px; animation: donePop 0.5s ease; }
+@keyframes donePop { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+.transfer-done-title { font-size: 22px; font-weight: 900; }
+.transfer-done-sub   { font-size: 14px; color: var(--gray); }
+
+/* contact card received */
+.contact-card {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 20px;
+  padding: 20px; width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px;
+}
+.contact-card-header { display: flex; align-items: center; gap: 14px; }
+.contact-card-avatar {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--orange);
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+  box-shadow: 0 0 16px rgba(255,92,0,0.3); flex-shrink: 0;
+}
+.contact-card-name { font-size: 20px; font-weight: 900; }
+.contact-card-handle { font-size: 12px; color: var(--gray); font-family: 'Fira Mono', monospace; }
+.contact-card-fields { display: flex; flex-direction: column; gap: 8px; }
+.contact-card-field { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--gray); }
+.contact-card-field span { color: var(--white); }
+.save-contact-btn {
+  width: 100%; padding: 13px; background: var(--orange); border: none; border-radius: var(--r);
+  color: white; font-family: 'Cabinet Grotesk', sans-serif; font-size: 15px; font-weight: 800;
+  cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(255,92,0,0.3);
+}
+.save-contact-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,92,0,0.5); }
+
+/* download btn */
+.dl-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px 20px; background: var(--orange); border: none; border-radius: var(--r);
+  color: white; font-family: 'Cabinet Grotesk', sans-serif; font-size: 15px; font-weight: 800;
+  cursor: pointer; text-decoration: none; transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(255,92,0,0.3); width: 100%; max-width: 320px;
+  justify-content: center;
+}
+.dl-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,92,0,0.5); }
+
+/* bump again btn */
+.bump-again-btn {
+  padding: 12px 28px; background: transparent; border: 1.5px solid var(--border);
+  border-radius: 30px; color: var(--gray); font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 4px;
+}
+.bump-again-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px);
+  padding: 10px 20px; background: var(--card); border: 1px solid var(--border);
+  border-left: 3px solid var(--orange); border-radius: 30px; font-size: 13px;
+  font-family: 'Fira Mono', monospace; color: var(--white); z-index: 999;
+  opacity: 0; transition: all 0.3s; white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-left-color: var(--green); }
+</style>
+</head>
+<body>
+<div class="bg-glow" id="bg-glow"></div>
+
+<!-- ══════════════════════════════
+     SCREEN 1: HOME
+══════════════════════════════ -->
+<div class="screen show" id="screen-home">
+  <div class="app-logo">
+    <div class="logo-mark">👊</div>
+    <div class="logo-text">Bu<span>mp</span></div>
+  </div>
+
+  <div class="bump-orb-wrap" onclick="orbTap()">
+    <div class="ripple-ring"></div>
+    <div class="ripple-ring"></div>
+    <div class="ripple-ring"></div>
+    <div class="bump-orb" id="home-orb">👊</div>
+  </div>
+
+  <div class="home-title">Share anything,<br>instantly.</div>
+  <div class="home-sub">No app. No cloud. No account.<br>Pure peer-to-peer magic.</div>
+
+  <div class="home-btns">
+    <button class="btn-primary" onclick="goSend()">👊 Start Bumping — Send</button>
+    <button class="btn-secondary" onclick="goReceive()">📲 Scan to Receive</button>
+  </div>
+
+  <div class="home-badge">
+    <div class="home-badge-dot"></div>
+    P2P · Zero servers · Files never leave your device
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 2: CARD SETUP
+══════════════════════════════ -->
+<div class="screen" id="screen-card">
+  <div class="screen-header">
+    <div class="back-btn" onclick="showScreen('screen-home')">←</div>
+    <div class="screen-title">Your Contact Card</div>
+  </div>
+
+  <div class="avatar-pick" id="avatar-display" onclick="cycleEmoji()">😎</div>
+
+  <div class="field-group">
+    <div>
+      <div class="field-label">Name</div>
+      <input class="field-input" id="card-name" type="text" placeholder="Your name" maxlength="30" />
+    </div>
+    <div>
+      <div class="field-label">Phone</div>
+      <input class="field-input" id="card-phone" type="tel" placeholder="+1 234 567 8900" maxlength="20" />
+    </div>
+    <div>
+      <div class="field-label">Email</div>
+      <input class="field-input" id="card-email" type="email" placeholder="you@example.com" maxlength="40" />
+    </div>
+    <div>
+      <div class="field-label">Note</div>
+      <input class="field-input" id="card-note" type="text" placeholder="Hey! Let's connect 👋" maxlength="50" />
+    </div>
+  </div>
+
+  <button class="btn-primary" style="max-width:360px;width:100%" onclick="saveCardAndGoQR()">
+    Continue → Generate QR
+  </button>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 3: SHOW QR
+══════════════════════════════ -->
+<div class="screen" id="screen-qr">
+  <div class="qr-title">Your Bump Code</div>
+  <div class="qr-sub">Have your friend scan this<br>to connect instantly</div>
+
+  <div class="qr-box">
+    <div class="qr-corner tl"></div>
+    <div class="qr-corner tr"></div>
+    <div class="qr-corner bl"></div>
+    <div class="qr-corner br"></div>
+    <div id="qr-canvas"></div>
+  </div>
+
+  <div class="qr-status" id="qr-status">
+    <div class="qr-status-dot"></div>
+    <span id="qr-status-text">Waiting for friend to scan...</span>
+  </div>
+
+  <div class="shake-hint">
+    💡 Once connected, shake your phone or press the 👊 button to send your card
+  </div>
+
+  <button class="btn-secondary" style="max-width:320px;width:100%" onclick="showScreen('screen-home')">← Back</button>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 4: SCAN QR
+══════════════════════════════ -->
+<div class="screen" id="screen-scan">
+  <div class="screen-header" style="max-width:320px">
+    <div class="back-btn" onclick="showScreen('screen-home')">←</div>
+    <div class="screen-title">Scan Bump Code</div>
+  </div>
+
+  <div class="scan-frame">
+    <div class="scan-line-anim"></div>
+    <video id="video-preview" autoplay playsinline></video>
+    <div class="scan-placeholder" id="scan-placeholder">
+      <div class="scan-placeholder-icon">📷</div>
+      <div class="scan-placeholder-text">Camera loading...</div>
+    </div>
+  </div>
+
+  <div class="manual-input-wrap">
+    <div class="manual-label">— or enter Peer ID manually —</div>
+    <div class="manual-row">
+      <input class="manual-input" id="manual-peer-id" placeholder="Paste Peer ID here..." />
+      <button class="manual-btn" onclick="connectManual()">Connect</button>
+    </div>
+  </div>
+
+  <button class="btn-secondary" style="max-width:320px;width:100%" onclick="showScreen('screen-home')">← Back</button>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 5: BUMP!
+══════════════════════════════ -->
+<div class="screen" id="screen-bump">
+  <div class="bump-peer-info">
+    <div class="bump-peer-avatar" id="bump-peer-avatar">👤</div>
+    <div class="bump-peer-name" id="bump-peer-name">Connected!</div>
+    <div class="bump-peer-sub" id="bump-peer-sub">Ready to bump</div>
+  </div>
+
+  <div class="bump-btn-wrap" onclick="doBump()">
+    <div class="bump-ring"></div>
+    <div class="bump-ring"></div>
+    <div class="bump-ring"></div>
+    <div class="bump-btn" id="main-bump-btn">
+      👊
+      <div class="bump-btn-label">BUMP!</div>
+    </div>
+  </div>
+
+  <div class="bump-ready-text" id="bump-ready-text">Tap 👊 or shake your phone to share</div>
+
+  <div class="share-options">
+    <div class="share-opt" onclick="shareCard()">
+      <div class="share-opt-icon">🪪</div>
+      <div>
+        <div class="share-opt-label">Share Contact Card</div>
+        <div class="share-opt-sub">Name, phone, email instantly</div>
+      </div>
+    </div>
+    <div class="share-opt" onclick="document.getElementById('file-pick').click()">
+      <div class="share-opt-icon">📁</div>
+      <div>
+        <div class="share-opt-label">Send a File</div>
+        <div class="share-opt-sub">Any file, direct P2P transfer</div>
+      </div>
+    </div>
+    <div class="share-opt" onclick="shareText()">
+      <div class="share-opt-icon">✏️</div>
+      <div>
+        <div class="share-opt-label">Send Text / Link</div>
+        <div class="share-opt-sub">Copy-paste anything</div>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="file-pick" style="display:none" onchange="handleFilePick(event)" />
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN 6: TRANSFER
+══════════════════════════════ -->
+<div class="screen" id="screen-transfer">
+  <div class="transfer-header" id="transfer-header">Sending...</div>
+
+  <div class="transfer-anim">
+    <div class="transfer-icon-main" id="transfer-icon">📤</div>
+  </div>
+
+  <div class="transfer-item" id="transfer-item" style="display:none">
+    <div class="transfer-item-icon" id="tr-icon">📄</div>
+    <div class="transfer-item-info">
+      <div class="transfer-item-name" id="tr-name">file.txt</div>
+      <div class="transfer-item-size" id="tr-size">0 KB</div>
+      <div class="transfer-prog-track"><div class="transfer-prog-fill" id="tr-fill"></div></div>
+    </div>
+    <div class="transfer-pct" id="tr-pct">0%</div>
+  </div>
+
+  <!-- done state -->
+  <div class="transfer-done" id="transfer-done" style="display:none"></div>
+
+  <button class="bump-again-btn" onclick="showScreen('screen-bump')" id="bump-again-btn" style="display:none">
+    👊 Bump Again
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+const CHUNK = 16384;
+const AVATARS = ['😎','🤙','👋','🦊','🐻','🦁','🐯','🐼','🦄','🤖','👽','💀'];
+let avatarIdx = 0;
+
+let myPeer   = null;
+let myId     = null;
+let conn     = null;
+let isSender = false;
+let myCard   = { name:'', phone:'', email:'', note:'', emoji:'😎' };
+let incoming = null; // { meta, chunks, received }
+
+// ══════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+  if (id === 'screen-bump') document.getElementById('bg-glow').classList.add('active');
+  else document.getElementById('bg-glow').classList.remove('active');
+}
+
+// ══════════════════════════════════════
+//  HOME ORB TAP
+// ══════════════════════════════════════
+function orbTap() {
+  const orb = document.getElementById('home-orb');
+  orb.classList.remove('bumping');
+  void orb.offsetWidth;
+  orb.classList.add('bumping');
+  setTimeout(() => orb.classList.remove('bumping'), 500);
+}
+
+// ══════════════════════════════════════
+//  SEND FLOW
+// ══════════════════════════════════════
+function goSend() {
+  isSender = true;
+  showScreen('screen-card');
+}
+
+function cycleEmoji() {
+  avatarIdx = (avatarIdx + 1) % AVATARS.length;
+  document.getElementById('avatar-display').textContent = AVATARS[avatarIdx];
+  myCard.emoji = AVATARS[avatarIdx];
+}
+
+function saveCardAndGoQR() {
+  myCard.name  = document.getElementById('card-name').value.trim()  || 'Anonymous';
+  myCard.phone = document.getElementById('card-phone').value.trim() || '';
+  myCard.email = document.getElementById('card-email').value.trim() || '';
+  myCard.note  = document.getElementById('card-note').value.trim()  || '';
+  myCard.emoji = AVATARS[avatarIdx];
+  initPeer(true);
+}
+
+// ══════════════════════════════════════
+//  RECEIVE FLOW
+// ══════════════════════════════════════
+function goReceive() {
+  isSender = false;
+  showScreen('screen-scan');
+  initPeer(false);
+  startCamera();
+}
+
+// ══════════════════════════════════════
+//  PEER INIT
+// ══════════════════════════════════════
+function initPeer(sender) {
+  if (myPeer) { try { myPeer.destroy(); } catch(e){} }
+  myPeer = new Peer(undefined, { debug: 0 });
+  myPeer.on('open', id => {
+    myId = id;
+    if (sender) {
+      showScreen('screen-qr');
+      generateQR(id);
+    }
+  });
+  myPeer.on('connection', c => {
+    conn = c;
+    setupConn();
+  });
+  myPeer.on('error', err => showToast('Connection error: ' + err.type, ''));
+}
+
+function setupConn() {
+  conn.on('open', () => {
+    if (isSender) {
+      // sender: update QR screen status
+      const st = document.getElementById('qr-status');
+      st.classList.add('connected');
+      document.getElementById('qr-status-text').textContent = 'Connected! ✓';
+      setTimeout(() => showBumpScreen(), 800);
+    } else {
+      showBumpScreen();
+    }
+  });
+  conn.on('data', handleData);
+  conn.on('close', () => showToast('Connection closed', ''));
+}
+
+// ══════════════════════════════════════
+//  QR CODE
+// ══════════════════════════════════════
+function generateQR(id) {
+  document.getElementById('qr-canvas').innerHTML = '';
+  const connectUrl = window.location.href.split('?')[0] + '?connect=' + id;
+  new QRCode(document.getElementById('qr-canvas'), {
+    text: connectUrl,
+    width: 220, height: 220,
+    colorDark: '#0d0d0d', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+// ══════════════════════════════════════
+//  CAMERA + QR SCAN
+// ══════════════════════════════════════
+function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) return;
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(stream => {
+      const vid = document.getElementById('video-preview');
+      vid.srcObject = stream;
+      vid.style.display = 'block';
+      document.getElementById('scan-placeholder').style.display = 'none';
+      scanQRFromVideo(vid);
+    })
+    .catch(() => {
+      document.getElementById('scan-placeholder').querySelector('.scan-placeholder-text').textContent = 'Camera not available — use manual ID';
+    });
+}
+
+function scanQRFromVideo(vid) {
+  // Use BarcodeDetector if available (modern browsers)
+  if ('BarcodeDetector' in window) {
+    const bd = new BarcodeDetector({ formats: ['qr_code'] });
+    const scan = setInterval(async () => {
+      try {
+        const codes = await bd.detect(vid);
+        if (codes.length > 0) {
+          clearInterval(scan);
+          handleQRResult(codes[0].rawValue);
+        }
+      } catch(e){}
+    }, 500);
+  }
+}
+
+function handleQRResult(text) {
+  try {
+    const url = new URL(text);
+    const peerId = url.searchParams.get('connect');
+    if (peerId) connectToPeer(peerId);
+  } catch(e) {
+    connectToPeer(text);
+  }
+}
+
+function connectManual() {
+  const id = document.getElementById('manual-peer-id').value.trim();
+  if (!id) { showToast('Enter a Peer ID', ''); return; }
+  connectToPeer(id);
+}
+
+function connectToPeer(peerId) {
+  if (!myPeer) initPeer(false);
+  showToast('Connecting...', '');
+  const c = myPeer.connect(peerId, { reliable: true });
+  conn = c;
+  setupConn();
+}
+
+// ══════════════════════════════════════
+//  AUTO-CONNECT FROM URL
+// ══════════════════════════════════════
+const urlP = new URLSearchParams(window.location.search);
+const autoConnect = urlP.get('connect');
+if (autoConnect) {
+  isSender = false;
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      showScreen('screen-scan');
+      initPeer(false);
+      setTimeout(() => connectToPeer(autoConnect), 800);
+    }, 300);
+  });
+}
+
+// ══════════════════════════════════════
+//  BUMP SCREEN
+// ══════════════════════════════════════
+function showBumpScreen() {
+  showScreen('screen-bump');
+  // update peer info
+  document.getElementById('bump-peer-avatar').textContent = isSender ? '👤' : (myCard.emoji || '😎');
+  document.getElementById('bump-peer-name').textContent   = isSender ? 'Friend connected!' : 'Connected!';
+  document.getElementById('bump-peer-sub').textContent    = 'Ready to share';
+  setupShake();
+}
+
+// ══════════════════════════════════════
+//  SHAKE DETECTION
+// ══════════════════════════════════════
+let lastShake = 0;
+function setupShake() {
+  if (!window.DeviceMotionEvent) return;
+  window.addEventListener('devicemotion', e => {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    const force = Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z);
+    if (force > 30 && Date.now() - lastShake > 1500) {
+      lastShake = Date.now();
+      doBump();
+    }
+  });
+}
+
+function doBump() {
+  const btn = document.getElementById('main-bump-btn');
+  btn.classList.remove('fired');
+  void btn.offsetWidth;
+  btn.classList.add('fired');
+  setTimeout(() => btn.classList.remove('fired'), 500);
+  // vibrate
+  navigator.vibrate?.([80, 40, 80]);
+  // auto-share card
+  shareCard();
+}
+
+// ══════════════════════════════════════
+//  SHARE ACTIONS
+// ══════════════════════════════════════
+function shareCard() {
+  if (!conn || !conn.open) { showToast('Not connected!', ''); return; }
+  conn.send({ type:'CARD', card: myCard });
+  showTransfer('card', myCard);
+}
+
+function handleFilePick(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 100*1024*1024) { showToast('Max 100MB', ''); return; }
+  sendFile(file);
+  e.target.value = '';
+}
+
+function sendFile(file) {
+  if (!conn || !conn.open) { showToast('Not connected!', ''); return; }
+  const fileId = 'f' + Date.now();
+  const totalChunks = Math.ceil(file.size / CHUNK);
+  const meta = { type:'FILE_META', fileId, name:file.name, size:file.size, mimeType:file.type, totalChunks };
+  conn.send(meta);
+  showTransferFile(meta, true);
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const buf = ev.target.result;
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(new Blob([buf], {type:file.type}));
+    }
+    let i = 0;
+    function next() {
+      if (i >= totalChunks) { updatePct('send_'+fileId, 100); return; }
+      const chunk = Array.from(new Uint8Array(buf.slice(i*CHUNK, (i+1)*CHUNK)));
+      conn.send({ type:'FILE_CHUNK', fileId, index:i, chunk });
+      updatePct('send_'+fileId, Math.round(((i+1)/totalChunks)*100));
+      i++;
+      setTimeout(next, 4);
+    }
+    next();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function shareText() {
+  const text = prompt('What do you want to send?');
+  if (!text || !text.trim()) return;
+  if (!conn || !conn.open) { showToast('Not connected!', ''); return; }
+  conn.send({ type:'TEXT', text });
+  showTransfer('text', { text });
+}
+
+// ══════════════════════════════════════
+//  DATA HANDLER
+// ══════════════════════════════════════
+function handleData(data) {
+  if (data.type === 'CARD') {
+    showReceivedCard(data.card);
+  }
+  else if (data.type === 'TEXT') {
+    showReceivedText(data.text);
+  }
+  else if (data.type === 'FILE_META') {
+    incoming = { meta:data, chunks:[], received:0 };
+    showTransferFile(data, false);
+  }
+  else if (data.type === 'FILE_CHUNK') {
+    if (!incoming) return;
+    incoming.chunks[data.index] = data.chunk;
+    incoming.received++;
+    const pct = Math.round((incoming.received/incoming.meta.totalChunks)*100);
+    updatePct('recv_'+data.fileId, pct);
+    if (incoming.received === incoming.meta.totalChunks) finalizeFile();
+  }
+}
+
+// ══════════════════════════════════════
+//  TRANSFER SCREENS
+// ══════════════════════════════════════
+function showTransfer(type, data) {
+  showScreen('screen-transfer');
+  document.getElementById('transfer-item').style.display = 'none';
+  document.getElementById('transfer-done').style.display = 'none';
+  document.getElementById('bump-again-btn').style.display = 'none';
+
+  if (type === 'card') {
+    document.getElementById('transfer-header').textContent = 'Sending Contact Card...';
+    document.getElementById('transfer-icon').textContent = '🪪';
+    setTimeout(() => showSentDone('🪪', 'Contact card sent!', data.name + ' shared'), 1000);
+  }
+  else if (type === 'text') {
+    document.getElementById('transfer-header').textContent = 'Sending Text...';
+    document.getElementById('transfer-icon').textContent = '✏️';
+    setTimeout(() => showSentDone('✏️', 'Text sent!', '"' + data.text.slice(0,40) + '"'), 800);
+  }
+}
+
+function showTransferFile(meta, isSend) {
+  showScreen('screen-transfer');
+  document.getElementById('transfer-done').style.display = 'none';
+  document.getElementById('bump-again-btn').style.display = 'none';
+  document.getElementById('transfer-header').textContent = isSend ? 'Sending File...' : 'Receiving File...';
+  document.getElementById('transfer-icon').textContent = isSend ? '📤' : '📥';
+
+  const item = document.getElementById('transfer-item');
+  item.style.display = 'flex';
+  document.getElementById('tr-icon').textContent = fileIcon(meta.mimeType);
+  document.getElementById('tr-name').textContent = meta.name;
+  document.getElementById('tr-size').textContent = fmtSize(meta.size);
+  document.getElementById('tr-fill').style.width = '0%';
+  document.getElementById('tr-pct').textContent = '0%';
+  item.id = 'transfer-item-' + (isSend ? 'send' : 'recv') + '_' + meta.fileId;
+}
+
+function updatePct(fileId, pct) {
+  const fill  = document.getElementById('tr-fill');
+  const label = document.getElementById('tr-pct');
+  if (fill)  fill.style.width = pct+'%';
+  if (label) label.textContent = pct+'%';
+}
+
+function showSentDone(icon, title, sub) {
+  const done = document.getElementById('transfer-done');
+  done.style.display = 'flex';
+  done.innerHTML = `
+    <div class="transfer-done-icon">${icon}</div>
+    <div class="transfer-done-title">${title}</div>
+    <div class="transfer-done-sub">${sub}</div>`;
+  document.getElementById('bump-again-btn').style.display = 'block';
+  navigator.vibrate?.([50, 30, 50, 30, 100]);
+}
+
+function finalizeFile() {
+  const meta  = incoming.meta;
+  const bytes = incoming.chunks.flatMap(c => c);
+  const blob  = new Blob([new Uint8Array(bytes)], { type: meta.mimeType });
+  const url   = URL.createObjectURL(blob);
+  incoming = null;
+
+  showScreen('screen-transfer');
+  document.getElementById('transfer-item').style.display = 'none';
+  document.getElementById('transfer-header').textContent = 'File Received!';
+  document.getElementById('transfer-icon').textContent = '🎉';
+
+  const done = document.getElementById('transfer-done');
+  done.style.display = 'flex';
+  const preview = meta.mimeType.startsWith('image/')
+    ? `<img src="${url}" style="width:100%;max-width:260px;border-radius:12px;margin:8px 0;box-shadow:0 4px 20px rgba(0,0,0,0.5)">`
+    : '';
+  done.innerHTML = `
+    <div class="transfer-done-icon">📥</div>
+    <div class="transfer-done-title">${escHtml(meta.name)}</div>
+    <div class="transfer-done-sub">${fmtSize(meta.size)} · received via P2P</div>
+    ${preview}
+    <a class="dl-btn" href="${url}" download="${escHtml(meta.name)}">⬇ Save File</a>`;
+  document.getElementById('bump-again-btn').style.display = 'block';
+  showToast('File received! ✓', 'success');
+  navigator.vibrate?.([80, 40, 80, 40, 120]);
+}
+
+function showReceivedCard(card) {
+  showScreen('screen-transfer');
+  document.getElementById('transfer-item').style.display = 'none';
+  document.getElementById('transfer-header').textContent = 'Contact Received!';
+  document.getElementById('transfer-icon').style.display = 'none';
+
+  const done = document.getElementById('transfer-done');
+  done.style.display = 'flex';
+  done.innerHTML = `
+    <div class="contact-card">
+      <div class="contact-card-header">
+        <div class="contact-card-avatar">${card.emoji||'😎'}</div>
+        <div>
+          <div class="contact-card-name">${escHtml(card.name)}</div>
+          <div class="contact-card-handle">via Bump 👊</div>
+        </div>
+      </div>
+      <div class="contact-card-fields">
+        ${card.phone ? `<div class="contact-card-field">📞 <span>${escHtml(card.phone)}</span></div>` : ''}
+        ${card.email ? `<div class="contact-card-field">✉️ <span>${escHtml(card.email)}</span></div>` : ''}
+        ${card.note  ? `<div class="contact-card-field">💬 <span>${escHtml(card.note)}</span></div>`  : ''}
+      </div>
+      <button class="save-contact-btn" onclick="saveContact('${escAttr(card.name)}','${escAttr(card.phone)}','${escAttr(card.email)}')">
+        💾 Save Contact
+      </button>
+    </div>`;
+  document.getElementById('bump-again-btn').style.display = 'block';
+  showToast('Contact received! 🪪', 'success');
+  navigator.vibrate?.([80, 40, 80]);
+}
+
+function showReceivedText(text) {
+  showScreen('screen-transfer');
+  document.getElementById('transfer-item').style.display = 'none';
+  document.getElementById('transfer-header').textContent = 'Text Received!';
+  document.getElementById('transfer-icon').style.display = 'none';
+
+  const done = document.getElementById('transfer-done');
+  done.style.display = 'flex';
+  done.innerHTML = `
+    <div class="transfer-done-icon">✉️</div>
+    <div class="transfer-done-title">Message received</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:15px;line-height:1.6;text-align:left;width:100%;max-width:320px;word-break:break-word">${escHtml(text)}</div>
+    <button class="dl-btn" onclick="navigator.clipboard?.writeText('${escAttr(text)}');showToast('Copied!','success')">📋 Copy Text</button>`;
+  document.getElementById('bump-again-btn').style.display = 'block';
+  showToast('Text received! ✓', 'success');
+}
+
+function saveContact(name, phone, email) {
+  const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}\nEMAIL:${email}\nEND:VCARD`;
+  const blob  = new Blob([vcard], { type:'text/vcard' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name.replace(/\s+/g,'_') + '.vcf';
+  a.click();
+  showToast('Contact saved! 💾', 'success');
+}
+
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+function fileIcon(mime) {
+  if (!mime) return '📄';
+  if (mime.startsWith('image/')) return '🖼️';
+  if (mime.startsWith('video/')) return '🎬';
+  if (mime.startsWith('audio/')) return '🎵';
+  if (mime.includes('pdf'))      return '📕';
+  if (mime.includes('zip')||mime.includes('rar')) return '🗜️';
+  return '📄';
+}
+function fmtSize(b) {
+  if (b<1024) return b+' B';
+  if (b<1024*1024) return (b/1024).toFixed(1)+' KB';
+  return (b/(1024*1024)).toFixed(1)+' MB';
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show '+(type||'');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.className='toast',3000);
+}
+</script>
+</body>
+</html>
