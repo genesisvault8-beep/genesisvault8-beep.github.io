@@ -1,852 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>GENESIS VAULT // ADMIN LOGIN</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis Vault | Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap');
-
   :root {
-    --bg:      #050a0a;
-    --bg2:     #0a1010;
-    --cyan:    #00ffcc;
-    --blue:    #00bfff;
-    --red:     #ff3333;
-    --green:   #00ff88;
-    --text:    #a0c8c0;
-    --border:  #1a3a3a;
-    --mono:    'Share Tech Mono', monospace;
-    --head:    'Orbitron', monospace;
+    --bg:#020608;--bg2:#060d10;--bg3:#0a1520;
+    --accent:#00f5c4;--accent2:#00a8ff;--accent3:#ff003c;--accent4:#ffaa00;
+    --text:#c8e6f0;--text-dim:#4a7a8a;--border:#0f2a35;
   }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,0,60,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,0,60,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* LOGIN BOX */
+  .login-wrap{position:relative;z-index:1;width:100%;max-width:360px;padding:20px;}
+  .logo-main{font-family:'Share Tech Mono',monospace;font-size:1.1rem;letter-spacing:4px;text-align:center;margin-bottom:4px;}
+  .logo-main span{color:var(--accent3);}
+  .logo-sub{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:3px;text-align:center;margin-bottom:24px;}
+  .login-card{background:var(--bg2);border:1px solid var(--accent3);padding:24px;}
+  .login-card h2{font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--accent3);letter-spacing:3px;margin-bottom:20px;text-align:center;}
+  .field{margin-bottom:14px;}
+  .field label{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;display:block;margin-bottom:6px;}
+  .field input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:0.85rem;padding:10px 12px;outline:none;transition:border-color 0.2s;}
+  .field input:focus{border-color:var(--accent3);}
+  .login-btn{width:100%;background:var(--accent3);color:white;border:none;padding:12px;font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:3px;cursor:pointer;margin-top:8px;transition:opacity 0.2s;}
+  .login-btn:hover{opacity:0.85;}
+  .login-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .msg{font-family:'Share Tech Mono',monospace;font-size:0.65rem;text-align:center;margin-top:12px;min-height:18px;letter-spacing:1px;}
+  .msg.error{color:var(--accent3);}
+  .msg.ok{color:var(--accent);}
 
-  body {
-    background: var(--bg);
-    color: var(--cyan);
-    font-family: var(--mono);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-  }
+  /* FAKE DASHBOARD */
+  #fake-dash{display:none;width:100%;min-height:100vh;padding:76px 16px 80px;}
 
-  /* scanlines */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,255,204,0.015) 2px,
-      rgba(0,255,204,0.015) 4px
-    );
-    pointer-events: none;
-    z-index: 999;
-  }
+  nav{position:fixed;top:0;left:0;right:0;background:rgba(2,6,8,0.97);border-bottom:1px solid var(--accent3);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;z-index:100;}
+  .nav-logo{font-family:'Share Tech Mono',monospace;font-size:0.9rem;letter-spacing:3px;}
+  .nav-logo span:first-child{color:var(--accent3);}
+  .nav-logo .admin-tag{color:var(--accent3);font-size:0.65rem;letter-spacing:2px;display:block;margin-top:-2px;}
+  .logout-btn{background:none;border:1px solid var(--accent3);color:var(--accent3);padding:4px 12px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;letter-spacing:1px;}
 
-  /* grid */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,255,204,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,255,204,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+  .section-title{font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--accent3);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .stat-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent3);padding:14px;}
+  .stat-card.green{border-left-color:var(--accent);}
+  .stat-card.blue{border-left-color:var(--accent2);}
+  .stat-card.yellow{border-left-color:var(--accent4);}
+  .stat-value{font-size:1.8rem;font-weight:700;font-family:'Share Tech Mono',monospace;color:var(--accent);letter-spacing:2px;line-height:1;}
+  .stat-card.green .stat-value{color:var(--accent);}
+  .stat-card.blue .stat-value{color:var(--accent2);}
+  .stat-card.yellow .stat-value{color:var(--accent4);}
+  .stat-card.red .stat-value{color:var(--accent3);}
+  .stat-label{font-size:0.65rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:'Share Tech Mono',monospace;}
+  .stat-sub{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text-dim);margin-top:6px;}
 
-  /* ── NAV ── */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    background: rgba(5,10,10,0.95);
-    border-bottom: 1px solid var(--border);
-    z-index: 100;
-    backdrop-filter: blur(8px);
-  }
+  .item-card{background:var(--bg2);border:1px solid var(--border);padding:16px;margin-bottom:10px;}
+  .item-card h4{font-size:1rem;font-weight:700;color:white;margin-bottom:4px;}
+  .item-card p{font-size:0.8rem;color:var(--text-dim);margin-bottom:8px;}
+  .item-meta{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--text-dim);}
+  .item-meta span{color:var(--accent2);}
 
-  .nav-logo {
-    font-family: var(--head);
-    font-size: 1rem;
-    letter-spacing: 3px;
-    color: var(--cyan);
-  }
-  .nav-logo span { color: var(--blue); }
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(2,6,8,0.97);border-top:1px solid var(--accent3);display:flex;z-index:100;}
+  .nav-item{flex:1;padding:10px 4px;text-align:center;cursor:pointer;}
+  .nav-item .nav-icon{font-size:1.1rem;display:block;}
+  .nav-item .nav-label{font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);font-family:'Share Tech Mono',monospace;margin-top:2px;display:block;}
 
-  .nav-status {
-    font-size: 0.6rem;
-    letter-spacing: 2px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .status-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--red);
-    animation: pulse-red 1.5s ease infinite;
-  }
-
-  @keyframes pulse-red {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,51,51,0.4); }
-    50%       { box-shadow: 0 0 0 6px rgba(255,51,51,0); }
-  }
-
-  /* ── MAIN ── */
-  main {
-    position: relative;
-    z-index: 1;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 100px 20px 60px;
-  }
-
-  /* ── LOGO BLOCK ── */
-  .logo-block {
-    text-align: center;
-    margin-bottom: 32px;
-    animation: fadeDown 0.5s ease both;
-  }
-
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .logo-main {
-    font-family: var(--head);
-    font-size: 1.3rem;
-    letter-spacing: 5px;
-    color: var(--cyan);
-    margin-bottom: 4px;
-  }
-
-  .logo-main span { color: var(--blue); }
-
-  .logo-sub {
-    font-size: 0.6rem;
-    letter-spacing: 3px;
-    color: var(--text);
-  }
-
-  /* ── CARD ── */
-  .card {
-    width: 100%;
-    max-width: 420px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    padding: 32px 24px;
-    position: relative;
-    animation: fadeUp 0.5s 0.1s ease both;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* top glow line */
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--red), transparent);
-  }
-
-  .card-title {
-    font-family: var(--head);
-    font-size: 0.75rem;
-    letter-spacing: 4px;
-    color: var(--red);
-    text-align: center;
-    margin-bottom: 28px;
-  }
-
-  /* ── ATTEMPT TRACKER ── */
-  .attempt-bar {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    margin-bottom: 24px;
-  }
-
-  .attempt-pip {
-    width: 28px; height: 4px;
-    background: var(--border);
-    transition: background 0.3s;
-  }
-
-  .attempt-pip.used { background: var(--red); }
-
-  /* ── FIELDS ── */
-  .field {
-    margin-bottom: 16px;
-  }
-
-  .field label {
-    display: block;
-    font-size: 0.6rem;
-    letter-spacing: 2px;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-
-  .field input {
-    width: 100%;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid var(--border);
-    color: var(--cyan);
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    padding: 13px 14px;
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    letter-spacing: 1px;
-  }
-
-  .field input::placeholder { color: #1a4040; }
-
-  .field input:focus {
-    border-color: var(--cyan);
-    box-shadow: 0 0 0 1px var(--cyan), 0 0 20px rgba(0,255,204,0.08);
-  }
-
-  .field input.shake {
-    animation: shake 0.4s ease;
-    border-color: var(--red);
-  }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%       { transform: translateX(-8px); }
-    40%       { transform: translateX(8px); }
-    60%       { transform: translateX(-6px); }
-    80%       { transform: translateX(6px); }
-  }
-
-  /* ── BUTTON ── */
-  .btn {
-    width: 100%;
-    background: var(--cyan);
-    color: #050a0a;
-    border: none;
-    font-family: var(--head);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 4px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 8px;
-  }
-
-  .btn:hover:not(:disabled) {
-    background: #00ffd5;
-    box-shadow: 0 0 30px rgba(0,255,204,0.35);
-    transform: translateY(-1px);
-  }
-
-  .btn:active:not(:disabled) { transform: translateY(0); }
-
-  .btn:disabled {
-    background: #1a3a3a;
-    color: #2a5a5a;
-    cursor: not-allowed;
-  }
-
-  .btn.locked {
-    background: transparent;
-    border: 2px solid var(--red);
-    color: var(--red);
-    cursor: not-allowed;
-  }
-
-  /* ── OUTPUT ── */
-  .output {
-    margin-top: 16px;
-    border: 1px solid var(--red);
-    background: rgba(255,51,51,0.04);
-    padding: 14px 16px;
-    font-size: 0.72rem;
-    letter-spacing: 1px;
-    line-height: 1.7;
-    display: none;
-  }
-
-  .output.show  { display: block; }
-  .output.error { border-color: var(--red);   color: var(--red);   background: rgba(255,51,51,0.04); }
-  .output.success { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.04); }
-  .output.info  { border-color: var(--blue);  color: var(--blue);  background: rgba(0,191,255,0.04); }
-
-  /* ── LOCKOUT SCREEN ── */
-  #lockout-screen {
-    display: none;
-    text-align: center;
-    padding: 20px 0;
-  }
-
-  .lockout-icon {
-    font-size: 2.5rem;
-    display: block;
-    margin-bottom: 14px;
-    filter: drop-shadow(0 0 12px var(--red));
-  }
-
-  .lockout-title {
-    font-family: var(--head);
-    font-size: 0.8rem;
-    letter-spacing: 3px;
-    color: var(--red);
-    margin-bottom: 10px;
-  }
-
-  .lockout-timer {
-    font-size: 1.4rem;
-    color: var(--cyan);
-    letter-spacing: 4px;
-    margin: 14px 0;
-    font-family: var(--head);
-  }
-
-  .lockout-sub {
-    font-size: 0.62rem;
-    color: var(--text);
-    letter-spacing: 1px;
-    line-height: 1.7;
-  }
-
-  /* ── DIVIDER ── */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 20px 0 0;
-    font-size: 0.55rem;
-    letter-spacing: 2px;
-    color: #1a4040;
-  }
-  .divider::before, .divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    padding: 20px;
-    font-size: 0.58rem;
-    letter-spacing: 2px;
-    color: #1a4040;
-  }
-
-  /* ── WAKE-UP OVERLAY ── */
-  #wakeup-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 1000;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  #wakeup-overlay.active { display: flex; }
-
-  .wakeup-logo {
-    font-family: var(--head);
-    font-size: 1.1rem;
-    letter-spacing: 5px;
-    color: var(--cyan);
-    margin-bottom: 6px;
-  }
-
-  .wakeup-logo span { color: var(--blue); }
-
-  .wakeup-sub {
-    font-size: 0.58rem;
-    letter-spacing: 3px;
-    color: var(--text);
-    margin-bottom: 48px;
-  }
-
-  .wakeup-bars {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 40px;
-  }
-
-  .wakeup-bar {
-    width: 3px;
-    height: 32px;
-    background: var(--border);
-    animation: barPulse 1.2s ease-in-out infinite;
-  }
-
-  .wakeup-bar:nth-child(1) { animation-delay: 0s; }
-  .wakeup-bar:nth-child(2) { animation-delay: 0.1s; }
-  .wakeup-bar:nth-child(3) { animation-delay: 0.2s; }
-  .wakeup-bar:nth-child(4) { animation-delay: 0.3s; }
-  .wakeup-bar:nth-child(5) { animation-delay: 0.4s; }
-  .wakeup-bar:nth-child(6) { animation-delay: 0.5s; }
-  .wakeup-bar:nth-child(7) { animation-delay: 0.6s; }
-  .wakeup-bar:nth-child(8) { animation-delay: 0.7s; }
-
-  @keyframes barPulse {
-    0%, 100% { background: var(--border); transform: scaleY(1); }
-    50% { background: var(--cyan); transform: scaleY(1.8); }
-  }
-
-  .wakeup-status {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    color: var(--cyan);
-    letter-spacing: 2px;
-    text-align: center;
-    min-height: 20px;
-    margin-bottom: 12px;
-    transition: opacity 0.3s;
-  }
-
-  .wakeup-log {
-    font-family: var(--mono);
-    font-size: 0.58rem;
-    color: var(--text);
-    letter-spacing: 1px;
-    text-align: left;
-    width: 100%;
-    max-width: 340px;
-    min-height: 80px;
-    border: 1px solid var(--border);
-    padding: 12px;
-    background: var(--bg2);
-    line-height: 2;
-  }
-
-  .wakeup-log .log-line {
-    display: block;
-    animation: fadeIn 0.3s ease;
-  }
-
-  .wakeup-log .log-ok { color: var(--green); }
-  .wakeup-log .log-wait { color: var(--cyan); }
-  .wakeup-log .log-warn { color: #ffaa00; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateX(-6px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  .wakeup-timer {
-    font-family: var(--mono);
-    font-size: 0.58rem;
-    color: #1a4040;
-    letter-spacing: 2px;
-    margin-top: 16px;
-  }
+  /* LOADING */
+  #loading-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+  #loading-screen.show{display:flex;}
+  .load-logo{font-family:'Share Tech Mono',monospace;font-size:1rem;letter-spacing:4px;color:var(--accent3);}
+  .load-bar{width:200px;height:2px;background:var(--border);}
+  .load-fill{height:100%;background:var(--accent3);width:0%;transition:width 0.3s;}
+  .load-msg{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">GENESIS<span>VAULT</span></div>
-  <div class="nav-status">
-    <div class="status-dot"></div>
-    RESTRICTED ACCESS
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="load-logo">GENESIS<span style="color:white">VAULT</span></div>
+  <div class="load-bar"><div class="load-fill" id="load-fill"></div></div>
+  <div class="load-msg" id="load-msg">// AUTHENTICATING...</div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="logo-main"><span>GENESIS</span>VAULT</div>
+  <div class="logo-sub">// ADMIN AUTHENTICATION REQUIRED</div>
+  <div class="login-card">
+    <h2>⬡ SECURE ACCESS PORTAL</h2>
+    <div class="field">
+      <label>ADMIN USERNAME</label>
+      <input type="text" id="hp-user" placeholder="Enter username" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>PASSWORD</label>
+      <input type="password" id="hp-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doHoneypotLogin()">
+    </div>
+    <!-- Invisible honeypot field — bots fill this -->
+    <input type="text" id="bot-trap" name="phone" style="display:none;opacity:0;position:absolute;left:-9999px;" tabindex="-1" autocomplete="off">
+    <button class="login-btn" id="hp-btn" onclick="doHoneypotLogin()">[ AUTHENTICATE ]</button>
+    <div class="msg" id="hp-msg"></div>
   </div>
+</div>
+
+<!-- FAKE DASHBOARD -->
+<nav id="fake-nav" style="display:none;">
+  <div class="nav-logo">
+    <span>GENESIS</span>VAULT
+    <span class="admin-tag">// ADMIN PANEL</span>
+  </div>
+  <button class="logout-btn" onclick="location.reload()">[ LOGOUT ]</button>
 </nav>
 
-<main>
-
-  <div class="logo-block">
-    <div class="logo-main">GENESIS<span>VAULT</span></div>
-    <div class="logo-sub">// ADMIN AUTHENTICATION REQUIRED</div>
+<div id="fake-dash">
+  <p class="section-title">// Overview</p>
+  <div class="stats-grid">
+    <div class="stat-card green">
+      <div class="stat-label">Total Members</div>
+      <div class="stat-value" id="fake-members">—</div>
+      <div class="stat-sub">↑ 3 this week</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">VC Circulating</div>
+      <div class="stat-value" id="fake-vc">—</div>
+      <div class="stat-sub">Platform economy</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Pending Tools</div>
+      <div class="stat-value">2</div>
+      <div class="stat-sub">Awaiting review</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Active Admins</div>
+      <div class="stat-value">1</div>
+      <div class="stat-sub">You are logged in</div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">[ ARCHITECT_CORE ]</div>
-
-    <!-- attempt pips -->
-    <div class="attempt-bar">
-      <div class="attempt-pip" id="pip-1"></div>
-      <div class="attempt-pip" id="pip-2"></div>
-      <div class="attempt-pip" id="pip-3"></div>
+  <p class="section-title">// Pending Member Requests</p>
+  <div id="fake-requests">
+    <div class="item-card">
+      <h4>ghost_reaper_x</h4>
+      <p>New member requesting access. Joined via referral.</p>
+      <div class="item-meta">Joined: <span>2 hours ago</span> · Rank: <span>Ghost</span></div>
     </div>
-
-    <!-- login form -->
-    <div id="login-form">
-      <div class="field">
-        <label>USERNAME</label>
-        <input type="text" id="username" placeholder="Enter admin username"
-               autocomplete="off" autocorrect="off" spellcheck="false"/>
-      </div>
-
-      <div class="field">
-        <label>PASSWORD</label>
-        <input type="password" id="password" placeholder="Enter password"
-               autocomplete="off"/>
-      </div>
-
-      <button class="btn" id="login-btn" onclick="doLogin()">
-        [ ACCESS VAULT ]
-      </button>
-
-      <div class="output" id="output"></div>
-
-      <div class="divider">AUTHORIZED PERSONNEL ONLY</div>
+    <div class="item-card">
+      <h4>null_b1t</h4>
+      <p>New member requesting access.</p>
+      <div class="item-meta">Joined: <span>5 hours ago</span> · Rank: <span>Ghost</span></div>
     </div>
-
-    <!-- lockout screen -->
-    <div id="lockout-screen">
-      <span class="lockout-icon">🔒</span>
-      <div class="lockout-title">ACCESS SUSPENDED</div>
-      <div class="lockout-sub">Too many failed attempts.<br/>Try again in:</div>
-      <div class="lockout-timer" id="countdown">10:00</div>
-      <div class="lockout-sub">
-        This device has been temporarily locked.<br/>
-        All attempts are logged.
-      </div>
-    </div>
-
   </div>
 
-</main>
-
-<footer>GENESIS VAULT // ADMIN MODULE // v2.0 // UNAUTHORIZED ACCESS IS PROHIBITED</footer>
-
-<!-- ── WAKE-UP OVERLAY ── -->
-<div id="wakeup-overlay">
-  <div class="wakeup-logo">GENESIS<span>VAULT</span></div>
-  <div class="wakeup-sub">// ESTABLISHING SECURE CONNECTION</div>
-  <div class="wakeup-bars">
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
-    <div class="wakeup-bar"></div>
+  <p class="section-title" style="margin-top:20px;">// Recent Activity</p>
+  <div class="item-card">
+    <h4>Tool Purchase</h4>
+    <p>User <span style="color:var(--accent2)">recon_wolf</span> purchased XSS Keylogger for 35 VC</p>
+    <div class="item-meta">Time: <span>1 hour ago</span></div>
   </div>
-  <div class="wakeup-status" id="wakeup-status">Initializing...</div>
-  <div class="wakeup-log" id="wakeup-log"></div>
-  <div class="wakeup-timer" id="wakeup-timer"></div>
+  <div class="item-card">
+    <h4>Lab Completed</h4>
+    <p>User <span style="color:var(--accent2)">ph4ntom</span> completed SQL Injection lab</p>
+    <div class="item-meta">Time: <span>3 hours ago</span></div>
+  </div>
+  <div class="item-card">
+    <h4>New Registration</h4>
+    <p>User <span style="color:var(--accent2)">xploit_dev</span> joined the platform</p>
+    <div class="item-meta">Time: <span>6 hours ago</span></div>
+  </div>
+</div>
+
+<div class="bottom-nav" id="fake-bottom" style="display:none;">
+  <div class="nav-item">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Overview</span>
+  </div>
+  <div class="nav-item">
+    <span class="nav-icon">👥</span>
+    <span class="nav-label">Members</span>
+  </div>
+  <div class="nav-item">
+    <span class="nav-icon">🛠️</span>
+    <span class="nav-label">Tools</span>
+  </div>
+  <div class="nav-item">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Settings</span>
+  </div>
 </div>
 
 <script>
-  const API          = 'https://youngbill44.pythonanywhere.com';
-  const AI_API       = 'https://genesis-ai-backend.onrender.com';
-  const MAX_ATTEMPTS = 3;
-  const LOCKOUT_MS   = 10 * 60 * 1000;
-  const FAKE_DELAY   = 2000;
+const API = 'https://youngbill44.pythonanywhere.com';
 
-  let attempts       = 0;
-  let locked         = false;
-  let lockTimer      = null;
-  let backendReady   = false;
-  let wakeStartTime  = null;
-  let wakeTimerInterval = null;
+// Collect intruder fingerprint
+function getFingerprint() {
+  return {
+    userAgent:   navigator.userAgent,
+    language:    navigator.language,
+    platform:    navigator.platform,
+    screenRes:   `${screen.width}x${screen.height}`,
+    timezone:    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timestamp:   new Date().toISOString(),
+    referrer:    document.referrer || 'direct',
+    cookieEnabled: navigator.cookieEnabled,
+    onLine:      navigator.onLine
+  };
+}
 
-  // ── AI STATUS MESSAGES ───────────────────────────────────────────────
-  const AI_MESSAGES = [
-    'Scanning vault nodes...',
-    'Initializing encrypted tunnel...',
-    'Authenticating admin channel...',
-    'Loading security protocols...',
-    'Syncing with genesis-vault-backend...',
-    'Verifying node integrity...',
-    'Establishing secure session...',
-    'Almost ready...'
+// Log intruder silently
+async function logIntruder(username, password_hint) {
+  try {
+    const fp = getFingerprint();
+    await fetch(`${API}/api/honeypot/log`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username:      username || '',
+        password_hint: password_hint ? password_hint.slice(0,3) + '***' : '',
+        user_agent:    fp.userAgent,
+        language:      fp.language,
+        platform:      fp.platform,
+        screen_res:    fp.screenRes,
+        timezone:      fp.timezone,
+        referrer:      fp.referrer,
+        trap_type:     document.getElementById('bot-trap').value ? 'BOT' : 'HUMAN',
+        timestamp:     fp.timestamp
+      })
+    });
+  } catch(e) {
+    // Silent fail — never alert the intruder
+  }
+}
+
+async function doHoneypotLogin() {
+  const username = document.getElementById('hp-user').value.trim();
+  const password = document.getElementById('hp-pass').value;
+  const msg      = document.getElementById('hp-msg');
+  const btn      = document.getElementById('hp-btn');
+
+  if (!username || !password) {
+    msg.textContent = '// CREDENTIALS REQUIRED';
+    msg.className   = 'msg error';
+    return;
+  }
+
+  btn.disabled    = true;
+  msg.textContent = '// VERIFYING...';
+  msg.className   = 'msg ok';
+
+  // Log the intruder immediately
+  await logIntruder(username, password);
+
+  // Show fake loading
+  const loading = document.getElementById('loading-screen');
+  const fill    = document.getElementById('load-fill');
+  const loadMsg = document.getElementById('load-msg');
+  loading.classList.add('show');
+
+  const steps = [
+    [15, '// AUTHENTICATING...'],
+    [35, '// CHECKING CREDENTIALS...'],
+    [55, '// LOADING ADMIN SESSION...'],
+    [75, '// FETCHING PLATFORM DATA...'],
+    [90, '// INITIALIZING DASHBOARD...'],
+    [100,'// ACCESS GRANTED']
   ];
 
-  // ── WAKE-UP OVERLAY HELPERS ──────────────────────────────────────────
-  function showWakeup() {
-    document.getElementById('wakeup-overlay').classList.add('active');
-    wakeStartTime = Date.now();
-    wakeTimerInterval = setInterval(() => {
-      const secs = Math.floor((Date.now() - wakeStartTime) / 1000);
-      document.getElementById('wakeup-timer').textContent = `ELAPSED: ${secs}s`;
-    }, 1000);
+  for (const [pct, text] of steps) {
+    await sleep(400 + Math.random() * 300);
+    fill.style.width    = pct + '%';
+    loadMsg.textContent = text;
   }
 
-  function hideWakeup() {
-    document.getElementById('wakeup-overlay').classList.remove('active');
-    clearInterval(wakeTimerInterval);
-  }
+  await sleep(600);
+  loading.classList.remove('show');
 
-  function setWakeupStatus(msg) {
-    document.getElementById('wakeup-status').textContent = msg;
-  }
+  // Show fake dashboard
+  document.getElementById('login-wrap').style.display  = 'none';
+  document.getElementById('fake-nav').style.display    = 'flex';
+  document.getElementById('fake-dash').style.display   = 'block';
+  document.getElementById('fake-bottom').style.display = 'flex';
+  document.body.style.display                          = 'block';
+  document.body.style.alignItems                       = 'unset';
 
-  function addLog(msg, type = 'log-wait') {
-    const log = document.getElementById('wakeup-log');
-    const line = document.createElement('span');
-    line.className = `log-line ${type}`;
-    line.textContent = `> ${msg}`;
-    log.appendChild(line);
-    log.scrollTop = log.scrollHeight;
-    // Keep only last 5 lines
-    const lines = log.querySelectorAll('.log-line');
-    if (lines.length > 5) lines[0].remove();
-  }
+  // Populate fake stats with random-ish numbers
+  document.getElementById('fake-members').textContent = Math.floor(Math.random() * 40) + 60;
+  document.getElementById('fake-vc').textContent      = (Math.floor(Math.random() * 5) + 12) + 'K';
 
-  // ── BACKGROUND PING — warms server silently on page load ─────────────
-  async function warmBackend() {
-    try {
-      await fetch(`https://youngbill44.pythonanywhere.com/ping`, { method: 'GET', signal: AbortSignal.timeout(60000) });
-      backendReady = true;
-    } catch(e) {
-      backendReady = false;
-    }
-  }
+  // Keep logging every 2 minutes while they browse
+  setInterval(() => logIntruder(username + '_browsing', null), 120000);
+}
 
-  // ── WAIT FOR BACKEND WITH VISUAL FEEDBACK ────────────────────────────
-  async function waitForBackend() {
-    if (backendReady) return true;
-    showWakeup();
-    let msgIndex = 0;
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const msg = AI_MESSAGES[Math.min(msgIndex, AI_MESSAGES.length - 1)];
-      setWakeupStatus(msg);
-      addLog(msg, 'log-wait');
-      msgIndex++;
-
-      try {
-        const res = await fetch(`https://youngbill44.pythonanywhere.com/ping`, {
-          method: 'GET',
-          signal: AbortSignal.timeout(8000)
-        });
-        if (res.ok || res.status < 500) {
-          addLog('Connection established!', 'log-ok');
-          setWakeupStatus('Vault online. Proceeding...');
-          await sleep(800);
-          hideWakeup();
-          backendReady = true;
-          return true;
-        }
-      } catch(e) {
-        addLog(`Retry ${attempt + 1}/12...`, 'log-warn');
-      }
-      await sleep(5000);
-    }
-
-    hideWakeup();
-    return false;
-  }
-
-  // ── CHECK EXISTING TOKEN ─────────────────────────────────────────────
-  window.addEventListener('load', () => {
-    const token = sessionStorage.getItem('gv_admin_token');
-    if (token) {
-      window.location.href = 'admin.html';
-      return;
-    }
-    checkLockout();
-    // Silently warm backend in background while admin types credentials
-    warmBackend();
-  });
-
-  // ── LOCKOUT PERSISTENCE ──────────────────────────────────────────────
-  function checkLockout() {
-    const lockUntil = localStorage.getItem('gv_lock_until');
-    if (!lockUntil) return;
-    const remaining = parseInt(lockUntil) - Date.now();
-    if (remaining > 0) {
-      engageLockout(remaining);
-    } else {
-      clearLockout();
-    }
-  }
-
-  function engageLockout(ms) {
-    locked = true;
-    document.getElementById('login-form').style.display    = 'none';
-    document.getElementById('lockout-screen').style.display = 'block';
-    localStorage.setItem('gv_lock_until', Date.now() + ms);
-
-    let remaining = Math.ceil(ms / 1000);
-    updateCountdown(remaining);
-
-    lockTimer = setInterval(() => {
-      remaining--;
-      updateCountdown(remaining);
-      if (remaining <= 0) {
-        clearLockout();
-      }
-    }, 1000);
-  }
-
-  function clearLockout() {
-    locked   = false;
-    attempts = 0;
-    clearInterval(lockTimer);
-    localStorage.removeItem('gv_lock_until');
-    document.getElementById('login-form').style.display    = 'block';
-    document.getElementById('lockout-screen').style.display = 'none';
-    resetPips();
-  }
-
-  function updateCountdown(secs) {
-    const m = String(Math.floor(secs / 60)).padStart(2, '0');
-    const s = String(secs % 60).padStart(2, '0');
-    document.getElementById('countdown').textContent = `${m}:${s}`;
-  }
-
-  // ── ATTEMPT PIPS ─────────────────────────────────────────────────────
-  function markPip() {
-    const pip = document.getElementById(`pip-${attempts}`);
-    if (pip) pip.classList.add('used');
-  }
-
-  function resetPips() {
-    for (let i = 1; i <= 3; i++) {
-      document.getElementById(`pip-${i}`).classList.remove('used');
-    }
-  }
-
-  // ── LOGIN ─────────────────────────────────────────────────────────────
-  async function doLogin() {
-    if (locked) return;
-
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-
-    if (!username || !password) {
-      showOutput('error', 'USERNAME AND PASSWORD REQUIRED');
-      shake();
-      return;
-    }
-
-    const btn = document.getElementById('login-btn');
-    btn.textContent = '[ AUTHENTICATING... ]';
-    btn.disabled    = true;
-
-    // If backend isn't warm yet, show wake-up screen and wait
-    if (!backendReady) {
-      const ready = await waitForBackend();
-      if (!ready) {
-        showOutput('error', 'SERVER UNREACHABLE\n> Check connection and try again');
-        btn.textContent = '[ ACCESS VAULT ]';
-        btn.disabled    = false;
-        return;
-      }
-    }
-
-    // Fake delay — slows down manual brute force
-    await sleep(FAKE_DELAY);
-
-    try {
-      const res = await fetch(`${API}/api/admin/auth`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await res.json();
-
-      if (data.status === 'success') {
-        sessionStorage.setItem('gv_admin_token',    data.token);
-        sessionStorage.setItem('gv_admin_username', data.username);
-        sessionStorage.setItem('gv_admin_id',       data.admin_id);
-
-        showOutput('success', `ACCESS GRANTED\n> WELCOME, ${data.username.toUpperCase()}\n> REDIRECTING...`);
-
-        document.querySelector('.status-dot').style.background  = '#00ff88';
-        document.querySelector('.status-dot').style.animation   = 'none';
-        document.querySelector('.status-dot').style.boxShadow   = '0 0 8px #00ff88';
-
-        setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
-
-      } else {
-        attempts++;
-        markPip();
-        shake();
-
-        if (attempts >= MAX_ATTEMPTS) {
-          showOutput('error', `ACCESS DENIED\n> MAX ATTEMPTS REACHED\n> DEVICE LOCKED FOR 10 MINUTES`);
-          setTimeout(() => engageLockout(LOCKOUT_MS), 800);
-        } else {
-          const left = MAX_ATTEMPTS - attempts;
-          showOutput('error', `AUTH_FAILED\n> INVALID CREDENTIALS\n> ${left} ATTEMPT${left !== 1 ? 'S' : ''} REMAINING`);
-          btn.textContent = '[ ACCESS VAULT ]';
-          btn.disabled    = false;
-        }
-      }
-
-    } catch (err) {
-      // Auto-retry once — handles edge case where server just woke up mid-request
-      try {
-        await sleep(4000);
-        const retry = await fetch(`${API}/api/admin/auth`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await retry.json();
-        if (data.status === 'success') {
-          sessionStorage.setItem('gv_admin_token',    data.token);
-          sessionStorage.setItem('gv_admin_username', data.username);
-          sessionStorage.setItem('gv_admin_id',       data.admin_id);
-          showOutput('success', `ACCESS GRANTED\n> WELCOME, ${data.username.toUpperCase()}\n> REDIRECTING...`);
-          setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
-          return;
-        }
-      } catch(e2) {}
-      showOutput('error', 'CONNECTION ERROR\n> Server may be starting up\n> Please wait a moment and try again');
-      btn.textContent = '[ ACCESS VAULT ]';
-      btn.disabled    = false;
-    }
-  }
-
-  // ── HELPERS ───────────────────────────────────────────────────────────
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  function shake() {
-    ['username', 'password'].forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.remove('shake');
-      void el.offsetWidth; // reflow
-      el.classList.add('shake');
-    });
-  }
-
-  function showOutput(type, msg) {
-    const el = document.getElementById('output');
-    el.className = `output show ${type}`;
-    el.innerHTML = msg.split('\n').map((line, i) =>
-      i === 0
-        ? `<span style="margin-right:6px;opacity:0.6">//</span> ${line}`
-        : `<span style="margin-right:6px;opacity:0.3">&nbsp;&nbsp;</span>${line}`
-    ).join('<br/>');
-  }
-
-  // ── ENTER KEY ─────────────────────────────────────────────────────────
-  ['username', 'password'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') doLogin();
-    });
-  });
+// Log page visit immediately on load (even before login attempt)
+window.addEventListener('load', () => {
+  logIntruder('PAGE_VISIT', null);
+});
 </script>
 </body>
 </html>
