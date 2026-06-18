@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Field Missions — Genesis Vault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #080d14;
+      --surface:   #0d1520;
+      --card:      #111c2d;
+      --border:    #1a2e47;
+      --accent:    #1e6fff;
+      --accent2:   #00c2ff;
+      --gold:      #f5a623;
+      --green:     #00e676;
+      --red:       #ff4757;
+      --text:      #e8f0fe;
+      --muted:     #5a7a9a;
+      --mono:      'Share Tech Mono', monospace;
+      --sans:      'Inter', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(30,111,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30,111,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,13,20,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--accent2);
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+
+    .nav-brand span { color: var(--accent); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .vc-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245,166,35,0.12);
+      border: 1px solid rgba(245,166,35,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    .vc-badge .coin { font-size: 15px; }
+
+    .back-btn {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      font-family: var(--mono);
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: var(--accent2); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      padding: 40px 20px 24px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: clamp(26px, 6vw, 42px);
+      font-weight: 700;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 340px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 1px;
+      margin: 20px 20px 0;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--surface);
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent2);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 28px 20px 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-transform: uppercase;
+      background: rgba(30,111,255,0.1);
+      border: 1px solid rgba(30,111,255,0.2);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── MISSION CARDS ── */
+    .mission-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .mission-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* Glow accent line on left */
+    .mission-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 14px 0 0 14px;
+    }
+
+    .mission-card.video::before  { background: var(--accent2); }
+    .mission-card.login::before  { background: var(--green); }
+    .mission-card.locked::before { background: var(--muted); }
+
+    .mission-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .mission-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .mission-icon.video { background: rgba(0,194,255,0.12); }
+    .mission-icon.login { background: rgba(0,230,118,0.12); }
+    .mission-icon.locked { background: rgba(90,122,154,0.12); }
+
+    .mission-info { flex: 1; }
+
+    .mission-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .mission-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .mission-reward {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .reward-amount {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold);
+      display: block;
+    }
+
+    .reward-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    /* Progress bar */
+    .mission-progress {
+      margin-bottom: 12px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-family: var(--mono);
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+
+    .progress-fill.video  { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .progress-fill.login  { background: linear-gradient(90deg, #00b050, var(--green)); }
+
+    /* Mission action button */
+    .mission-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .mission-btn:active { transform: scale(0.98); }
+
+    .mission-btn.video {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+
+    .mission-btn.login {
+      background: linear-gradient(135deg, #00b050, var(--green));
+      color: #000;
+    }
+
+    .mission-btn.locked {
+      background: var(--border);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .mission-btn:not(.locked):hover { opacity: 0.88; }
+
+    /* Cooldown badge */
+    .cooldown-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--green);
+      background: rgba(0,230,118,0.1);
+      border: 1px solid rgba(0,230,118,0.2);
+      border-radius: 20px;
+      padding: 3px 10px;
+      margin-bottom: 10px;
+    }
+
+    .cooldown-badge.used {
+      color: var(--muted);
+      background: rgba(90,122,154,0.08);
+      border-color: rgba(90,122,154,0.2);
+    }
+
+    /* ── VIDEO AD MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    .ad-container {
+      height: 200px;
+      background: #0a0f1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    /* Monetag/Adsterra ad slot goes here */
+    .ad-slot {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .ad-timer {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent2);
+      background: rgba(0,0,0,0.6);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .modal-body {
+      padding: 18px 20px;
+    }
+
+    .modal-progress {
+      margin-bottom: 16px;
+    }
+
+    .modal-progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .modal-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      transition: width 1s linear;
+      width: 0%;
+    }
+
+    .claim-btn {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .claim-btn:disabled {
+      background: var(--border);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .claim-btn:not(:disabled):hover { opacity: 0.88; }
+    .claim-btn:not(:disabled):active { transform: scale(0.98); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--card);
+      border: 1px solid var(--green);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--green);
+      letter-spacing: 1px;
+      z-index: 300;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { color: var(--red); border-color: var(--red); }
+
+    /* ── STREAK CARD ── */
+    .streak-row {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .streak-day {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+
+    .streak-day.done {
+      background: rgba(0,230,118,0.08);
+      border-color: rgba(0,230,118,0.3);
+    }
+
+    .streak-day.today {
+      background: rgba(30,111,255,0.1);
+      border-color: var(--accent);
+    }
+
+    .streak-day-label {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .streak-day-icon { font-size: 16px; display: block; }
+
+    .streak-day-vc {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--gold);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-it-works {
+      position: relative;
+      z-index: 1;
+      padding: 28px 20px 40px;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .how-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .how-num {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: rgba(30,111,255,0.3);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .how-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 360px) {
+      .streak-day-label { font-size: 8px; }
+      .how-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <!-- Adsterra Popunder -->
+  <script src="https://pl29791004.effectivecpmnetwork.com/db/2e/c2/db2ec2b40b21c33714a33a10e8e46f51.js"></script>
+  <!-- Monetag Multitag -->
+  <script src="https://quge5.com/88/tag.min.js" data-zone="251276" async data-cfasync="false"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="dashboard.html" class="nav-brand">GENESIS<span>VAULT</span></a>
+  <div class="nav-right">
+    <div class="vc-badge">
+      <span class="coin">⬡</span>
+      <span id="vcBalance">0</span> VC
+    </div>
+    <a href="dashboard.html" class="back-btn">← BACK</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">// OPERATION CENTER</div>
+  <h1>Field Missions</h1>
+  <p>Complete missions to earn Vault Coins. Redeem VC for premium tools, labs, and rank upgrades.</p>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <span class="stat-val" id="totalEarned">0</span>
+    <span class="stat-label">VC Earned</span>
+  </div>
+  <div class="stat">
+    <span class="stat-val" id="streakCount">0</span>
+    <span class="stat-label">Day Streak</span>
+  </div>
+  <div class="stat">
+    <span class="stat-val" id="missionsToday">0</span>
+    <span class="stat-label">Today</span>
+  </div>
+</div>
+
+<!-- VIDEO MISSIONS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-tag">📡 Intel Feed</div>
+    <div class="section-line"></div>
+  </div>
+
+  <!-- Video Ad Mission -->
+  <div class="mission-card video">
+    <div class="mission-top">
+      <div class="mission-icon video">📺</div>
+      <div class="mission-info">
+        <div class="mission-name">Watch Intel Broadcast</div>
+        <div class="mission-desc">Watch a 30-second intel broadcast and earn VC. No daily limit — watch as many as you want!</div>
+      </div>
+      <div class="mission-reward">
+        <span class="reward-amount">+10</span>
+        <span class="reward-label">VC each</span>
+      </div>
+    </div>
+
+    <div class="mission-progress">
+      <div class="progress-info">
+        <span id="videoProgressText">0 / 5 completed today</span>
+        <span id="videoProgressPct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill video" id="videoProgressBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <button class="mission-btn video" id="watchBtn" onclick="openVideoModal()">
+      ▶ WATCH &amp; EARN 10 VC
+    </button>
+  </div>
+
+</div>
+
+<!-- DAILY LOGIN -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-tag">🔒 Active Duty</div>
+    <div class="section-line"></div>
+  </div>
+
+  <!-- Daily Login Mission -->
+  <div class="mission-card login">
+    <div class="mission-top">
+      <div class="mission-icon login">📅</div>
+      <div class="mission-info">
+        <div class="mission-name">Daily Check-In</div>
+        <div class="mission-desc">Watch at least 1 Intel Broadcast to unlock your daily check-in. Build streaks for bigger bonuses.</div>
+      </div>
+      <div class="mission-reward">
+        <span class="reward-amount" id="loginRewardAmt">+20</span>
+        <span class="reward-label">VC today</span>
+      </div>
+    </div>
+
+    <!-- 7-day streak row -->
+    <div class="streak-row" id="streakRow"></div>
+
+    <div id="loginStatusBadge" class="cooldown-badge">
+      ⬡ Bonus available — claim now!
+    </div>
+
+    <button class="mission-btn login" id="loginBtn" onclick="claimLogin()">
+      ✓ CLAIM DAILY BONUS
+    </button>
+  </div>
+
+  <!-- Coming soon: Offer Wall -->
+  <div class="mission-card locked">
+    <div class="mission-top">
+      <div class="mission-icon locked">🗂️</div>
+      <div class="mission-info">
+        <div class="mission-name">Field Operations</div>
+        <div class="mission-desc">Complete sponsored missions — app installs, surveys, sign-ups. Earn up to 500 VC per mission.</div>
+      </div>
+      <div class="mission-reward">
+        <span class="reward-amount" style="color:var(--muted)">500</span>
+        <span class="reward-label">VC max</span>
+      </div>
+    </div>
+    <button class="mission-btn locked" disabled>🔒 COMING SOON</button>
+  </div>
+
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-it-works">
+  <div class="section-header">
+    <div class="section-tag">📖 Briefing</div>
+    <div class="section-line"></div>
+  </div>
+  <div class="how-grid">
+    <div class="how-item">
+      <span class="how-num">01</span>
+      <div class="how-text">Complete missions to earn Vault Coins (VC)</div>
+    </div>
+    <div class="how-item">
+      <span class="how-num">02</span>
+      <div class="how-text">VC is credited instantly to your balance</div>
+    </div>
+    <div class="how-item">
+      <span class="how-num">03</span>
+      <div class="how-text">Spend VC on premium tools &amp; lab access</div>
+    </div>
+    <div class="how-item">
+      <span class="how-num">04</span>
+      <div class="how-text">Maintain streaks for bonus multiplier rewards</div>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO AD MODAL -->
+<div class="modal-overlay" id="videoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📡 Intel Broadcast</span>
+      <button class="modal-close" id="closeModalBtn" onclick="closeVideoModal()">✕</button>
+    </div>
+
+    <div class="ad-container">
+      <!-- 
+        AD SLOT — replace this div content with your Monetag or Adsterra ad tag
+        Example Monetag rewarded interstitial or Adsterra banner code goes here
+      -->
+      <div class="ad-slot" id="adSlot">
+        <!-- Adsterra Native Banner -->
+        <script async='async' data-cfasync='false' src='https://pl29791005.effectivecpmnetwork.com/42bd0e70f7c07dcf502f0600eec6a1a0/invoke.js'></script>
+        <div id='container-42bd0e70f7c07dcf502f0600eec6a1a0'></div>
+      </div>
+      <div class="ad-timer" id="adTimer">30s</div>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-progress">
+        <div class="progress-info" style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); font-family:var(--mono); margin-bottom:6px;">
+          <span>Watching broadcast...</span>
+          <span id="modalTimerText">30s remaining</span>
+        </div>
+        <div class="modal-progress-bar">
+          <div class="modal-progress-fill" id="modalProgressFill"></div>
+        </div>
+      </div>
+
+      <button class="claim-btn" id="claimVideoBtn" disabled onclick="claimVideoReward()">
+        ⬡ CLAIM 10 VC
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── CONFIG ──
+  const VIDEO_VC       = 10;
+  const LOGIN_BASE_VC  = 20;
+  const AD_DURATION    = 30; // seconds
+  const BACKEND_URL    = 'https://youngbill44.pythonanywhere.com';
+
+  // ── STATE ──
+  let state = {
+    vcBalance:    parseInt(localStorage.getItem('gv_vc') || '0'),
+    videosToday:  0,
+    lastVideoDate: localStorage.getItem('gv_lastVideoDate') || '',
+    loginDone:    false,
+    lastLoginDate: localStorage.getItem('gv_lastLogin') || '',
+    streak:       parseInt(localStorage.getItem('gv_streak') || '0'),
+    totalEarned:  parseInt(localStorage.getItem('gv_totalEarned') || '0'),
+    missionsToday: 0,
+  };
+
+  // Reset daily video count if new day
+  const today = new Date().toDateString();
+  if (state.lastVideoDate !== today) {
+    state.videosToday = 0;
+    localStorage.setItem('gv_lastVideoDate', today);
+  } else {
+    state.videosToday = parseInt(localStorage.getItem('gv_videosToday') || '0');
+  }
+
+  // Check login status
+  state.loginDone = state.lastLoginDate === today;
+
+  // ── UI UPDATE ──
+  function updateUI() {
+    // Balance
+    document.getElementById('vcBalance').textContent    = state.vcBalance.toLocaleString();
+    document.getElementById('totalEarned').textContent  = state.totalEarned.toLocaleString();
+    document.getElementById('streakCount').textContent  = state.streak;
+
+    // Video progress — unlimited, show total watched today
+    document.getElementById('videoProgressText').textContent = `${state.videosToday} watched today`;
+    document.getElementById('videoProgressPct').textContent  = `+${state.videosToday * VIDEO_VC} VC`;
+    const pct = Math.min((state.videosToday / 10) * 100, 100);
+    document.getElementById('videoProgressBar').style.width  = pct + '%';
+
+    // Watch button — always active
+    const watchBtn = document.getElementById('watchBtn');
+    watchBtn.disabled = false;
+    watchBtn.className = 'mission-btn video';
+    watchBtn.textContent = `▶ WATCH & EARN ${VIDEO_VC} VC`;
+
+    // Login button — only available if watched at least 1 ad today
+    const loginBtn    = document.getElementById('loginBtn');
+    const loginBadge  = document.getElementById('loginStatusBadge');
+    const loginReward = getLoginReward();
+    document.getElementById('loginRewardAmt').textContent = '+' + loginReward;
+
+    const canLogin = state.videosToday >= 1;
+
+    if (state.loginDone) {
+      loginBtn.disabled    = true;
+      loginBtn.className   = 'mission-btn locked';
+      loginBtn.textContent = '✓ CHECK-IN COMPLETE';
+      loginBadge.className = 'cooldown-badge used';
+      loginBadge.textContent = '⬡ Come back tomorrow for next bonus';
+    } else if (!canLogin) {
+      loginBtn.disabled    = true;
+      loginBtn.className   = 'mission-btn locked';
+      loginBtn.textContent = '🔒 WATCH AN AD TO UNLOCK';
+      loginBadge.className = 'cooldown-badge used';
+      loginBadge.textContent = '📡 Watch at least 1 Intel Broadcast to unlock';
+    } else {
+      loginBtn.disabled    = false;
+      loginBtn.className   = 'mission-btn login';
+      loginBtn.textContent = `✓ CLAIM DAILY BONUS`;
+      loginBadge.className = 'cooldown-badge';
+      loginBadge.textContent = '⬡ Bonus available — claim now!';
+    }
+
+    // Missions today
+    let mt = state.videosToday + (state.loginDone ? 1 : 0);
+    document.getElementById('missionsToday').textContent = mt;
+
+    // Streak row
+    buildStreakRow();
+  }
+
+  function getLoginReward() {
+    if (state.streak >= 7)  return 100;
+    if (state.streak >= 5)  return 60;
+    if (state.streak >= 3)  return 40;
+    return LOGIN_BASE_VC;
+  }
+
+  function buildStreakRow() {
+    const days = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const icons = ['🛡️','⚔️','🔍','💻','🎯','🧪','👑'];
+    const vcAmts = [20,20,40,40,60,60,100];
+    const row = document.getElementById('streakRow');
+    const todayIdx = new Date().getDay();
+    row.innerHTML = '';
+    days.forEach((d, i) => {
+      const done  = i < (state.streak % 7);
+      const isTod = i === (todayIdx === 0 ? 6 : todayIdx - 1);
+      const div = document.createElement('div');
+      div.className = 'streak-day' + (done ? ' done' : '') + (isTod ? ' today' : '');
+      div.innerHTML = `
+        <span class="streak-day-label">${d}</span>
+        <span class="streak-day-icon">${done ? '✅' : icons[i]}</span>
+        <span class="streak-day-vc">+${vcAmts[i]}</span>
+      `;
+      row.appendChild(div);
+    });
+  }
+
+  // ── VIDEO MODAL ──
+  let adTimer       = null;
+  let adCountdown   = AD_DURATION;
+  let adCompleted   = false;
+
+  function openVideoModal() {
+    adCompleted   = false;
+    adCountdown   = AD_DURATION;
+    document.getElementById('adTimer').textContent          = adCountdown + 's';
+    document.getElementById('modalTimerText').textContent   = adCountdown + 's remaining';
+    document.getElementById('modalProgressFill').style.width = '0%';
+    document.getElementById('claimVideoBtn').disabled       = true;
+    document.getElementById('closeModalBtn').disabled       = true;
+    document.getElementById('videoModal').classList.add('active');
+    startAdTimer();
+  }
+
+  function startAdTimer() {
+    adTimer = setInterval(() => {
+      adCountdown--;
+      const pct = ((AD_DURATION - adCountdown) / AD_DURATION) * 100;
+      document.getElementById('adTimer').textContent          = adCountdown + 's';
+      document.getElementById('modalTimerText').textContent   = adCountdown + 's remaining';
+      document.getElementById('modalProgressFill').style.width = pct + '%';
+
+      if (adCountdown <= 0) {
+        clearInterval(adTimer);
+        adCompleted = true;
+        document.getElementById('adTimer').textContent        = '✓';
+        document.getElementById('modalTimerText').textContent = 'Broadcast complete!';
+        document.getElementById('claimVideoBtn').disabled     = false;
+        document.getElementById('closeModalBtn').disabled     = false;
+      }
+    }, 1000);
+  }
+
+  function closeVideoModal() {
+    clearInterval(adTimer);
+    document.getElementById('videoModal').classList.remove('active');
+  }
+
+  function claimVideoReward() {
+    if (!adCompleted) return;
+    state.videosToday++;
+    state.vcBalance   += VIDEO_VC;
+    state.totalEarned += VIDEO_VC;
+    localStorage.setItem('gv_videosToday',  state.videosToday);
+    localStorage.setItem('gv_vc',           state.vcBalance);
+    localStorage.setItem('gv_totalEarned',  state.totalEarned);
+    closeVideoModal();
+    showToast(`⬡ +${VIDEO_VC} VC added to your balance!`);
+    updateUI();
+    // TODO: Call backend to credit VC
+    // creditVC(VIDEO_VC, 'video_ad');
+  }
+
+  // ── DAILY LOGIN ──
+  function claimLogin() {
+    if (state.loginDone) return;
+    const reward = getLoginReward();
+
+    // Update streak
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const wasYesterday = state.lastLoginDate === yesterday.toDateString();
+    state.streak = wasYesterday ? state.streak + 1 : 1;
+
+    state.loginDone    = true;
+    state.vcBalance   += reward;
+    state.totalEarned += reward;
+    state.lastLoginDate = today;
+
+    localStorage.setItem('gv_lastLogin',   today);
+    localStorage.setItem('gv_streak',      state.streak);
+    localStorage.setItem('gv_vc',          state.vcBalance);
+    localStorage.setItem('gv_totalEarned', state.totalEarned);
+
+    showToast(`⬡ +${reward} VC — Day ${state.streak} streak!`);
+    updateUI();
+    // TODO: Call backend to credit VC
+    // creditVC(reward, 'daily_login');
+  }
+
+  // ── BACKEND CREDIT (plug in when ready) ──
+  async function creditVC(amount, source) {
+    try {
+      const token = localStorage.getItem('gv_token');
+      await fetch(`${BACKEND_URL}/api/vc/credit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount, source })
+      });
+    } catch(e) {
+      console.error('VC credit failed:', e);
+    }
+  }
+
+  // ── TOAST ──
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── INIT ──
+  updateUI();
+</script>
+</body>
+</html>
