@@ -305,40 +305,40 @@
   <p class="section-title">// VC Packages</p>
   <div class="packages-grid">
 
-    <div class="pkg-card" onclick="openBuy('5usd_30vc')">
+    <div class="pkg-card" onclick="openBuy('5usd_1000vc')">
       <div class="pkg-top">
-        <div class="pkg-amount">30 <span>VC</span></div>
+        <div class="pkg-amount">1,000 <span>VC</span></div>
         <div class="pkg-price">5 USDT</div>
       </div>
       <p class="pkg-desc">Entry-level pack. Good for trying out a lab or quick tool access.</p>
-      <button class="pkg-btn">[ GET 30 VC ]</button>
+      <button class="pkg-btn">[ GET 1,000 VC ]</button>
     </div>
 
-    <div class="pkg-card" onclick="openBuy('10usd_70vc')">
+    <div class="pkg-card" onclick="openBuy('10usd_2500vc')">
       <div class="pkg-top">
-        <div class="pkg-amount">70 <span>VC</span></div>
+        <div class="pkg-amount">2,500 <span>VC</span></div>
         <div class="pkg-price">10 USDT</div>
       </div>
       <p class="pkg-desc">Standard pack. Access multiple labs and core courses.</p>
-      <button class="pkg-btn">[ GET 70 VC ]</button>
+      <button class="pkg-btn">[ GET 2,500 VC ]</button>
     </div>
 
-    <div class="pkg-card popular" onclick="openBuy('15usd_150vc')">
+    <div class="pkg-card popular" onclick="openBuy('15usd_6000vc')">
       <div class="pkg-top">
-        <div class="pkg-amount">150 <span>VC</span></div>
+        <div class="pkg-amount">6,000 <span>VC</span></div>
         <div class="pkg-price">15 USDT</div>
       </div>
       <p class="pkg-desc">Best value. Full access to most vault content and tools.</p>
-      <button class="pkg-btn">[ GET 150 VC ]</button>
+      <button class="pkg-btn">[ GET 6,000 VC ]</button>
     </div>
 
-    <div class="pkg-card" onclick="openBuy('30usd_350vc')">
+    <div class="pkg-card" onclick="openBuy('30usd_15000vc')">
       <div class="pkg-top">
-        <div class="pkg-amount">350 <span>VC</span></div>
+        <div class="pkg-amount">15,000 <span>VC</span></div>
         <div class="pkg-price">30 USDT</div>
       </div>
       <p class="pkg-desc">Elite tier. Maximum VC for serious operatives. Unlock everything.</p>
-      <button class="pkg-btn">[ GET 350 VC ]</button>
+      <button class="pkg-btn">[ GET 15,000 VC ]</button>
     </div>
 
   </div>
@@ -346,26 +346,33 @@
   <!-- EARN VC -->
   <p class="section-title">// Earn VC Free</p>
   <div class="earn-grid">
-    <div class="earn-item">
+    <div class="earn-item" onclick="location.href='fieldmissions.html'" style="cursor:pointer;">
       <div class="earn-left">
-        <div class="earn-title">Daily Login</div>
-        <div class="earn-desc">// Login every day for your bonus</div>
+        <div class="earn-title">Watch & Earn</div>
+        <div class="earn-desc">// Watch intel broadcasts — no daily limit</div>
       </div>
-      <div class="earn-amount">+10 VC / day</div>
+      <div class="earn-amount">+10 VC each</div>
+    </div>
+    <div class="earn-item" onclick="location.href='fieldmissions.html'" style="cursor:pointer;">
+      <div class="earn-left">
+        <div class="earn-title">Daily Check-In</div>
+        <div class="earn-desc">// Watch 1 broadcast to unlock — builds streaks</div>
+      </div>
+      <div class="earn-amount">+50 to 500 VC</div>
     </div>
     <div class="earn-item">
       <div class="earn-left">
         <div class="earn-title">Signup Bonus</div>
         <div class="earn-desc">// One-time new account bonus</div>
       </div>
-      <div class="earn-amount">+50 VC</div>
+      <div class="earn-amount">+200 VC</div>
     </div>
     <div class="earn-item">
       <div class="earn-left">
         <div class="earn-title">Referral Bonus</div>
         <div class="earn-desc">// Invite a friend who joins</div>
       </div>
-      <div class="earn-amount">+25 VC</div>
+      <div class="earn-amount">+100 VC</div>
     </div>
   </div>
 
@@ -447,10 +454,10 @@ if (!token) location.href = 'login.html';
 let activePkg = null;
 
 const PACKAGES = {
-  '5usd_30vc':   { label: '30 VC — 5 USDT',   usdt: 5,  vc: 30  },
-  '10usd_70vc':  { label: '70 VC — 10 USDT',  usdt: 10, vc: 70  },
-  '15usd_150vc': { label: '150 VC — 15 USDT', usdt: 15, vc: 150 },
-  '30usd_350vc': { label: '350 VC — 30 USDT', usdt: 30, vc: 350 },
+  '5usd_1000vc':   { label: '1,000 VC — 5 USDT',   usdt: 5,  vc: 1000  },
+  '10usd_2500vc':  { label: '2,500 VC — 10 USDT',  usdt: 10, vc: 2500  },
+  '15usd_6000vc':  { label: '6,000 VC — 15 USDT',  usdt: 15, vc: 6000  },
+  '30usd_15000vc': { label: '15,000 VC — 30 USDT', usdt: 30, vc: 15000 },
 };
 
 function h() {
