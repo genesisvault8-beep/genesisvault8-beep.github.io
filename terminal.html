@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NANO VAULT v4.0 — Script Terminal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap');
+
+:root {
+  --cyan: #00ffe7;
+  --green: #00ff88;
+  --red: #ff003c;
+  --yellow: #ffe600;
+  --purple: #bf5fff;
+  --bg: #050a0e;
+  --panel: #080f18;
+  --panel2: #060d16;
+  --border: #0d2535;
+  --border2: #112840;
+  --text: #7ab8cc;
+  --bright: #cde8f5;
+  --dim: #1a3345;
+  --dim2: #0f1f2e;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,231,0.012) 2px, rgba(0,255,231,0.012) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── HEADER ── */
+header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.logo {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px rgba(0,255,231,0.4);
+  white-space: nowrap;
+}
+.logo span { color: var(--green); }
+.logo sub {
+  font-size: 8px;
+  color: var(--dim);
+  letter-spacing: 2px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  display: inline-block;
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.hdr-badge {
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+.hdr-badge span { color: var(--text); }
+
+/* ── TAB BAR ── */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel2);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  padding: 8px 16px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  position: relative;
+}
+.tab-btn.active {
+  color: var(--cyan);
+  background: rgba(0,255,231,0.05);
+}
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+}
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── EDITOR VIEW ── */
+.view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.view.active { display: flex; }
+
+/* Editor panel */
+.editor-wrap {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.line-nums {
+  width: 34px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 10px 0;
+  overflow: hidden;
+  user-select: none;
+  flex-shrink: 0;
+}
+.ln {
+  display: block;
+  text-align: right;
+  padding-right: 6px;
+  font-size: 11px;
+  line-height: 1.65em;
+  color: var(--dim);
+  height: 1.65em;
+}
+
+#editor {
+  flex: 1;
+  background: #030810;
+  color: var(--bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.65em;
+  padding: 10px;
+  border: none;
+  outline: none;
+  resize: none;
+  tab-size: 2;
+  overflow-y: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  -webkit-overflow-scrolling: touch;
+}
+#editor::-webkit-scrollbar { width: 2px; }
+#editor::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* Editor bottom bar */
+.editor-bar {
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.editor-info {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+}
+.editor-info span { color: var(--cyan); }
+
+.editor-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 5px 12px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.btn-cyan { border-color: rgba(0,255,231,0.4); color: var(--cyan); }
+.btn-cyan:hover, .btn-cyan:active { background: rgba(0,255,231,0.1); border-color: var(--cyan); }
+
+.btn-green { border-color: rgba(0,255,136,0.4); color: var(--green); }
+.btn-green:hover, .btn-green:active { background: rgba(0,255,136,0.1); border-color: var(--green); }
+
+.btn-red { border-color: rgba(255,0,60,0.4); color: var(--red); }
+.btn-red:hover, .btn-red:active { background: rgba(255,0,60,0.1); border-color: var(--red); }
+
+.btn-yellow { border-color: rgba(255,230,0,0.4); color: var(--yellow); }
+.btn-yellow:hover, .btn-yellow:active { background: rgba(255,230,0,0.1); border-color: var(--yellow); }
+
+/* ── TERMINAL VIEW ── */
+.terminal-output {
+  flex: 1;
+  background: #020810;
+  padding: 10px 12px;
+  overflow-y: auto;
+  font-size: 12px;
+  line-height: 1.8;
+  -webkit-overflow-scrolling: touch;
+}
+.terminal-output::-webkit-scrollbar { width: 2px; }
+.terminal-output::-webkit-scrollbar-thumb { background: var(--border); }
+
+.tl { display: block; word-break: break-all; }
+.t-sys { color: var(--dim); }
+.t-out { color: var(--bright); }
+.t-err { color: var(--red); }
+.t-ok { color: var(--green); }
+.t-warn { color: var(--yellow); }
+.t-info { color: var(--cyan); }
+.t-cmd { color: var(--green); }
+.t-comment { color: #2a5a6a; }
+.t-purple { color: var(--purple); }
+.t-key { color: var(--yellow); }
+.t-val { color: var(--bright); }
+
+/* Input line */
+.input-line {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+.prompt-sym {
+  color: var(--green);
+  margin-right: 8px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+#cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 10px 0;
+  letter-spacing: 0.5px;
+}
+#cmd-input::placeholder { color: var(--dim); }
+
+/* ── SCRIPTS VIEW ── */
+.scripts-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.scripts-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scripts-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+}
+
+.scripts-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.script-item {
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 0.15s;
+}
+.script-item:hover { border-color: var(--border2); }
+.script-item.active-script { border-color: rgba(0,255,231,0.3); }
+
+.script-item-info { flex: 1; min-width: 0; }
+.script-name {
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.script-meta {
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.script-item-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+}
+.icon-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+.icon-btn.del:hover { border-color: var(--red); color: var(--red); }
+
+/* ── KEYS VIEW ── */
+.keys-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.keys-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.key-item {
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  margin-bottom: 8px;
+  padding: 10px 12px;
+}
+
+.key-service {
+  font-size: 10px;
+  color: var(--yellow);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.key-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.key-input {
+  flex: 1;
+  background: #030810;
+  border: 1px solid var(--border);
+  color: var(--bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 6px 8px;
+  outline: none;
+  letter-spacing: 0.5px;
+}
+.key-input:focus { border-color: rgba(0,255,231,0.4); }
+.key-input.saved { border-color: rgba(0,255,136,0.4); }
+
+.key-status {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+.key-status.ok { color: var(--green); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2,8,16,0.92);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 40px rgba(0,255,231,0.08);
+}
+
+.modal-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+}
+
+.modal-close {
+  color: var(--dim);
+  font-size: 14px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'Share Tech Mono', monospace;
+  padding: 2px 6px;
+  transition: color 0.15s;
+}
+.modal-close:hover { color: var(--red); }
+
+.modal-body {
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-field {
+  margin-bottom: 12px;
+}
+.modal-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 5px;
+  display: block;
+}
+.modal-input {
+  width: 100%;
+  background: #030810;
+  border: 1px solid var(--border);
+  color: var(--bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  padding: 8px 10px;
+  outline: none;
+  letter-spacing: 0.5px;
+}
+.modal-input:focus { border-color: rgba(0,255,231,0.4); }
+
+.modal-desc {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.modal-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Required keys prompt */
+.req-key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: #030810;
+}
+.req-key-name {
+  font-size: 10px;
+  color: var(--yellow);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+  width: 120px;
+}
+.req-key-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 3px 0;
+  outline: none;
+}
+.req-key-input.filled { border-bottom-color: rgba(0,255,136,0.5); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 5px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  gap: 16px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+footer::-webkit-scrollbar { display: none; }
+footer span { color: var(--text); white-space: nowrap; }
+
+/* Cursor blink */
+.cursor {
+  display: inline-block;
+  width: 7px; height: 13px;
+  background: var(--cyan);
+  animation: cur 1s infinite;
+  vertical-align: middle;
+}
+@keyframes cur { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Progress bar */
+.exec-progress {
+  height: 2px;
+  background: var(--border);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.exec-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  box-shadow: 0 0 8px var(--cyan);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+/* New script template modal textarea */
+.modal-textarea {
+  width: 100%;
+  background: #030810;
+  border: 1px solid var(--border);
+  color: var(--bright);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 8px 10px;
+  outline: none;
+  resize: none;
+  line-height: 1.65;
+  min-height: 120px;
+}
+.modal-textarea:focus { border-color: rgba(0,255,231,0.4); }
+
+/* Command help chips */
+.help-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+.help-chip {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+.help-chip .cmd { color: var(--cyan); }
+.help-chip .desc { color: var(--dim); margin-top: 2px; font-size: 8px; letter-spacing: 1px; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">NANO<span>VAULT</span><sub>v4.0</sub></div>
+  <div class="header-right">
+    <div><span class="status-dot"></span></div>
+    <div class="hdr-badge">FILE: <span id="active-label">none</span></div>
+    <div class="hdr-badge" id="run-status-badge">IDLE</div>
+  </div>
+</header>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('terminal')" id="tab-terminal">▶ TERMINAL</button>
+  <button class="tab-btn" onclick="switchTab('editor')" id="tab-editor">✎ EDITOR</button>
+  <button class="tab-btn" onclick="switchTab('scripts')" id="tab-scripts">⊞ SCRIPTS</button>
+  <button class="tab-btn" onclick="switchTab('keys')" id="tab-keys">⚷ API KEYS</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TERMINAL VIEW -->
+  <div class="view active" id="view-terminal" style="flex-direction:column;">
+    <div class="exec-progress"><div class="exec-progress-bar" id="progress-bar"></div></div>
+    <div style="display:flex;gap:6px;padding:6px 10px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <button class="btn btn-cyan" style="font-size:8px;padding:3px 10px" onclick="copyTerminal()">⎘ COPY</button>
+      <button class="btn btn-yellow" style="font-size:8px;padding:3px 10px" onclick="cmdExport()">↓ EXPORT</button>
+      <button class="btn" style="font-size:8px;padding:3px 10px;color:var(--red);border-color:var(--red)" onclick="cmdClear()">✕ CLEAR</button>
+    </div>
+    <div class="terminal-output" id="terminal-out"></div>
+    <div class="input-line">
+      <span class="prompt-sym">$</span>
+      <input type="text" id="cmd-input" placeholder="type a command or load a script..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+  </div>
+
+  <!-- EDITOR VIEW -->
+  <div class="view" id="view-editor" style="flex-direction:column;">
+    <div class="editor-wrap">
+      <div class="line-nums" id="line-nums"><span class="ln">1</span></div>
+      <textarea id="editor" spellcheck="false" placeholder="# Write your .nvault script here&#10;# Example:&#10;#@require OPENWEATHER_KEY&#10;&#10;weather Lagos&#10;ip 8.8.8.8" oninput="updateLines();syncScroll()" onscroll="syncScroll()" onkeydown="tabKey(event)"></textarea>
+    </div>
+    <div class="editor-bar">
+      <div class="editor-info">LANG: <span>.nvault</span> | LINES: <span id="line-count">1</span></div>
+      <div class="editor-actions">
+        <button class="btn btn-cyan" onclick="saveScript()">SAVE</button>
+        <button class="btn btn-green" onclick="runCurrentScript()">▶ RUN</button>
+        <button class="btn btn-yellow" onclick="downloadScript()">↓ DL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS VIEW -->
+  <div class="view" id="view-scripts">
+    <div class="scripts-view">
+      <div class="scripts-header">
+        <div class="scripts-title">SAVED SCRIPTS</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-yellow" onclick="document.getElementById('import-file').click()">↑ IMPORT</button>
+          <input type="file" id="import-file" accept=".nvault" style="display:none" onchange="importScript(this)">
+          <button class="btn btn-cyan" onclick="openNewScriptModal()">+ NEW</button>
+        </div>
+      </div>
+      <div class="scripts-list" id="scripts-list"></div>
+    </div>
+  </div>
+
+  <!-- KEYS VIEW -->
+  <div class="view" id="view-keys">
+    <div class="keys-view">
+      <div class="scripts-header">
+        <div class="scripts-title">API KEY VAULT</div>
+        <button class="btn btn-cyan" onclick="saveAllKeys()">SAVE ALL</button>
+      </div>
+      <div class="keys-list" id="keys-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span id="footer-cmd">CMD: ready</span>
+  <span id="footer-keys">KEYS: <span id="key-count">0</span> saved</span>
+  <span>FORMAT: .nvault</span>
+  <span>GENESIS VAULT</span>
+</footer>
+
+<!-- MODAL: New Script -->
+<div class="modal-overlay" id="modal-new">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">NEW SCRIPT</div>
+      <button class="modal-close" onclick="closeModal('modal-new')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label class="modal-label">SCRIPT NAME</label>
+        <input class="modal-input" id="new-script-name" placeholder="e.g. recon_target" autocorrect="off" autocapitalize="off">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">STARTER TEMPLATE</label>
+        <select class="modal-input" id="new-script-template" style="cursor:pointer;">
+          <option value="blank">Blank</option>
+          <option value="recon">Full Recon</option>
+          <option value="weather">Weather Check</option>
+          <option value="osint">OSINT Lookup</option>
+          <option value="custom">Custom (write own)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cyan" onclick="createNewScript()">CREATE</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: API Keys Required -->
+<div class="modal-overlay" id="modal-keys-required">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">API KEYS REQUIRED</div>
+      <button class="modal-close" onclick="closeModal('modal-keys-required')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc">This script requires the following API keys. Enter them below to continue. Keys will be saved to your session vault.</div>
+      <div id="required-keys-form"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('modal-keys-required')">CANCEL</button>
+      <button class="btn btn-green" onclick="confirmKeysAndRun()">SAVE & RUN</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Help -->
+<div class="modal-overlay" id="modal-help">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">COMMAND REFERENCE</div>
+      <button class="modal-close" onclick="closeModal('modal-help')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-desc">Type commands in terminal or write .nvault scripts. Use <span style="color:var(--cyan)">#@require KEY_NAME</span> at the top to declare needed API keys.</div>
+      <div class="help-grid" id="help-grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// LOCALSTORAGE PERSISTENCE
+// ══════════════════════════════════════════════
+function lsSave() {
+  try {
+    localStorage.setItem('nv3_scripts', JSON.stringify(state.scripts));
+    localStorage.setItem('nv3_keys', JSON.stringify(state.apiKeys));
+    localStorage.setItem('nv3_active', state.active || '');
+  } catch(e) {}
+}
+function lsLoad() {
+  try {
+    const scripts = localStorage.getItem('nv3_scripts');
+    if (scripts) state.scripts = JSON.parse(scripts);
+    const keys = localStorage.getItem('nv3_keys');
+    if (keys) state.apiKeys = JSON.parse(keys);
+    const active = localStorage.getItem('nv3_active');
+    if (active && state.scripts[active]) state.active = active;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const state = {
+  scripts: {},
+  active: null,
+  running: false,
+  apiKeys: {},
+  pendingRunScript: null,
+  history: [],
+  histIdx: -1,
+};
+lsLoad();
+
+// ══════════════════════════════════════════════
+// COMMAND REGISTRY
+// ══════════════════════════════════════════════
+const COMMANDS = {
+  weather: {
+    desc: 'Weather for a city',
+    requires: ['OPENWEATHER_KEY'],
+    usage: 'weather <city>',
+    run: cmdWeather,
+  },
+  ip: {
+    desc: 'IP info / geolocation',
+    requires: [],
+    usage: 'ip <address>',
+    run: cmdIP,
+  },
+  dns: {
+    desc: 'DNS lookup',
+    requires: [],
+    usage: 'dns <domain>',
+    run: cmdDNS,
+  },
+  whois: {
+    desc: 'WHOIS domain info',
+    requires: [],
+    usage: 'whois <domain>',
+    run: cmdWhois,
+  },
+  headers: {
+    desc: 'HTTP headers check',
+    requires: [],
+    usage: 'headers <url>',
+    run: cmdHeaders,
+  },
+  ssl: {
+    desc: 'SSL cert info',
+    requires: [],
+    usage: 'ssl <domain>',
+    run: cmdSSL,
+  },
+  ai: {
+    desc: 'Ask AI a question',
+    requires: ['AI_KEY'],
+    usage: 'ai "<prompt>"',
+    run: cmdAI,
+  },
+  echo: {
+    desc: 'Print a message',
+    requires: [],
+    usage: 'echo <text>',
+    run: cmdEcho,
+  },
+  set: {
+    desc: 'Set a variable',
+    requires: [],
+    usage: 'set VAR = value',
+    run: cmdSet,
+  },
+  clear: {
+    desc: 'Clear terminal',
+    requires: [],
+    usage: 'clear',
+    run: cmdClear,
+  },
+  help: {
+    desc: 'Show commands',
+    requires: [],
+    usage: 'help',
+    run: cmdHelp,
+  },
+  list: {
+    desc: 'List saved scripts',
+    requires: [],
+    usage: 'list',
+    run: cmdListScripts,
+  },
+  load: {
+    desc: 'Load a script to editor',
+    requires: [],
+    usage: 'load <name>',
+    run: cmdLoad,
+  },
+  run: {
+    desc: 'Run a saved script',
+    requires: [],
+    usage: 'run <name>',
+    run: (args) => runScriptByName(args[0]),
+  },
+  save: {
+    desc: 'Save current editor script',
+    requires: [],
+    usage: 'save',
+    run: () => { saveScript(); return Promise.resolve(); },
+  },
+  qwen: {
+    desc: 'Ask Qwen Cloud AI a question',
+    requires: ['QWEN_KEY'],
+    usage: 'qwen "<prompt>"',
+    run: cmdQwen,
+  },
+  'qwen-analyze': {
+    desc: 'Qwen analyzes last command output',
+    requires: ['QWEN_KEY'],
+    usage: 'qwen-analyze "<instruction>"',
+    run: cmdQwenAnalyze,
+  },
+  'qwen-code': {
+    desc: 'Qwen generates code or scripts',
+    requires: ['QWEN_KEY'],
+    usage: 'qwen-code "<task>"',
+    run: cmdQwenCode,
+  },
+  'qwen-recon': {
+    desc: 'AI-powered recon report on a target',
+    requires: ['QWEN_KEY'],
+    usage: 'qwen-recon <target>',
+    run: cmdQwenRecon,
+  },
+  groq: {
+    desc: 'Ask Groq AI (fast inference)',
+    requires: ['GROQ_KEY'],
+    usage: 'groq "<prompt>"',
+    run: cmdGroq,
+  },
+  gemini: {
+    desc: 'Ask Google Gemini AI',
+    requires: ['GEMINI_KEY'],
+    usage: 'gemini "<prompt>"',
+    run: cmdGemini,
+  },
+  port: {
+    desc: 'Check if a port is open',
+    requires: [],
+    usage: 'port <host> <port>',
+    run: cmdPort,
+  },
+  crypto: {
+    desc: 'Get crypto price (BTC, ETH, etc)',
+    requires: [],
+    usage: 'crypto <symbol>',
+    run: cmdCrypto,
+  },
+  subdomain: {
+    desc: 'Enumerate subdomains of a domain',
+    requires: [],
+    usage: 'subdomain <domain>',
+    run: cmdSubdomain,
+  },
+  key: {
+    desc: 'Add/set an API key from terminal',
+    requires: [],
+    usage: 'key <NAME> <value>',
+    run: cmdSetKey,
+  },
+  'vault-reset': {
+    desc: 'Clear all saved data (keys + scripts)',
+    requires: [],
+    usage: 'vault-reset',
+    run: cmdVaultReset,
+  },
+  export: {
+    desc: 'Export terminal output to .txt file',
+    requires: [],
+    usage: 'export',
+    run: cmdExport,
+  },
+};
+
+// Session variables (set via `set` command)
+const vars = {};
+
+// Last command output — for piping into qwen-analyze
+let lastOutput = '';
+
+
+// ══════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════
+function boot() {
+  const out = document.getElementById('terminal-out');
+  const lines = [
+    ['', 't-sys'],
+    ['  ╔══════════════════════════════════╗', 't-info'],
+    ['  ║  NANO VAULT  v4.0               ║', 't-cyan'],
+    ['  ║  .nvault Script Terminal        ║', 't-bright'],
+    ['  ║  Genesis Vault Platform         ║', 't-sys'],
+    ['  ╚══════════════════════════════════╝', 't-info'],
+    ['', 't-sys'],
+    ['  [+] .nvault script engine initialized', 't-ok'],
+    ['  [+] API command registry loaded: ' + Object.keys(COMMANDS).length + ' commands', 't-ok'],
+    ['  [~] Type help for commands', 't-sys'],
+    ['  [~] Go to SCRIPTS tab to create or load a script', 't-sys'],
+    ['  [~] Go to API KEYS tab to store your keys', 't-sys'],
+    ['', 't-sys'],
+  ];
+  lines.forEach(([text, cls]) => writeLine(text, cls));
+  writeCursor();
+  renderKeysList();
+  renderScriptsList();
+  renderHelpGrid();
+  updateKeyCount();
+}
+
+// ══════════════════════════════════════════════
+// TERMINAL WRITE HELPERS
+// ══════════════════════════════════════════════
+function writeLine(text, cls = 't-out') {
+  const out = document.getElementById('terminal-out');
+  clearCursor();
+  const sp = document.createElement('span');
+  sp.className = 'tl ' + cls;
+  sp.textContent = text;
+  out.appendChild(sp);
+  out.scrollTop = out.scrollHeight;
+}
+
+function clearCursor() {
+  const c = document.getElementById('terminal-cursor');
+  if (c) c.remove();
+}
+
+function writeCursor() {
+  clearCursor();
+  const out = document.getElementById('terminal-out');
+  const cur = document.createElement('span');
+  cur.id = 'terminal-cursor';
+  cur.className = 'cursor';
+  out.appendChild(cur);
+  out.scrollTop = out.scrollHeight;
+}
+
+function writeJSON(obj, indent = 2) {
+  const lines = JSON.stringify(obj, null, indent).split('\n');
+  lines.forEach(line => writeLine('  ' + line, 't-out'));
+}
+
+function writeSep(char = '─', len = 44) {
+  writeLine(char.repeat(len), 't-sys');
+}
+
+function setFooterCmd(text) {
+  document.getElementById('footer-cmd').textContent = 'CMD: ' + text;
+}
+
+function setRunStatus(status) {
+  const el = document.getElementById('run-status-badge');
+  el.textContent = status;
+  el.style.color = status === 'RUNNING' ? 'var(--yellow)' :
+                   status === 'DONE' ? 'var(--green)' :
+                   status === 'ERROR' ? 'var(--red)' : 'var(--dim)';
+}
+
+function setProgress(pct) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// ══════════════════════════════════════════════
+// VARIABLE SUBSTITUTION
+// ══════════════════════════════════════════════
+function substituteVars(str) {
+  return str.replace(/\$([A-Z_][A-Z0-9_]*)/g, (_, name) => vars[name] || '$' + name);
+}
+
+// ══════════════════════════════════════════════
+// COMMAND INPUT
+// ══════════════════════════════════════════════
+document.getElementById('cmd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const raw = e.target.value.trim();
+    if (!raw) return;
+    e.target.value = '';
+    state.history.unshift(raw);
+    state.histIdx = -1;
+    clearCursor();
+    writeLine('$ ' + raw, 't-cmd');
+    processLine(raw);
+  }
+  if (e.key === 'ArrowUp') {
+    if (state.history.length) {
+      state.histIdx = Math.min(state.histIdx + 1, state.history.length - 1);
+      e.target.value = state.history[state.histIdx];
+    }
+    e.preventDefault();
+  }
+  if (e.key === 'ArrowDown') {
+    state.histIdx = Math.max(state.histIdx - 1, -1);
+    e.target.value = state.histIdx >= 0 ? state.history[state.histIdx] : '';
+    e.preventDefault();
+  }
+});
+
+// ══════════════════════════════════════════════
+// PROCESS A SINGLE LINE
+// ══════════════════════════════════════════════
+async function processLine(raw) {
+  const line = substituteVars(raw.trim());
+  if (!line || line.startsWith('#')) {
+    writeCursor();
+    return;
+  }
+
+  const parts = line.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+  const cmd = parts[0]?.toLowerCase();
+  const args = parts.slice(1).map(a => a.replace(/^"|"$/g, ''));
+
+  setFooterCmd(cmd);
+
+  const def = COMMANDS[cmd];
+  if (!def) {
+    writeLine(`[!] Unknown command: ${cmd}`, 't-err');
+    writeLine('    Type help for available commands', 't-sys');
+    writeCursor();
+    return;
+  }
+
+  // Check required keys
+  const missing = def.requires.filter(k => !state.apiKeys[k]);
+  if (missing.length) {
+    writeLine(`[!] Missing API key(s): ${missing.join(', ')}`, 't-err');
+    writeLine('    Go to API KEYS tab to add them', 't-sys');
+    writeCursor();
+    return;
+  }
+
+  try {
+    await def.run(args);
+  } catch (err) {
+    writeLine('[!] Error: ' + err.message, 't-err');
+  }
+  writeCursor();
+}
+
+// ══════════════════════════════════════════════
+// COMMANDS IMPLEMENTATION
+// ══════════════════════════════════════════════
+
+// WEATHER
+async function cmdWeather(args) {
+  const city = args.join(' ');
+  if (!city) { writeLine('[!] Usage: weather <city>', 't-err'); return; }
+  writeLine(`[~] Fetching weather: ${city}...`, 't-sys');
+  const key = state.apiKeys['OPENWEATHER_KEY'];
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${key}&units=metric`;
+  const res = await fetch(url);
+  if (!res.ok) { writeLine(`[!] API error: ${res.status} — check city name or key`, 't-err'); return; }
+  const d = await res.json();
+  writeSep();
+  writeLine(`  WEATHER: ${d.name}, ${d.sys.country}`, 't-info');
+  writeSep();
+  writeLine(`  Condition : ${d.weather[0].description}`, 't-out');
+  writeLine(`  Temp      : ${d.main.temp}°C (feels ${d.main.feels_like}°C)`, 't-out');
+  writeLine(`  Humidity  : ${d.main.humidity}%`, 't-out');
+  writeLine(`  Wind      : ${d.wind.speed} m/s`, 't-out');
+  writeLine(`  Visibility: ${(d.visibility / 1000).toFixed(1)} km`, 't-out');
+  writeSep();
+  writeLine('[+] Done', 't-ok');
+}
+
+// IP INFO
+async function cmdIP(args) {
+  const target = args[0] || '';
+  const endpoint = target ? `https://ipapi.co/${target}/json/` : 'https://ipapi.co/json/';
+  writeLine(`[~] Looking up IP: ${target || 'your IP'}...`, 't-sys');
+  const res = await fetch(endpoint);
+  if (!res.ok) { writeLine('[!] IP lookup failed', 't-err'); return; }
+  const d = await res.json();
+  if (d.error) { writeLine('[!] ' + d.reason, 't-err'); return; }
+  writeSep();
+  writeLine(`  IP INFO: ${d.ip}`, 't-info');
+  writeSep();
+  writeLine(`  Country  : ${d.country_name} (${d.country})`, 't-out');
+  writeLine(`  Region   : ${d.region}`, 't-out');
+  writeLine(`  City     : ${d.city}`, 't-out');
+  writeLine(`  Timezone : ${d.timezone}`, 't-out');
+  writeLine(`  ISP      : ${d.org}`, 't-out');
+  writeLine(`  Lat/Lon  : ${d.latitude}, ${d.longitude}`, 't-out');
+  writeSep();
+  lastOutput = `IP: ${d.ip}\nCity: ${d.city}\nRegion: ${d.region}\nCountry: ${d.country_name}\nISP: ${d.org}\nLat/Lon: ${d.latitude}, ${d.longitude}`;
+  writeLine('[+] Done', 't-ok');
+}
+
+// DNS LOOKUP
+async function cmdDNS(args) {
+  const domain = args[0];
+  if (!domain) { writeLine('[!] Usage: dns <domain>', 't-err'); return; }
+  writeLine(`[~] DNS lookup: ${domain}...`, 't-sys');
+  const types = ['A', 'MX', 'NS', 'TXT'];
+  writeSep();
+  writeLine(`  DNS: ${domain}`, 't-info');
+  writeSep();
+  for (const type of types) {
+    try {
+      const res = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${type}`);
+      const d = await res.json();
+      if (d.Answer && d.Answer.length) {
+        writeLine(`  ${type.padEnd(4)} →`, 't-warn');
+        d.Answer.slice(0, 3).forEach(r => writeLine(`       ${r.data}`, 't-out'));
+      } else {
+        writeLine(`  ${type.padEnd(4)} → (none)`, 't-sys');
+      }
+    } catch { writeLine(`  ${type} → error`, 't-err'); }
+  }
+  writeSep();
+  writeLine('[+] Done', 't-ok');
+}
+
+// WHOIS
+async function cmdWhois(args) {
+  const domain = args[0];
+  if (!domain) { writeLine('[!] Usage: whois <domain>', 't-err'); return; }
+  writeLine(`[~] WHOIS: ${domain}...`, 't-sys');
+  try {
+    const res = await fetch(`https://api.whoisfreaks.com/v1.0/whois?apiKey=free&whois=live&domainName=${encodeURIComponent(domain)}`);
+    const d = await res.json();
+    writeSep();
+    writeLine(`  WHOIS: ${domain}`, 't-info');
+    writeSep();
+    if (d.domain_name) writeLine(`  Domain    : ${d.domain_name}`, 't-out');
+    if (d.registrar) writeLine(`  Registrar : ${d.registrar}`, 't-out');
+    if (d.create_date) writeLine(`  Created   : ${d.create_date}`, 't-out');
+    if (d.expiry_date) writeLine(`  Expires   : ${d.expiry_date}`, 't-out');
+    if (d.name_servers) writeLine(`  NS        : ${Array.isArray(d.name_servers) ? d.name_servers.slice(0,2).join(', ') : d.name_servers}`, 't-out');
+    writeSep();
+    writeLine('[+] Done', 't-ok');
+  } catch {
+    // Fallback: rdap
+    try {
+      const tld = domain.split('.').pop();
+      const res2 = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`);
+      const d2 = await res2.json();
+      writeSep();
+      writeLine(`  WHOIS/RDAP: ${domain}`, 't-info');
+      writeSep();
+      writeLine(`  Name   : ${d2.ldhName || domain}`, 't-out');
+      if (d2.events) {
+        d2.events.forEach(ev => writeLine(`  ${ev.eventAction} : ${ev.eventDate?.split('T')[0]}`, 't-out'));
+      }
+      if (d2.nameservers) {
+        d2.nameservers.slice(0,2).forEach(ns => writeLine(`  NS     : ${ns.ldhName}`, 't-out'));
+      }
+      writeSep();
+      writeLine('[+] Done', 't-ok');
+    } catch {
+      writeLine('[!] WHOIS lookup failed — domain may not exist', 't-err');
+    }
+  }
+}
+
+// HTTP HEADERS
+async function cmdHeaders(args) {
+  let url = args[0];
+  if (!url) { writeLine('[!] Usage: headers <url>', 't-err'); return; }
+  if (!url.startsWith('http')) url = 'https://' + url;
+  writeLine(`[~] Checking headers: ${url}...`, 't-sys');
+  writeLine('  [~] Using HackerTarget HTTP headers API...', 't-sys');
+  try {
+    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+    const res = await fetch(`https://api.hackertarget.com/httpheaders/?q=${encodeURIComponent('https://' + domain)}`);
+    const text = await res.text();
+    // Catch rate limiting: HTTP status, HackerTarget's own error wording, and lack of real header-shaped lines
+    const looksRateLimited =
+      res.status === 429 ||
+      !res.ok ||
+      /error/i.test(text) ||
+      /api count exceeded/i.test(text) ||
+      /too many requests/i.test(text) ||
+      !text.includes(':');
+    if (looksRateLimited) {
+      writeLine('[!] HackerTarget rate limit reached — try again later', 't-warn');
+      writeLine(`  [~] Raw response: ${text.slice(0, 120)}`, 't-dim');
+      return;
+    }
+    writeSep();
+    writeLine(`  HEADERS: ${domain}`, 't-info');
+    writeSep();
+    const lines = text.trim().split('\n');
+    // Check for security headers
+    const secHeaders = {
+      'content-security-policy': false,
+      'x-frame-options': false,
+      'x-content-type-options': false,
+      'strict-transport-security': false,
+      'referrer-policy': false,
+    };
+    lines.forEach(line => {
+      writeLine(`  ${line}`, 't-out');
+      const lower = line.toLowerCase();
+      Object.keys(secHeaders).forEach(h => { if (lower.startsWith(h)) secHeaders[h] = true; });
+    });
+    writeSep();
+    writeLine('  SECURITY HEADERS:', 't-warn');
+    Object.entries(secHeaders).forEach(([h, found]) => {
+      writeLine(`  ${found ? '✓' : '✗'} ${h}`, found ? 't-ok' : 't-err');
+    });
+    writeSep();
+    lastOutput = text;
+    writeLine('[+] Done', 't-ok');
+  } catch(e) {
+    writeLine('[!] Could not fetch headers: ' + e.message, 't-err');
+  }
+}
+
+// SSL
+async function cmdSSL(args) {
+  const domain = args[0];
+  if (!domain) { writeLine('[!] Usage: ssl <domain>', 't-err'); return; }
+  writeLine(`[~] SSL check: ${domain}...`, 't-sys');
+  writeLine('  [~] Starting scan — polling every 5s (up to 60s)...', 't-sys');
+  try {
+    // Kick off scan
+    await fetch(`https://api.ssllabs.com/api/v3/analyze?host=${encodeURIComponent(domain)}&startNew=on`);
+    // Poll until ready (max 12 attempts ~60s)
+    let d, attempts = 0;
+    while (attempts < 12) {
+      await new Promise(r => setTimeout(r, 5000));
+      const poll = await fetch(`https://api.ssllabs.com/api/v3/analyze?host=${encodeURIComponent(domain)}&all=done`);
+      d = await poll.json();
+      if (d.status === 'READY' || d.status === 'ERROR') break;
+      writeLine(`  [~] Scanning... (${(attempts + 1) * 5}s elapsed)`, 't-sys');
+      attempts++;
+    }
+    writeSep();
+    writeLine(`  SSL: ${domain}`, 't-info');
+    writeSep();
+    writeLine(`  Status  : ${d.status}`, 't-out');
+    if (d.status === 'READY' && d.endpoints?.[0]) {
+      const ep = d.endpoints[0];
+      const grade = ep.grade || 'N/A';
+      writeLine(`  Grade   : ${grade}`, (grade === 'A' || grade === 'A+') ? 't-ok' : 't-warn');
+      writeLine(`  Server  : ${ep.ipAddress}`, 't-out');
+    } else if (d.status !== 'READY') {
+      writeLine('  [~] Scan timed out — try again in a moment', 't-warn');
+    }
+    writeSep();
+    lastOutput = `SSL Grade for ${domain}: ${d.endpoints?.[0]?.grade || 'pending'}`;
+    writeLine('[+] Done', 't-ok');
+  } catch(e) {
+    writeLine('[!] SSL check failed: ' + e.message, 't-err');
+  }
+}
+
+// AI COMMAND
+async function cmdAI(args) {
+  const prompt = args.join(' ');
+  if (!prompt) { writeLine('[!] Usage: ai "<your question>"', 't-err'); return; }
+  writeLine('[~] Asking AI...', 't-sys');
+  const key = state.apiKeys['AI_KEY'];
+  // Support multiple AI providers based on key prefix or format
+  // Default: try OpenRouter (accepts many models)
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + key,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'mistralai/mistral-7b-instruct:free',
+        messages: [
+          { role: 'system', content: 'You are a cybersecurity terminal assistant inside GenesisVault. Be concise, technical, and direct. Use plain text only.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 300,
+      })
+    });
+    const d = await res.json();
+    if (d.error) { writeLine('[!] AI error: ' + d.error.message, 't-err'); return; }
+    const reply = d.choices?.[0]?.message?.content || '(no response)';
+    writeSep();
+    writeLine('  AI RESPONSE', 't-purple');
+    writeSep();
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-out'));
+    writeSep();
+    writeLine('[+] Done', 't-ok');
+  } catch {
+    writeLine('[!] AI request failed — check your AI_KEY (OpenRouter key required)', 't-err');
+  }
+}
+
+// ── QWEN CLOUD COMMANDS ──────────────────────
+
+async function qwenRequest(prompt, systemPrompt, model = 'qwen-plus') {
+  const key = state.apiKeys['QWEN_KEY'];
+  const res = await fetch('https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 600,
+    })
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+  return d.choices?.[0]?.message?.content || '(no response)';
+}
+
+async function cmdQwen(args) {
+  const prompt = args.join(' ');
+  if (!prompt) { writeLine('[!] Usage: qwen "<your question>"', 't-err'); return; }
+  writeLine('[~] Querying Qwen Cloud (qwen-plus)...', 't-sys');
+  try {
+    const reply = await qwenRequest(prompt,
+      'You are a cybersecurity and developer assistant inside NanoVault terminal. Be concise, technical, and direct. Plain text only, no markdown.');
+    writeSep();
+    writeLine('  QWEN CLOUD ◈ RESPONSE', 't-purple');
+    writeSep();
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-out'));
+    writeSep();
+    lastOutput = reply;
+    vars['LAST_OUTPUT'] = reply.slice(0, 300);
+    writeLine('[+] Done — output saved to $LAST_OUTPUT', 't-ok');
+  } catch(e) {
+    writeLine('[!] Qwen error: ' + e.message, 't-err');
+    writeLine('    Check your QWEN_KEY in API KEYS tab', 't-sys');
+  }
+}
+
+async function cmdQwenAnalyze(args) {
+  const instruction = args.join(' ') || 'Analyze this data and summarize key findings, risks, and recommendations.';
+  if (!lastOutput) {
+    writeLine('[!] No previous output to analyze. Run a command first (dns, ip, ssl, etc.)', 't-err');
+    return;
+  }
+  writeLine('[~] Sending output to Qwen Cloud for analysis...', 't-sys');
+  try {
+    const prompt = `${instruction}\n\nDATA:\n${lastOutput}`;
+    const reply = await qwenRequest(prompt,
+      'You are a cybersecurity analyst. Analyze the provided terminal output. Be concise and technical. Identify findings, risks, and actionable recommendations. Plain text only.');
+    writeSep();
+    writeLine('  QWEN CLOUD ◈ ANALYSIS', 't-purple');
+    writeSep();
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-out'));
+    writeSep();
+    vars['ANALYSIS'] = reply.slice(0, 300);
+    writeLine('[+] Done — analysis saved to $ANALYSIS', 't-ok');
+  } catch(e) {
+    writeLine('[!] Qwen error: ' + e.message, 't-err');
+  }
+}
+
+async function cmdQwenCode(args) {
+  const task = args.join(' ');
+  if (!task) { writeLine('[!] Usage: qwen-code "<task>"', 't-err'); return; }
+  writeLine('[~] Generating code with Qwen Cloud (qwen-max)...', 't-sys');
+  try {
+    const reply = await qwenRequest(task,
+      'You are a code generation assistant. Output only clean, working code. No explanations unless asked. No markdown fences.',
+      'qwen-max');
+    writeSep();
+    writeLine('  QWEN CLOUD ◈ CODE OUTPUT', 't-purple');
+    writeSep();
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-cyan'));
+    writeSep();
+    lastOutput = reply;
+    vars['CODE_OUTPUT'] = reply.slice(0, 300);
+    writeLine('[+] Done — saved to $CODE_OUTPUT', 't-ok');
+  } catch(e) {
+    writeLine('[!] Qwen error: ' + e.message, 't-err');
+  }
+}
+
+async function cmdQwenRecon(args) {
+  const target = args[0];
+  if (!target) { writeLine('[!] Usage: qwen-recon <domain>', 't-err'); return; }
+  writeLine(`[~] Running AI-powered recon on ${target}...`, 't-sys');
+  writeLine('[~] Step 1/3: DNS lookup...', 't-sys');
+  const dnsOut = [];
+  const types = ['A', 'MX', 'NS'];
+  for (const type of types) {
+    try {
+      const res = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(target)}&type=${type}`);
+      const d = await res.json();
+      if (d.Answer) d.Answer.slice(0,2).forEach(r => dnsOut.push(`${type}: ${r.data}`));
+    } catch {}
+  }
+  writeLine('[~] Step 2/3: IP lookup...', 't-sys');
+  let ipOut = '';
+  try {
+    const res = await fetch(`https://ipapi.co/${encodeURIComponent(target)}/json/`);
+    const d = await res.json();
+    if (!d.error) ipOut = `IP: ${d.ip} | Country: ${d.country_name} | ISP: ${d.org}`;
+  } catch {}
+  writeLine('[~] Step 3/3: Qwen AI analysis...', 't-sys');
+  const reconData = `TARGET: ${target}\nDNS:\n${dnsOut.join('\n') || 'none'}\n${ipOut}`;
+  try {
+    const reply = await qwenRequest(
+      `Perform a security assessment of this target based on the recon data:\n\n${reconData}`,
+      'You are a senior penetration tester. Analyze recon data and provide: threat assessment, attack surface, interesting findings, and recommended next steps. Be technical and concise.'
+    );
+    writeSep();
+    writeLine(`  QWEN CLOUD ◈ RECON REPORT: ${target}`, 't-purple');
+    writeSep();
+    writeLine('  RAW DATA:', 't-warn');
+    dnsOut.forEach(l => writeLine('  ' + l, 't-out'));
+    if (ipOut) writeLine('  ' + ipOut, 't-out');
+    writeSep();
+    writeLine('  AI ANALYSIS:', 't-warn');
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-out'));
+    writeSep();
+    lastOutput = reconData + '\n\nANALYSIS:\n' + reply;
+    writeLine('[+] Full recon complete', 't-ok');
+  } catch(e) {
+    writeLine('[!] Qwen error: ' + e.message, 't-err');
+  }
+}
+
+// ECHO
+async function cmdEcho(args) {
+  writeLine(args.join(' '), 't-bright');
+}
+
+// SET VARIABLE
+async function cmdSet(args) {
+  // Format: set VAR = value  OR  set VAR value
+  const raw = args.join(' ');
+  const match = raw.match(/^([A-Z_][A-Z0-9_]*)\s*=?\s*(.+)$/i);
+  if (!match) { writeLine('[!] Usage: set VAR = value', 't-err'); return; }
+  const [_, name, value] = match;
+  vars[name.toUpperCase()] = value.trim().replace(/^"|"$/g, '');
+  writeLine(`[+] $${name.toUpperCase()} = "${vars[name.toUpperCase()]}"`, 't-ok');
+}
+
+// CLEAR
+async function cmdClear() {
+  document.getElementById('terminal-out').innerHTML = '';
+  writeCursor();
+}
+
+// HELP
+async function cmdHelp() {
+  writeSep();
+  writeLine('  NANO VAULT — COMMAND REFERENCE', 't-info');
+  writeSep();
+  Object.entries(COMMANDS).forEach(([name, def]) => {
+    writeLine(`  ${def.usage.padEnd(28)} — ${def.desc}`, 't-out');
+    if (def.requires.length) {
+      writeLine(`  ${''.padEnd(28)}   requires: ${def.requires.join(', ')}`, 't-warn');
+    }
+  });
+  writeSep();
+  writeLine('  .nvault SCRIPT FORMAT:', 't-info');
+  writeLine('  # comment lines are ignored', 't-comment');
+  writeLine('  #@require KEY_NAME  — declare needed API keys', 't-sys');
+  writeLine('  set TARGET = google.com', 't-out');
+  writeLine('  dns $TARGET', 't-out');
+  writeLine('  weather Lagos', 't-out');
+  writeSep();
+}
+
+// LIST SCRIPTS
+async function cmdListScripts() {
+  const keys = Object.keys(state.scripts);
+  if (!keys.length) { writeLine('[~] No scripts. Go to SCRIPTS tab to create one.', 't-sys'); return; }
+  writeSep();
+  writeLine('  SAVED SCRIPTS', 't-info');
+  writeSep();
+  keys.forEach(k => {
+    const lines = (state.scripts[k].content.match(/\n/g) || []).length + 1;
+    const active = k === state.active ? ' ◀ ACTIVE' : '';
+    writeLine(`  ${k}.nvault  (${lines} lines)${active}`, k === state.active ? 't-ok' : 't-out');
+  });
+  writeSep();
+}
+
+// LOAD SCRIPT TO EDITOR
+async function cmdLoad(args) {
+  const name = args[0];
+  if (!name) { writeLine('[!] Usage: load <script_name>', 't-err'); return; }
+  const key = sanitizeName(name);
+  if (!state.scripts[key]) { writeLine(`[!] Script not found: ${key}`, 't-err'); return; }
+  loadScriptToEditor(key);
+  writeLine(`[+] Loaded: ${key}.nvault`, 't-ok');
+  switchTab('editor');
+}
+
+// ══════════════════════════════════════════════
+// .NVAULT SCRIPT RUNNER
+// ══════════════════════════════════════════════
+async function runScriptByName(name) {
+  const key = name ? sanitizeName(name) : state.active;
+  if (!key || !state.scripts[key]) {
+    writeLine('[!] No script specified. Use: run <name>', 't-err');
+    writeCursor();
+    return;
+  }
+  executeNvault(key, state.scripts[key].content);
+}
+
+async function executeNvault(name, content) {
+  if (state.running) {
+    writeLine('[!] A script is already running. Wait for it to finish.', 't-warn');
+    writeCursor();
+    return;
+  }
+
+  const lines = content.split('\n');
+
+  // Parse #@require declarations
+  const required = [];
+  lines.forEach(line => {
+    const m = line.trim().match(/^#@require\s+(\S+)/);
+    if (m) required.push(m[1]);
+  });
+
+  // Check missing keys
+  const missing = required.filter(k => !state.apiKeys[k]);
+  if (missing.length) {
+    state.pendingRunScript = { name, content };
+    showKeysRequiredModal(missing);
+    return;
+  }
+
+  // Execute
+  state.running = true;
+  setRunStatus('RUNNING');
+  switchTab('terminal');
+
+  writeLine('', 't-sys');
+  writeSep('═');
+  writeLine(`  ▶ RUNNING: ${name}.nvault`, 't-info');
+  writeSep('═');
+
+  const execLines = lines.filter(l => {
+    const t = l.trim();
+    return t && !t.startsWith('#');
+  });
+
+  let done = 0;
+  for (const line of execLines) {
+    if (!state.running) {
+      writeLine('[!] Script aborted', 't-warn');
+      break;
+    }
+    writeLine(`$ ${line}`, 't-cmd');
+    setProgress(Math.round((done / execLines.length) * 100));
+    await processLine(line);
+    done++;
+    await sleep(120);
+  }
+
+  setProgress(100);
+  await sleep(400);
+  setProgress(0);
+
+  writeSep('═');
+  writeLine(`  [+] Script complete: ${name}.nvault`, 't-ok');
+  writeSep('═');
+  state.running = false;
+  setRunStatus('DONE');
+  writeCursor();
+  setTimeout(() => setRunStatus('IDLE'), 3000);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ══════════════════════════════════════════════
+// EDITOR
+// ══════════════════════════════════════════════
+function updateLines() {
+  const lines = document.getElementById('editor').value.split('\n').length;
+  let html = '';
+  for (let i = 1; i <= lines; i++) html += `<span class="ln">${i}</span>`;
+  document.getElementById('line-nums').innerHTML = html;
+  document.getElementById('line-count').textContent = lines;
+}
+
+function syncScroll() {
+  document.getElementById('line-nums').scrollTop = document.getElementById('editor').scrollTop;
+}
+
+function tabKey(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const el = document.getElementById('editor');
+    const s = el.selectionStart;
+    el.value = el.value.substring(0, s) + '  ' + el.value.substring(el.selectionEnd);
+    el.selectionStart = el.selectionEnd = s + 2;
+    updateLines();
+  }
+  if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveScript(); }
+  if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runCurrentScript(); }
+}
+
+function saveScript() {
+  if (!state.active) {
+    writeLine('[!] No active script. Create one in SCRIPTS tab.', 't-err');
+    switchTab('terminal');
+    return;
+  }
+  const content = document.getElementById('editor').value;
+  state.scripts[state.active].content = content;
+  lsSave();
+  writeLine(`[+] Saved: ${state.active}.nvault`, 't-ok');
+  switchTab('terminal');
+  renderScriptsList();
+}
+
+function runCurrentScript() {
+  if (!state.active) {
+    writeLine('[!] No active script.', 't-err');
+    switchTab('terminal');
+    return;
+  }
+  const content = document.getElementById('editor').value;
+  state.scripts[state.active].content = content;
+  executeNvault(state.active, content);
+}
+
+function downloadScript() {
+  if (!state.active) return;
+  const content = document.getElementById('editor').value;
+  const blob = new Blob([content], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = state.active + '.nvault';
+  a.click();
+}
+
+function loadScriptToEditor(name) {
+  state.active = name;
+  document.getElementById('editor').value = state.scripts[name].content;
+  document.getElementById('active-label').textContent = name + '.nvault';
+  updateLines();
+  renderScriptsList();
+}
+
+// ══════════════════════════════════════════════
+// SCRIPTS LIST
+// ══════════════════════════════════════════════
+function renderScriptsList() {
+  const container = document.getElementById('scripts-list');
+  container.innerHTML = '';
+  const keys = Object.keys(state.scripts);
+  if (!keys.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;font-size:10px;letter-spacing:2px;color:var(--dim)">NO SCRIPTS YET<br><br>Tap + NEW to create one</div>';
+    return;
+  }
+  keys.forEach(name => {
+    const s = state.scripts[name];
+    const lines = (s.content.match(/\n/g) || []).length + 1;
+    const reqs = [];
+    s.content.split('\n').forEach(l => { const m = l.match(/^#@require\s+(\S+)/); if (m) reqs.push(m[1]); });
+    const div = document.createElement('div');
+    div.className = 'script-item' + (name === state.active ? ' active-script' : '');
+    div.innerHTML = `
+      <div class="script-item-info">
+        <div class="script-name">${name}.nvault</div>
+        <div class="script-meta">${lines} lines${reqs.length ? ' | keys: ' + reqs.join(', ') : ''}</div>
+      </div>
+      <div class="script-item-actions">
+        <button class="icon-btn" onclick="editScript('${name}')">EDIT</button>
+        <button class="icon-btn" onclick="runScriptFromList('${name}')">▶ RUN</button>
+        <button class="icon-btn del" onclick="deleteScript('${name}')">DEL</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function editScript(name) {
+  loadScriptToEditor(name);
+  switchTab('editor');
+}
+
+function runScriptFromList(name) {
+  loadScriptToEditor(name);
+  switchTab('terminal');
+  setTimeout(() => executeNvault(name, state.scripts[name].content), 200);
+}
+
+function deleteScript(name) {
+  if (!confirm(`Delete ${name}.nvault?`)) return;
+  delete state.scripts[name];
+  if (state.active === name) {
+    state.active = null;
+    document.getElementById('editor').value = '';
+    document.getElementById('active-label').textContent = 'none';
+    updateLines();
+  }
+  lsSave();
+  renderScriptsList();
+}
+
+// ══════════════════════════════════════════════
+// NEW SCRIPT MODAL
+// ══════════════════════════════════════════════
+function openNewScriptModal() {
+  document.getElementById('new-script-name').value = '';
+  openModal('modal-new');
+}
+
+function createNewScript() {
+  const rawName = document.getElementById('new-script-name').value.trim();
+  if (!rawName) { alert('Enter a script name'); return; }
+  const name = sanitizeName(rawName);
+  if (state.scripts[name]) { alert(`Script "${name}" already exists`); return; }
+  const tpl = document.getElementById('new-script-template').value;
+  state.scripts[name] = { content: getTemplate(name, tpl) };
+  lsSave();
+  closeModal('modal-new');
+  renderScriptsList();
+  loadScriptToEditor(name);
+  switchTab('editor');
+  writeLine(`[+] Created: ${name}.nvault`, 't-ok');
+}
+
+function getTemplate(name, type = 'blank') {
+  const templates = {
+    blank: `# ${name}.nvault
+# NanoVault Script | GenesisVault Platform
+# ─────────────────────────────────────────
+# Declare required API keys below:
+# #@require OPENWEATHER_KEY
+# #@require AI_KEY
+
+# Set variables
+# set TARGET = example.com
+
+# Write your commands below:
+echo Script started
+`,
+    recon: `# ${name}.nvault — Full Recon Script
+#@require QWEN_KEY
+
+# Set your target
+set TARGET = example.com
+
+echo ════════════════════════════════════
+echo  RECON: $TARGET
+echo ════════════════════════════════════
+
+dns $TARGET
+ip $TARGET
+whois $TARGET
+ssl $TARGET
+qwen-analyze "Summarize all findings, identify risks and attack surface"
+
+echo ════════════════════════════════════
+echo  RECON COMPLETE
+echo ════════════════════════════════════
+`,
+    weather: `# ${name}.nvault — Weather Script
+#@require OPENWEATHER_KEY
+
+set CITY = Lagos
+
+echo Checking weather for $CITY
+weather $CITY
+`,
+    osint: `# ${name}.nvault — OSINT Lookup
+# No API key required for basic recon
+
+set TARGET = google.com
+
+echo ── OSINT: $TARGET ──
+dns $TARGET
+whois $TARGET
+ip 8.8.8.8
+`,
+    custom: `# ${name}.nvault
+# Write your custom script here
+`,
+  };
+  return templates[type] || templates.blank;
+}
+
+// ══════════════════════════════════════════════
+// API KEYS — DYNAMIC + LOCALSTORAGE
+// ══════════════════════════════════════════════
+function renderKeysList() {
+  const container = document.getElementById('keys-list');
+  container.innerHTML = '';
+  const keyIds = Object.keys(state.apiKeys);
+
+  if (!keyIds.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;font-size:10px;letter-spacing:2px;color:var(--dim)">NO KEYS YET<br><br>Tap + ADD KEY to add one</div>';
+  } else {
+    keyIds.forEach(keyId => {
+      const val = state.apiKeys[keyId] || '';
+      const div = document.createElement('div');
+      div.className = 'key-item';
+      div.innerHTML = `
+        <div class="key-service" style="display:flex;justify-content:space-between;align-items:center">
+          <span>${keyId}</span>
+          <button class="btn" style="font-size:8px;padding:2px 8px;color:var(--red);border-color:var(--red)" onclick="deleteKey('${keyId}')">DEL</button>
+        </div>
+        <div class="key-input-row">
+          <input class="key-input${val ? ' saved' : ''}"
+                 id="key-input-${keyId}"
+                 type="password"
+                 placeholder="paste key value here..."
+                 value="${val}"
+                 autocomplete="off"
+                 oninput="onKeyInput(this, '${keyId}')">
+          <button class="btn btn-cyan" style="font-size:9px;padding:4px 10px" onclick="toggleKeyVisibility('${keyId}')">👁</button>
+        </div>
+        <div class="key-status${val ? ' ok' : ''}" id="key-status-${keyId}">${val ? '✓ KEY SAVED' : 'Enter your key value'}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  // Add Key form always at bottom
+  const addDiv = document.createElement('div');
+  addDiv.className = 'key-item';
+  addDiv.style.cssText = 'border:1px dashed var(--border);background:transparent';
+  addDiv.innerHTML = `
+    <div class="key-service" style="color:var(--cyan)">+ ADD NEW KEY</div>
+    <div class="key-input-row" style="gap:6px">
+      <input id="new-key-name" class="key-input" type="text" placeholder="KEY_NAME (e.g. SHODAN_KEY)" autocomplete="off" style="flex:1">
+      <input id="new-key-value" class="key-input" type="password" placeholder="paste value..." autocomplete="off" style="flex:2">
+      <button class="btn btn-green" style="font-size:9px;padding:4px 10px" onclick="addNewKey()">ADD</button>
+    </div>
+    <div style="font-size:9px;color:var(--dim);margin-top:4px;letter-spacing:1px">Name it anything — use $KEY_NAME in scripts</div>
+  `;
+  container.appendChild(addDiv);
+}
+
+function addNewKey() {
+  const nameEl = document.getElementById('new-key-name');
+  const valEl = document.getElementById('new-key-value');
+  const name = nameEl.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+  const val = valEl.value.trim();
+  if (!name) { alert('Enter a key name'); return; }
+  if (!val) { alert('Enter a key value'); return; }
+  state.apiKeys[name] = val;
+  lsSave();
+  updateKeyCount();
+  renderKeysList();
+  writeLine(`[+] Key added: ${name}`, 't-ok');
+}
+
+function deleteKey(keyId) {
+  if (!confirm(`Delete key: ${keyId}?`)) return;
+  delete state.apiKeys[keyId];
+  lsSave();
+  updateKeyCount();
+  renderKeysList();
+}
+
+function onKeyInput(el, keyId) {
+  const val = el.value.trim();
+  if (val) {
+    state.apiKeys[keyId] = val;
+    el.classList.add('saved');
+    const status = document.getElementById('key-status-' + keyId);
+    if (status) { status.textContent = '✓ KEY SAVED'; status.className = 'key-status ok'; }
+  } else {
+    delete state.apiKeys[keyId];
+    el.classList.remove('saved');
+    const status = document.getElementById('key-status-' + keyId);
+    if (status) { status.textContent = 'Enter your key value'; status.className = 'key-status'; }
+  }
+  lsSave();
+  updateKeyCount();
+}
+
+function toggleKeyVisibility(keyId) {
+  const inp = document.getElementById('key-input-' + keyId);
+  if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function saveAllKeys() {
+  lsSave();
+  updateKeyCount();
+  writeLine('[+] All API keys saved to localStorage', 't-ok');
+  switchTab('terminal');
+}
+
+function updateKeyCount() {
+  document.getElementById('key-count').textContent = Object.keys(state.apiKeys).length;
+}
+
+// ══════════════════════════════════════════════
+// KEYS REQUIRED MODAL
+// ══════════════════════════════════════════════
+function showKeysRequiredModal(missing) {
+  const form = document.getElementById('required-keys-form');
+  form.innerHTML = '';
+  missing.forEach(keyId => {
+    const row = document.createElement('div');
+    row.className = 'req-key-row';
+    row.innerHTML = `
+      <div class="req-key-name">${keyId}</div>
+      <input class="req-key-input" id="req-key-${keyId}" type="password" 
+             placeholder="paste key here..." autocomplete="off"
+             oninput="this.classList.toggle('filled', this.value.trim().length > 0)">
+    `;
+    form.appendChild(row);
+  });
+  openModal('modal-keys-required');
+}
+
+function confirmKeysAndRun() {
+  // Save keys from modal
+  const form = document.getElementById('required-keys-form');
+  const inputs = form.querySelectorAll('.req-key-input');
+  inputs.forEach(inp => {
+    const id = inp.id.replace('req-key-', '');
+    if (inp.value.trim()) {
+      state.apiKeys[id] = inp.value.trim();
+    }
+  });
+  updateKeyCount();
+  renderKeysList();
+  closeModal('modal-keys-required');
+
+  // Resume run
+  if (state.pendingRunScript) {
+    const { name, content } = state.pendingRunScript;
+    state.pendingRunScript = null;
+    setTimeout(() => executeNvault(name, content), 200);
+  }
+}
+
+// ══════════════════════════════════════════════
+// HELP GRID
+// ══════════════════════════════════════════════
+function renderHelpGrid() {
+  const grid = document.getElementById('help-grid');
+  Object.entries(COMMANDS).forEach(([name, def]) => {
+    const div = document.createElement('div');
+    div.className = 'help-chip';
+    div.innerHTML = `<div class="cmd">${def.usage}</div><div class="desc">${def.desc}</div>`;
+    grid.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name)?.classList.add('active');
+  document.getElementById('tab-' + name)?.classList.add('active');
+  if (name === 'terminal') {
+    setTimeout(() => document.getElementById('cmd-input').focus(), 100);
+  }
+}
+
+// ══════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════════
+// UTIL
+// ══════════════════════════════════════════════
+function sanitizeName(n) {
+  return n.replace(/[^a-zA-Z0-9_\-]/g, '_').replace(/\.nvault$/i, '');
+}
+
+// ══════════════════════════════════════════════
+// ROUND 2 COMMANDS
+// ══════════════════════════════════════════════
+
+// GROQ AI
+async function cmdGroq(args) {
+  const prompt = args.join(' ');
+  if (!prompt) { writeLine('[!] Usage: groq "<prompt>"', 't-err'); return; }
+  const key = state.apiKeys['GROQ_KEY'];
+  writeLine('[~] Querying Groq (llama-3.1-8b-instant)...', 't-sys');
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: 'You are a cybersecurity terminal assistant in NanoVault. Be concise and technical. Plain text only.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 400,
+      })
+    });
+    const d = await res.json();
+    if (d.error) { writeLine('[!] Groq error: ' + d.error.message, 't-err'); return; }
+    const reply = d.choices?.[0]?.message?.content || '(no response)';
+    writeSep();
+    writeLine('  GROQ ◈ RESPONSE', 't-purple');
+    writeSep();
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-out'));
+    writeSep();
+    lastOutput = reply;
+    writeLine('[+] Done', 't-ok');
+  } catch(e) {
+    writeLine('[!] Groq request failed: ' + e.message, 't-err');
+  }
+}
+
+// GEMINI AI
+async function cmdGemini(args) {
+  const prompt = args.join(' ');
+  if (!prompt) { writeLine('[!] Usage: gemini "<prompt>"', 't-err'); return; }
+  const key = state.apiKeys['GEMINI_KEY'];
+  writeLine('[~] Querying Google Gemini...', 't-sys');
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 400 }
+      })
+    });
+    const d = await res.json();
+    if (d.error) { writeLine('[!] Gemini error: ' + d.error.message, 't-err'); return; }
+    const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || '(no response)';
+    writeSep();
+    writeLine('  GEMINI ◈ RESPONSE', 't-purple');
+    writeSep();
+    reply.split('\n').forEach(l => writeLine('  ' + l, 't-out'));
+    writeSep();
+    lastOutput = reply;
+    writeLine('[+] Done', 't-ok');
+  } catch(e) {
+    writeLine('[!] Gemini request failed: ' + e.message, 't-err');
+  }
+}
+
+// PORT CHECK
+async function cmdPort(args) {
+  const host = args[0], port = args[1];
+  if (!host || !port) { writeLine('[!] Usage: port <host> <port>', 't-err'); return; }
+  writeLine(`[~] Checking ${host}:${port}...`, 't-sys');
+  writeLine('  [~] Using HackerTarget port scan...', 't-sys');
+  try {
+    const res = await fetch(`https://api.hackertarget.com/nmap/?q=${encodeURIComponent(host)}`);
+    const text = await res.text();
+    const portRateLimited = res.status === 429 || !res.ok || /error/i.test(text) || /api count exceeded/i.test(text) || /too many requests/i.test(text);
+    if (portRateLimited) {
+      writeLine('[!] HackerTarget rate limit reached — try again later', 't-warn');
+      writeLine(`  [~] Raw response: ${text.slice(0, 120)}`, 't-dim');
+      return;
+    }
+    writeSep();
+    writeLine(`  PORT SCAN: ${host}`, 't-info');
+    writeSep();
+    // Parse nmap output for specific port
+    const lines = text.split('\n');
+    const portLine = lines.find(l => l.includes(`${port}/`));
+    if (portLine) {
+      const isOpen = portLine.includes('open');
+      writeLine(`  Port ${port} : ${isOpen ? 'OPEN' : 'CLOSED / FILTERED'}`, isOpen ? 't-ok' : 't-err');
+      writeLine(`  Detail : ${portLine.trim()}`, 't-out');
+    } else {
+      writeLine(`  Port ${port} : NOT FOUND IN SCAN`, 't-warn');
+    }
+    writeSep();
+    // Show all open ports found
+    const openPorts = lines.filter(l => l.includes('open'));
+    if (openPorts.length) {
+      writeLine('  All open ports:', 't-warn');
+      openPorts.forEach(l => writeLine(`  ${l.trim()}`, 't-out'));
+    }
+    writeSep();
+    lastOutput = text;
+    writeLine('[+] Done', 't-ok');
+  } catch(e) {
+    writeSep();
+    writeLine(`  PORT CHECK: ${host}:${port}`, 't-info');
+    writeSep();
+    writeLine('  Status : FAILED', 't-err');
+    writeLine(`  Error  : ${e.message}`, 't-sys');
+    writeSep();
+    writeLine('[+] Done', 't-ok');
+  }
+}
+
+// CRYPTO PRICE
+async function cmdCrypto(args) {
+  const symbol = (args[0] || 'BTC').toUpperCase();
+  writeLine(`[~] Fetching ${symbol} price...`, 't-sys');
+  try {
+    const res = await fetch(`https://api.coinpaprika.com/v1/tickers/${symbol.toLowerCase()}-${symbol.toLowerCase()}`);
+    let d = await res.json();
+    // fallback search if direct id fails
+    if (d.error) {
+      const search = await fetch(`https://api.coinpaprika.com/v1/search/?q=${symbol}&c=currencies&limit=1`);
+      const sd = await search.json();
+      const coin = sd.currencies?.[0];
+      if (!coin) { writeLine(`[!] Symbol not found: ${symbol}`, 't-err'); return; }
+      const res2 = await fetch(`https://api.coinpaprika.com/v1/tickers/${coin.id}`);
+      d = await res2.json();
+    }
+    const price = parseFloat(d.quotes?.USD?.price || 0);
+    const change24h = parseFloat(d.quotes?.USD?.percent_change_24h || 0);
+    writeSep();
+    writeLine(`  CRYPTO: ${d.name} (${d.symbol})`, 't-info');
+    writeSep();
+    writeLine(`  Price  : $${price.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:6})}`, 't-bright');
+    writeLine(`  24h    : ${change24h >= 0 ? '+' : ''}${change24h.toFixed(2)}%`, change24h >= 0 ? 't-ok' : 't-err');
+    writeLine(`  Rank   : #${d.rank}`, 't-out');
+    writeSep();
+    lastOutput = `${d.symbol}: $${price} | 24h: ${change24h}%`;
+    writeLine('[+] Done', 't-ok');
+  } catch(e) {
+    writeLine('[!] Crypto fetch failed: ' + e.message, 't-err');
+  }
+}
+
+// SUBDOMAIN ENUM
+async function cmdSubdomain(args) {
+  const domain = args[0];
+  if (!domain) { writeLine('[!] Usage: subdomain <domain>', 't-err'); return; }
+  writeLine(`[~] Enumerating subdomains: ${domain}...`, 't-sys');
+  writeLine('  [~] Using HackerTarget API...', 't-sys');
+  try {
+    const res = await fetch(`https://api.hackertarget.com/hostsearch/?q=${encodeURIComponent(domain)}`);
+    const text = await res.text();
+    const subRateLimited = res.status === 429 || !res.ok || /error/i.test(text) || /api count exceeded/i.test(text) || /too many requests/i.test(text);
+    if (subRateLimited) {
+      writeLine('[!] HackerTarget rate limit reached — try again later', 't-warn');
+      writeLine(`  [~] Raw response: ${text.slice(0, 120)}`, 't-dim');
+      return;
+    }
+    const subs = [...new Set(text.trim().split('\n').map(l => l.split(',')[0]).filter(s => s && s.endsWith(domain)))].sort();
+    writeSep();
+    writeLine(`  SUBDOMAINS: ${domain}`, 't-info');
+    writeSep();
+    writeLine(`  Found: ${subs.length} unique subdomains`, 't-ok');
+    writeSep();
+    subs.slice(0, 30).forEach(s => writeLine(`  • ${s}`, 't-out'));
+    if (subs.length > 30) writeLine(`  ... and ${subs.length - 30} more`, 't-dim');
+    writeSep();
+    lastOutput = subs.join('\n');
+    vars['SUBDOMAINS'] = subs.slice(0,10).join(',');
+    writeLine('[+] Done — saved to $SUBDOMAINS', 't-ok');
+  } catch(e) {
+    writeLine('[!] Subdomain enum failed: ' + e.message, 't-err');
+  }
+}
+
+// SET KEY FROM TERMINAL
+async function cmdSetKey(args) {
+  const name = args[0]?.toUpperCase().replace(/[^A-Z0-9_]/g,'_');
+  const val = args[1];
+  if (!name || !val) { writeLine('[!] Usage: key <NAME> <value>', 't-err'); return; }
+  state.apiKeys[name] = val;
+  lsSave();
+  updateKeyCount();
+  renderKeysList();
+  writeLine(`[+] Key saved: ${name}`, 't-ok');
+}
+
+// VAULT RESET
+async function cmdVaultReset() {
+  if (!confirm('This will delete ALL saved scripts and API keys. Are you sure?')) return;
+  localStorage.removeItem('nv3_scripts');
+  localStorage.removeItem('nv3_keys');
+  localStorage.removeItem('nv3_active');
+  state.scripts = {};
+  state.apiKeys = {};
+  state.active = null;
+  document.getElementById('editor').value = '';
+  document.getElementById('active-label').textContent = 'none';
+  updateLines();
+  updateKeyCount();
+  renderScriptsList();
+  renderKeysList();
+  writeLine('[!] Vault reset — all data cleared', 't-err');
+}
+
+// EXPORT TERMINAL
+async function cmdExport() {
+  const out = document.getElementById('terminal-out');
+  const text = Array.from(out.querySelectorAll('.tl')).map(el => el.textContent).join('\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `nanovault-output-${Date.now()}.txt`;
+  a.click();
+  writeLine('[+] Terminal exported', 't-ok');
+}
+
+// COPY TERMINAL
+function copyTerminal() {
+  const out = document.getElementById('terminal-out');
+  const text = Array.from(out.querySelectorAll('.tl')).map(el => el.textContent).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    writeLine('[+] Terminal output copied to clipboard', 't-ok');
+  }).catch(() => {
+    writeLine('[!] Copy failed — try EXPORT instead', 't-err');
+  });
+}
+
+// ══════════════════════════════════════════════
+// SCRIPT IMPORT
+// ══════════════════════════════════════════════
+function importScript(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const name = sanitizeName(file.name);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    state.scripts[name] = { content: e.target.result };
+    lsSave();
+    renderScriptsList();
+    loadScriptToEditor(name);
+    writeLine(`[+] Imported: ${name}.nvault`, 't-ok');
+    switchTab('editor');
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+boot();
+</script>
+</body>
+</html>
