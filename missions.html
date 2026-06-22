@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Field Operations — Genesis Vault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #020608;
+      --bg2:     #060d10;
+      --bg3:     #0a1520;
+      --accent:  #00f5c4;
+      --accent2: #00a8ff;
+      --accent3: #ff003c;
+      --gold:    #f5a623;
+      --text:    #c8e6f0;
+      --dim:     #4a7a8a;
+      --border:  #0f2a35;
+      --green:   #00e676;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Rajdhani',sans-serif; min-height:100vh; }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(0,245,196,0.02) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,245,196,0.02) 1px,transparent 1px);
+      background-size:40px 40px; pointer-events:none; z-index:0;
+    }
+
+    nav {
+      position:sticky; top:0; z-index:100; background:rgba(2,6,8,0.96);
+      border-bottom:1px solid var(--border); padding:0 20px; height:56px;
+      display:flex; align-items:center; justify-content:space-between; backdrop-filter:blur(10px);
+    }
+    .nav-logo { font-family:'Share Tech Mono',monospace; font-size:0.9rem; letter-spacing:4px; color:var(--accent); text-decoration:none; }
+    .nav-logo span { color:white; }
+    .nav-vc { display:flex; align-items:center; gap:6px; background:rgba(245,166,35,0.08); border:1px solid rgba(245,166,35,0.25); padding:4px 12px; font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--gold); }
+    .back-btn { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim); text-decoration:none; letter-spacing:1px; transition:color 0.2s; }
+    .back-btn:hover { color:var(--accent); }
+
+    .hero { position:relative; z-index:1; padding:28px 20px 16px; text-align:center; }
+    .hero-eyebrow { font-family:'Share Tech Mono',monospace; font-size:0.62rem; letter-spacing:3px; color:var(--accent); margin-bottom:8px; }
+    .hero h1 { font-size:clamp(22px,5vw,34px); font-weight:700; letter-spacing:3px; color:white; margin-bottom:6px; }
+    .hero h1 span { color:var(--accent); }
+    .hero p { color:var(--dim); font-size:0.8rem; line-height:1.6; max-width:320px; margin:0 auto; }
+
+    .stats-bar { position:relative; z-index:1; display:grid; grid-template-columns:1fr 1fr 1fr; margin:14px 20px 0; border:1px solid var(--border); background:var(--bg2); }
+    .stat-item { padding:12px 8px; text-align:center; border-right:1px solid var(--border); }
+    .stat-item:last-child { border-right:none; }
+    .stat-val { font-family:'Share Tech Mono',monospace; font-size:1.2rem; color:var(--accent); display:block; }
+    .stat-lbl { font-size:0.55rem; color:var(--dim); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
+
+    .section { position:relative; z-index:1; padding:22px 20px 0; }
+    .section-title { font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--accent); letter-spacing:3px; text-transform:uppercase; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+    .section-count { color:var(--dim); font-size:0.6rem; }
+
+    /* FILTERS */
+    .filter-row { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:4px; }
+    .filter-row::-webkit-scrollbar { display:none; }
+    .filter-btn { font-family:'Share Tech Mono',monospace; font-size:0.62rem; letter-spacing:1px; padding:5px 12px; border:1px solid var(--border); background:var(--bg2); color:var(--dim); cursor:pointer; white-space:nowrap; transition:all 0.2s; flex-shrink:0; }
+    .filter-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(0,245,196,0.06); }
+
+    /* MISSION CARD */
+    .mission-card { background:var(--bg2); border:1px solid var(--border); margin-bottom:12px; position:relative; overflow:hidden; transition:border-color 0.2s; }
+    .mission-card:hover { border-color:rgba(0,245,196,0.3); }
+    .mission-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+    .mission-card.easy::before   { background:var(--green); }
+    .mission-card.medium::before { background:var(--gold); }
+    .mission-card.hard::before   { background:var(--accent3); }
+
+    .card-body { padding:14px 16px; }
+    .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px; }
+    .card-meta { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+    .diff-badge { font-family:'Share Tech Mono',monospace; font-size:0.55rem; letter-spacing:1px; padding:2px 8px; border-radius:0; }
+    .diff-badge.easy   { color:var(--green); border:1px solid rgba(0,230,118,0.3); background:rgba(0,230,118,0.06); }
+    .diff-badge.medium { color:var(--gold);  border:1px solid rgba(245,166,35,0.3); background:rgba(245,166,35,0.06); }
+    .diff-badge.hard   { color:var(--accent3); border:1px solid rgba(255,0,60,0.3); background:rgba(255,0,60,0.06); }
+    .cat-badge { font-family:'Share Tech Mono',monospace; font-size:0.55rem; letter-spacing:1px; padding:2px 8px; color:var(--dim); border:1px solid var(--border); }
+    .slots-badge { font-family:'Share Tech Mono',monospace; font-size:0.55rem; color:var(--dim); }
+
+    .card-name { font-size:1rem; font-weight:700; letter-spacing:1px; color:white; margin-bottom:4px; }
+    .card-desc { font-size:0.75rem; color:var(--dim); line-height:1.5; margin-bottom:10px; }
+
+    .card-reward-row { display:flex; align-items:center; justify-content:space-between; }
+    .reward-vc { font-family:'Share Tech Mono',monospace; font-size:1.1rem; color:var(--gold); }
+    .reward-deadline { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--dim); }
+
+    .card-footer { padding:0 16px 14px; display:flex; gap:8px; }
+    .accept-btn {
+      flex:1; padding:10px; border:none; font-family:'Share Tech Mono',monospace;
+      font-size:0.72rem; font-weight:700; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+      clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+      background:var(--accent); color:var(--bg);
+    }
+    .accept-btn:hover { background:white; }
+    .accept-btn.submitted { background:var(--border); color:var(--dim); cursor:not-allowed; clip-path:none; }
+    .accept-btn.approved  { background:rgba(0,230,118,0.15); color:var(--green); border:1px solid rgba(0,230,118,0.3); cursor:default; clip-path:none; }
+    .accept-btn.rejected  { background:rgba(255,0,60,0.1); color:var(--accent3); border:1px solid rgba(255,0,60,0.3); cursor:default; clip-path:none; }
+    .details-btn { padding:10px 14px; border:1px solid var(--border); background:none; font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--dim); cursor:pointer; transition:all 0.2s; }
+    .details-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+    /* LOADING / EMPTY */
+    .loading-wrap { text-align:center; padding:40px 20px; }
+    .loading-text { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--dim); letter-spacing:2px; animation:blink 1.2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .empty-wrap { text-align:center; padding:40px 20px; border:1px solid var(--border); background:var(--bg2); margin-bottom:14px; }
+    .empty-icon { font-size:2rem; margin-bottom:10px; }
+    .empty-text { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--dim); letter-spacing:1px; }
+
+    /* SUBMIT MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(2,6,8,0.97); z-index:200; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.active { display:flex; }
+    .modal { background:var(--bg2); border:1px solid var(--border); border-top:3px solid var(--accent); width:100%; max-width:420px; animation:slideUp 0.3s ease; max-height:90vh; overflow-y:auto; }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .modal-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--bg2); z-index:1; }
+    .modal-title { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--accent); letter-spacing:2px; }
+    .modal-close { background:none; border:1px solid var(--border); color:var(--dim); width:28px; height:28px; cursor:pointer; font-size:0.9rem; transition:all 0.2s; }
+    .modal-close:hover { border-color:var(--accent3); color:var(--accent3); }
+
+    .modal-body { padding:18px; }
+    .modal-mission-name { font-size:1.1rem; font-weight:700; color:white; letter-spacing:1px; margin-bottom:6px; }
+    .modal-mission-desc { font-size:0.78rem; color:var(--dim); line-height:1.6; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+
+    .field-label { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--accent); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; display:block; }
+    .field-input {
+      width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border);
+      color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+      margin-bottom:14px; transition:border-color 0.2s; resize:vertical;
+    }
+    .field-input:focus { outline:none; border-color:var(--accent); }
+    .field-input::placeholder { color:var(--dim); }
+
+    .submit-btn {
+      width:100%; padding:13px; border:none; font-family:'Share Tech Mono',monospace;
+      font-size:0.8rem; font-weight:700; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+      background:var(--accent); color:var(--bg);
+      clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+    }
+    .submit-btn:hover { background:white; }
+    .submit-btn:disabled { background:var(--border); color:var(--dim); cursor:not-allowed; clip-path:none; }
+
+    /* MY SUBMISSIONS */
+    .submission-item { background:var(--bg3); border:1px solid var(--border); padding:12px 14px; margin-bottom:8px; }
+    .sub-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px; }
+    .sub-name { font-size:0.85rem; font-weight:700; color:white; letter-spacing:1px; }
+    .sub-status { font-family:'Share Tech Mono',monospace; font-size:0.6rem; padding:2px 8px; }
+    .sub-status.pending  { color:var(--gold); border:1px solid rgba(245,166,35,0.3); }
+    .sub-status.approved { color:var(--green); border:1px solid rgba(0,230,118,0.3); }
+    .sub-status.rejected { color:var(--accent3); border:1px solid rgba(255,0,60,0.3); }
+    .sub-proof { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim); word-break:break-all; }
+
+    /* TABS */
+    .tab-row { display:flex; border-bottom:1px solid var(--border); margin-bottom:0; position:relative; z-index:1; margin:14px 20px 0; }
+    .tab-btn { flex:1; padding:10px; font-family:'Share Tech Mono',monospace; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; background:none; border:none; color:var(--dim); cursor:pointer; transition:all 0.2s; border-bottom:2px solid transparent; }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--bg2); border:1px solid var(--accent); color:var(--accent); padding:10px 20px; font-family:'Share Tech Mono',monospace; font-size:0.72rem; letter-spacing:1px; z-index:300; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); white-space:nowrap; }
+    .toast.show  { transform:translateX(-50%) translateY(0); }
+    .toast.error { color:var(--accent3); border-color:var(--accent3); }
+
+    .bottom-pad { height:40px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="fieldmissions.html" class="nav-logo">GENESIS<span>VAULT</span></a>
+  <div class="nav-vc">⬡ <span id="vcBalance">0</span> VC</div>
+  <a href="fieldmissions.html" class="back-btn">← BACK</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">// FIELD OPERATIONS</div>
+  <h1>BOUNTY <span>BOARD</span></h1>
+  <p>Complete missions posted by Genesis Vault. Submit proof and earn VC rewards instantly on approval.</p>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><span class="stat-val" id="statActive">0</span><span class="stat-lbl">Active</span></div>
+  <div class="stat-item"><span class="stat-val" id="statMine">0</span><span class="stat-lbl">My Submissions</span></div>
+  <div class="stat-item"><span class="stat-val" id="statEarned">0</span><span class="stat-lbl">VC Earned</span></div>
+</div>
+
+<!-- TABS -->
+<div class="tab-row">
+  <button class="tab-btn active" onclick="switchTab('missions')">MISSIONS</button>
+  <button class="tab-btn" onclick="switchTab('submissions')">MY SUBMISSIONS</button>
+</div>
+
+<!-- MISSIONS TAB -->
+<div id="tabMissions">
+  <div class="section">
+    <div class="section-title">
+      <span>// AVAILABLE MISSIONS</span>
+      <span class="section-count" id="missionCount">0 active</span>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
+      <button class="filter-btn" onclick="setFilter('easy',this)">EASY</button>
+      <button class="filter-btn" onclick="setFilter('medium',this)">MEDIUM</button>
+      <button class="filter-btn" onclick="setFilter('hard',this)">HARD</button>
+      <button class="filter-btn" onclick="setFilter('social',this)">SOCIAL</button>
+      <button class="filter-btn" onclick="setFilter('recon',this)">RECON</button>
+      <button class="filter-btn" onclick="setFilter('content',this)">CONTENT</button>
+    </div>
+
+    <div id="missionsContainer">
+      <div class="loading-wrap"><div class="loading-text">// LOADING MISSIONS...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMISSIONS TAB -->
+<div id="tabSubmissions" style="display:none;">
+  <div class="section">
+    <div class="section-title">// MY SUBMISSIONS</div>
+    <div id="submissionsContainer">
+      <div class="loading-wrap"><div class="loading-text">// LOADING...</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-pad"></div>
+
+<!-- SUBMIT MODAL -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📋 SUBMIT PROOF</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-mission-name" id="modalMissionName">Mission Title</div>
+      <div class="modal-mission-desc" id="modalMissionDesc">Mission description...</div>
+
+      <label class="field-label">Proof Link (screenshot URL, Google Drive link, or social media post URL)</label>
+      <input class="field-input" id="proofUrl" type="url" placeholder="https://..." />
+
+      <label class="field-label">Additional Notes (optional)</label>
+      <textarea class="field-input" id="proofNotes" rows="3" placeholder="Any extra details about your submission..."></textarea>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <span style="font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--dim);">REWARD ON APPROVAL:</span>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--gold);" id="modalReward">0 VC</span>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitProof()">⬡ SUBMIT FOR REVIEW</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const BACKEND = 'https://youngbill44.pythonanywhere.com';
+  const token   = localStorage.getItem('gv_token');
+  if (!token) location.href = 'login.html';
+
+  let allMissions    = [];
+  let mySubmissions  = [];
+  let activeMission  = null;
+  let currentFilter  = 'all';
+  let currentTab     = 'missions';
+
+  // ── INIT ──
+  async function init() {
+    await Promise.all([loadMissions(), loadMySubmissions(), loadBalance()]);
+  }
+
+  async function loadBalance() {
+    try {
+      const r = await fetch(`${BACKEND}/api/vc/balance`, { headers: h() });
+      const d = await r.json();
+      document.getElementById('vcBalance').textContent = (d.balance || 0).toLocaleString();
+    } catch(e) {}
+  }
+
+  async function loadMissions() {
+    try {
+      const r = await fetch(`${BACKEND}/api/missions`, { headers: h() });
+      const d = await r.json();
+      allMissions = d.missions || [];
+      renderMissions();
+      document.getElementById('statActive').textContent = allMissions.filter(m => m.status === 'active').length;
+    } catch(e) {
+      document.getElementById('missionsContainer').innerHTML = `
+        <div class="empty-wrap">
+          <div class="empty-icon">📡</div>
+          <div class="empty-text">// FAILED TO LOAD MISSIONS</div>
+        </div>`;
+    }
+  }
+
+  async function loadMySubmissions() {
+    try {
+      const r = await fetch(`${BACKEND}/api/missions/my-submissions`, { headers: h() });
+      const d = await r.json();
+      mySubmissions = d.submissions || [];
+      document.getElementById('statMine').textContent = mySubmissions.length;
+      const earned = mySubmissions.filter(s => s.status === 'approved').reduce((a, s) => a + (s.vc_reward || 0), 0);
+      document.getElementById('statEarned').textContent = earned.toLocaleString();
+      renderSubmissions();
+    } catch(e) {}
+  }
+
+  // ── RENDER MISSIONS ──
+  function renderMissions() {
+    const filtered = allMissions.filter(m => {
+      if (m.status !== 'active') return false;
+      if (currentFilter === 'all') return true;
+      if (['easy','medium','hard'].includes(currentFilter)) return m.difficulty === currentFilter;
+      return m.category === currentFilter;
+    });
+
+    document.getElementById('missionCount').textContent = `${filtered.length} active`;
+
+    if (!filtered.length) {
+      document.getElementById('missionsContainer').innerHTML = `
+        <div class="empty-wrap">
+          <div class="empty-icon">🎯</div>
+          <div class="empty-text">// NO MISSIONS IN THIS CATEGORY YET</div>
+        </div>`;
+      return;
+    }
+
+    const myMissionIds = new Set(mySubmissions.map(s => s.mission_id));
+
+    document.getElementById('missionsContainer').innerHTML = filtered.map(m => {
+      const sub = mySubmissions.find(s => s.mission_id === m.id);
+      const slotsLeft = (m.max_slots || 0) - (m.slots_used || 0);
+      const deadline = m.deadline ? new Date(m.deadline).toLocaleDateString('en-GB', {day:'2-digit',month:'short'}) : 'Open';
+
+      let btnClass = 'accept-btn';
+      let btnText  = '▶ ACCEPT MISSION';
+      if (sub) {
+        if (sub.status === 'approved')  { btnClass = 'accept-btn approved'; btnText = '✓ APPROVED'; }
+        else if (sub.status === 'rejected') { btnClass = 'accept-btn rejected'; btnText = '✕ REJECTED'; }
+        else { btnClass = 'accept-btn submitted'; btnText = '⏳ PENDING REVIEW'; }
+      }
+
+      return `
+        <div class="mission-card ${m.difficulty || 'easy'}">
+          <div class="card-body">
+            <div class="card-meta">
+              <span class="diff-badge ${m.difficulty || 'easy'}">${(m.difficulty||'easy').toUpperCase()}</span>
+              <span class="cat-badge">${(m.category||'general').toUpperCase()}</span>
+              <span class="slots-badge">${slotsLeft > 0 ? slotsLeft + ' slots left' : 'FULL'}</span>
+            </div>
+            <div class="card-name">${m.title}</div>
+            <div class="card-desc">${m.description}</div>
+            <div class="card-reward-row">
+              <span class="reward-vc">⬡ ${(m.vc_reward||0).toLocaleString()} VC</span>
+              <span class="reward-deadline">📅 ${deadline}</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="${btnClass}" onclick="openSubmitModal('${m.id}')" ${sub || slotsLeft <= 0 ? 'disabled' : ''}>${btnText}</button>
+            <button class="details-btn" onclick="showDetails('${m.id}')">INFO</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── RENDER SUBMISSIONS ──
+  function renderSubmissions() {
+    if (!mySubmissions.length) {
+      document.getElementById('submissionsContainer').innerHTML = `
+        <div class="empty-wrap">
+          <div class="empty-icon">📋</div>
+          <div class="empty-text">// NO SUBMISSIONS YET — ACCEPT A MISSION</div>
+        </div>`;
+      return;
+    }
+
+    document.getElementById('submissionsContainer').innerHTML = mySubmissions.map(s => {
+      const mission = allMissions.find(m => m.id === s.mission_id);
+      const date = new Date(s.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+      return `
+        <div class="submission-item">
+          <div class="sub-top">
+            <div class="sub-name">${mission ? mission.title : 'Mission #'+s.mission_id}</div>
+            <span class="sub-status ${s.status}">${s.status.toUpperCase()}</span>
+          </div>
+          <div class="sub-proof">📎 ${s.proof_url}</div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px;">
+            <span style="font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--dim);">${date}</span>
+            <span style="font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--gold);">⬡ ${(s.vc_reward||0).toLocaleString()} VC</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── FILTERS & TABS ──
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMissions();
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab === 'missions' ? 'mission' : 'sub')));
+    document.getElementById('tabMissions').style.display    = tab === 'missions'     ? '' : 'none';
+    document.getElementById('tabSubmissions').style.display = tab === 'submissions'  ? '' : 'none';
+  }
+
+  // ── MODAL ──
+  function openSubmitModal(missionId) {
+    activeMission = allMissions.find(m => m.id === missionId);
+    if (!activeMission) return;
+    document.getElementById('modalMissionName').textContent = activeMission.title;
+    document.getElementById('modalMissionDesc').textContent = activeMission.description;
+    document.getElementById('modalReward').textContent      = `${(activeMission.vc_reward||0).toLocaleString()} VC`;
+    document.getElementById('proofUrl').value   = '';
+    document.getElementById('proofNotes').value = '';
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('submitModal').classList.remove('active');
+    activeMission = null;
+  }
+
+  function showDetails(missionId) {
+    const m = allMissions.find(x => x.id === missionId);
+    if (!m) return;
+    showToast(`ℹ️ ${m.title} — ${(m.vc_reward||0).toLocaleString()} VC reward`);
+  }
+
+  // ── SUBMIT PROOF ──
+  async function submitProof() {
+    if (!activeMission) return;
+    const proofUrl   = document.getElementById('proofUrl').value.trim();
+    const proofNotes = document.getElementById('proofNotes').value.trim();
+
+    if (!proofUrl) { showToast('📎 Please add your proof link!', true); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled    = true;
+    btn.textContent = '// SUBMITTING...';
+
+    try {
+      const r = await fetch(`${BACKEND}/api/missions/submit`, {
+        method: 'POST',
+        headers: h(),
+        body: JSON.stringify({
+          mission_id:  activeMission.id,
+          proof_url:   proofUrl,
+          proof_notes: proofNotes
+        })
+      });
+      const d = await r.json();
+
+      if (d.status === 'success') {
+        showToast('✅ Submission received! Awaiting review.');
+        closeModal();
+        await Promise.all([loadMissions(), loadMySubmissions()]);
+      } else {
+        showToast(d.message || 'Submission failed', true);
+        btn.disabled    = false;
+        btn.textContent = '⬡ SUBMIT FOR REVIEW';
+      }
+    } catch(e) {
+      showToast('// CONNECTION ERROR', true);
+      btn.disabled    = false;
+      btn.textContent = '⬡ SUBMIT FOR REVIEW';
+    }
+  }
+
+  function h() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }; }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  init();
+</script>
+</body>
+</html>
