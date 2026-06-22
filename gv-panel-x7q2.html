@@ -665,7 +665,7 @@
   window.addEventListener('load', () => {
     const token = sessionStorage.getItem('gv_admin_token');
     if (token) {
-      window.location.href = 'admin.html';
+      window.location.href = 'gv-dash-x7q2.html';
       return;
     }
     checkLockout();
@@ -782,7 +782,7 @@
         document.querySelector('.status-dot').style.animation   = 'none';
         document.querySelector('.status-dot').style.boxShadow   = '0 0 8px #00ff88';
 
-        setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
+        setTimeout(() => { window.location.href = 'gv-dash-x7q2.html'; }, 1200);
 
       } else {
         attempts++;
@@ -815,7 +815,7 @@
           sessionStorage.setItem('gv_admin_username', data.username);
           sessionStorage.setItem('gv_admin_id',       data.admin_id);
           showOutput('success', `ACCESS GRANTED\n> WELCOME, ${data.username.toUpperCase()}\n> REDIRECTING...`);
-          setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
+          setTimeout(() => { window.location.href = 'gv-dash-x7q2.html'; }, 1200);
           return;
         }
       } catch(e2) {}
