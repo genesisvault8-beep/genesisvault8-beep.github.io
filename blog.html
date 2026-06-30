@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Learn Cybersecurity in Africa | Genesis Vault Blog</title>
+<meta name="description" content="A practical guide to learning cybersecurity in Africa using hands-on labs, real tools, and a community built for African hackers — by Genesis Vault.">
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00f5c4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GENESISVAULT">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('// VAULT SW REGISTERED'))
+        .catch(err => console.log('// SW ERROR:', err));
+    });
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #020608;
+    --bg2:     #060d10;
+    --bg3:     #081218;
+    --accent:  #00f5c4;
+    --accent2: #00a8ff;
+    --accent3: #ff003c;
+    --text:    #c8e6f0;
+    --text-dim:#4a7a8a;
+    --border:  #0f2a35;
+    --glow:    0 0 20px rgba(0,245,196,0.3);
+    --glow2:   0 0 20px rgba(0,168,255,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none; z-index: 1;
+  }
+
+  .scanner {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: scan 4s linear infinite;
+    z-index: 100;
+  }
+  @keyframes scan {
+    0%   { top: 0; opacity: 1; }
+    100% { top: 100vh; opacity: 0; }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(2,6,8,0.92);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem; letter-spacing: 4px;
+    text-decoration: none;
+  }
+  .nav-logo .g { color: var(--accent); }
+  .nav-logo .v { color: white; }
+
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.78rem; letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-links a.active { color: var(--accent); }
+
+  .nav-cta {
+    padding: 8px 20px;
+    background: var(--accent); color: var(--bg) !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important; font-size: 0.8rem !important;
+    letter-spacing: 2px; text-transform: uppercase;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    transition: background 0.2s, box-shadow 0.2s !important;
+  }
+  .nav-cta:hover { background: white !important; box-shadow: var(--glow) !important; color: var(--bg) !important; }
+
+  @media (max-width: 760px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ── ARTICLE ── */
+  main {
+    position: relative; z-index: 2;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 150px 24px 100px;
+  }
+
+  .post-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 4px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .post-eyebrow span { color: var(--text-dim); }
+
+  .post-title {
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    font-weight: 700; line-height: 1.25;
+    letter-spacing: 1px; color: white;
+    margin-bottom: 18px;
+  }
+
+  .post-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .post-meta span { color: var(--accent); }
+
+  .post-body { font-size: 1.05rem; line-height: 1.85; }
+  .post-body p { margin-bottom: 24px; color: var(--text); }
+
+  .post-body h2 {
+    font-size: 1.3rem; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: white;
+    margin: 48px 0 18px;
+    padding-left: 14px;
+    border-left: 3px solid var(--accent);
+  }
+
+  .post-body strong { color: var(--accent); }
+  .post-body em { color: var(--accent2); font-style: normal; }
+
+  .post-cta {
+    margin-top: 56px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    background: var(--bg2);
+    padding: 32px 28px;
+    text-align: center;
+  }
+  .post-cta-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 20px;
+  }
+
+  .btn-primary {
+    padding: 14px 32px;
+    background: var(--accent); color: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700; font-size: 0.95rem;
+    letter-spacing: 3px; text-transform: uppercase;
+    text-decoration: none;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: background 0.2s, box-shadow 0.2s;
+    border: none; cursor: pointer; display: inline-block;
+  }
+  .btn-primary:hover { background: white; box-shadow: var(--glow); }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 48px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 2px;
+    color: var(--text-dim); text-decoration: none;
+    text-transform: uppercase;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative; z-index: 2;
+    border-top: 1px solid var(--border);
+    padding: 40px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  .footer-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem; letter-spacing: 3px;
+  }
+  .footer-logo .g { color: var(--accent); }
+  .footer-logo .v { color: white; }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a {
+    color: var(--text-dim); text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-copy {
+    width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 1px;
+    color: var(--text-dim); text-align: center;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="scanner"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html#features">Features</a>
+    <a href="index.html#vault-labs">Labs</a>
+    <a href="index.html#market">Market</a>
+    <a href="blog.html" class="active">Blog</a>
+    <a href="hire.html">Hire Me</a>
+    <a href="login.html" class="nav-cta">[ ACCESS ]</a>
+  </div>
+</nav>
+
+<!-- ── ARTICLE ── -->
+<main>
+  <div class="post-eyebrow">// <span>LEARNER HUB</span> — ARTICLE</div>
+
+  <h1 class="post-title">How to Learn Cybersecurity in Africa (Without Paying Western Course Prices)</h1>
+
+  <div class="post-meta">By <span>Johnthebandit</span> // Genesis Vault</div>
+
+  <div class="post-body">
+    <p>If you've tried to get into cybersecurity from Nigeria, Sierra Leone, Kenya, or anywhere else on the continent, you already know the problem. Most "beginner" courses cost more than a month's rent. Certification bodies price their exams in dollars and expect you to pay international card fees just to register. And once you're done watching the videos, you're still left wondering: where do I actually practice?</p>
+
+    <p>Genesis Vault was built to close that gap.</p>
+
+    <h2>The Real Barrier Isn't Talent — It's Access</h2>
+    <p>Africa doesn't have a shortage of people capable of doing serious security work. What it has is a shortage of affordable, practical ways to build that skill. Most platforms assume you have a US-based card, fast fixed-line internet, and disposable income for a $500 bootcamp. None of that reflects how most people on this continent are actually getting online — often mobile-first, often on a budget, often self-taught out of necessity.</p>
+    <p>That's the audience Genesis Vault is built around.</p>
+
+    <h2>Learn by Doing, Not by Watching</h2>
+    <p>The center of the platform is <strong>Vault Labs</strong> — intentionally vulnerable environments you can attack, break, and learn from directly, instead of just reading theory. You don't need a home lab, a powerful laptop, or expensive VPN access to a sandboxed range. You log in and start practicing against real, deliberately flawed systems built to teach specific skills: web exploitation, recon, privilege escalation, and more.</p>
+    <p>This is the part most free YouTube tutorials skip. They'll show you what an SQL injection looks like — they won't give you something to actually inject.</p>
+
+    <h2>Tools and Labs You Can Buy, Sell, and Trade</h2>
+    <p>The <strong>Marketplace</strong> lets builders list their own security tools, scripts, and labs using a virtual currency (VC) economy, and lets learners buy access to exactly what they need instead of paying for an all-in-one bundle full of stuff they'll never use. If you've built something useful — a recon script, a custom lab environment, a scanner — you can list it and earn from it. If you're starting out, you can buy single tools at a fraction of what a full course platform would charge.</p>
+    <p>It's a two-sided system: builders monetize what they know, learners pay only for what's relevant to them.</p>
+
+    <h2>A Learner Page That Grows With You</h2>
+    <p>The <strong>Learner Hub</strong> is where the actual education lives — write-ups, guided paths, and intel broken down for people starting from zero. It's structured so you're not thrown into advanced material before you understand the fundamentals, but it also doesn't waste your time if you already know the basics. As you complete labs and contribute, your progress and reputation build inside the platform itself, so the work you put in is visible, not invisible.</p>
+
+    <h2>Why This Matters Beyond One Platform</h2>
+    <p>Every African builder who gets good enough to land a bug bounty payout, a remote security job, or freelance pentesting work proves the same point: the talent was always here. What was missing was a front door that didn't assume you had Western infrastructure and Western money behind you.</p>
+    <p>Genesis Vault is that front door — labs to practice in, tools to buy and sell, and a learner path that meets you where you are.</p>
+  </div>
+
+  <div class="post-cta">
+    <div class="post-cta-text">// Ready to start? Get 50 VC instantly on signup.</div>
+    <a href="login.html" class="btn-primary">[ JOIN THE VAULT ]</a>
+  </div>
+
+  <a href="index.html" class="back-link">← Back to Genesis Vault</a>
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">
+    <span class="g">GENESIS</span><span class="v">VAULT</span>
+  </div>
+  <div class="footer-links">
+    <a href="login.html">Login</a>
+    <a href="login.html">Register</a>
+    <a href="index.html#features">Features</a>
+    <a href="index.html#vault-labs">Labs</a>
+    <a href="hire.html">Hire Me</a>
+    <a href="terms.html">Terms</a>
+  </div>
+  <div class="footer-copy">
+    // GENESIS VAULT — CYBERSECURITY PLATFORM — © 2026 JOHNTHEBANDIT — ALL RIGHTS RESERVED — FOR AUTHORIZED USE ONLY
+  </div>
+</footer>
+
+</body>
+</html>
