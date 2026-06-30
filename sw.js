@@ -1,5 +1,5 @@
 // GENESIS VAULT — SERVICE WORKER v1.1
-const CACHE_NAME = 'genesisvault-v9';
+const CACHE_NAME = 'genesisvault-v10';
 
 const STATIC_ASSETS = [
   '/',
