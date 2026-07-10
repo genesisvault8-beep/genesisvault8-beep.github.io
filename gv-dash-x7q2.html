@@ -230,6 +230,41 @@
   .vc-adjust-row input[type="number"]{flex:1;margin-bottom:0;}
   .loading{text-align:center;padding:40px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:2px;}
   .empty{text-align:center;padding:30px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:0.8rem;}
+
+  /* ── INBOX ── */
+  .broadcast-box{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--warn);padding:12px;margin-bottom:16px;}
+  .broadcast-label{font-size:0.6rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:7px;display:block;font-family:'Share Tech Mono',monospace;}
+  .broadcast-area{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:0.78rem;padding:9px;outline:none;resize:vertical;min-height:60px;margin-bottom:0;}
+  .broadcast-area:focus{border-color:var(--warn);}
+  .broadcast-btn{width:100%;margin-top:8px;background:rgba(255,170,0,0.08);border:1px solid var(--warn);color:var(--warn);font-family:'Share Tech Mono',monospace;font-size:0.7rem;padding:10px;cursor:pointer;letter-spacing:2px;}
+  .broadcast-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .inbox-status-msg{font-size:0.65rem;margin-top:5px;display:none;font-family:'Share Tech Mono',monospace;}
+  .inbox-status-msg.ok{color:var(--accent);}
+  .inbox-status-msg.err{color:var(--accent3);}
+  .thread-item{background:var(--bg3);border:1px solid var(--border);padding:10px 12px;margin-bottom:5px;cursor:pointer;}
+  .thread-item.unread{border-left:3px solid var(--accent);}
+  .thread-header{display:flex;justify-content:space-between;margin-bottom:3px;}
+  .thread-from{font-size:0.78rem;color:var(--text);display:flex;align-items:center;gap:5px;}
+  .thread-time{font-size:0.6rem;color:var(--text-dim);}
+  .thread-subject{font-size:0.78rem;color:var(--text);margin-bottom:2px;}
+  .thread-preview{font-size:0.68rem;color:var(--text-dim);}
+  .unread-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  .conv-view{display:none;}
+  .conv-view.open{display:flex;flex-direction:column;}
+  .conv-header-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .conv-back{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:0.65rem;padding:4px 8px;cursor:pointer;}
+  .conv-title-text{font-size:0.72rem;color:var(--accent);flex:1;letter-spacing:1px;}
+  .conv-user-text{font-size:0.65rem;color:var(--text-dim);}
+  .conv-bubbles{background:var(--bg);border:1px solid var(--border);padding:10px;min-height:160px;max-height:300px;overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:7px;}
+  .bubble{padding:7px 10px;max-width:85%;font-size:0.8rem;line-height:1.5;}
+  .bubble.from-user{background:rgba(0,245,196,0.05);border:1px solid rgba(0,245,196,0.15);align-self:flex-start;}
+  .bubble.from-admin{background:rgba(255,170,0,0.05);border:1px solid rgba(255,170,0,0.2);align-self:flex-end;}
+  .bubble-meta{font-size:0.6rem;color:var(--text-dim);margin-bottom:3px;}
+  .conv-input-row{display:flex;gap:6px;}
+  .reply-input{flex:1;margin-bottom:0;}
+  .send-btn{background:rgba(0,245,196,0.08);border:1px solid var(--accent);color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:0.65rem;padding:9px 14px;cursor:pointer;letter-spacing:1px;}
+  .inbox-filter-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:0.6rem;padding:3px 10px;cursor:pointer;letter-spacing:1px;margin-left:6px;}
+  .inbox-filter-btn.active{border-color:var(--accent);color:var(--accent);}
   .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--bg);padding:10px 24px;font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:2px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
   .toast.show{opacity:1;}
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:6px;}
@@ -575,6 +610,41 @@
     <div id="courses-container"><div class="loading"><span class="spinner"></span>Loading...</div></div>
   </div>
 
+  <!-- INBOX -->
+  <div class="page" id="page-inbox">
+    <div class="section-title">// Broadcast <button class="refresh-btn" onclick="loadInbox()">↻ REFRESH</button></div>
+    <div class="broadcast-box">
+      <span class="broadcast-label">// BROADCAST TO ALL MEMBERS</span>
+      <textarea class="broadcast-area" id="broadcast-msg" placeholder="// Type your announcement here..."></textarea>
+      <div class="inbox-status-msg" id="broadcast-status"></div>
+      <button class="broadcast-btn" id="btn-broadcast" onclick="sendBroadcast()">[ BROADCAST TO ALL ]</button>
+    </div>
+
+    <div id="inbox-view">
+      <div class="section-title">
+        // User Messages
+        <span>
+          <button class="inbox-filter-btn active" onclick="inboxSetFilter('all',this)">ALL</button>
+          <button class="inbox-filter-btn" onclick="inboxSetFilter('unread',this)">UNREAD</button>
+        </span>
+      </div>
+      <div id="threads-list"><div class="loading"><span class="spinner"></span>Loading inbox...</div></div>
+    </div>
+
+    <div class="conv-view" id="conv-view">
+      <div class="conv-header-bar">
+        <button class="conv-back" onclick="closeConv()">← BACK</button>
+        <span class="conv-title-text" id="conv-title"></span>
+        <span class="conv-user-text" id="conv-user"></span>
+      </div>
+      <div class="conv-bubbles" id="conv-bubbles"></div>
+      <div class="conv-input-row">
+        <input type="text" class="reply-input" id="reply-input" placeholder="// type reply..." onkeydown="if(event.key==='Enter')sendReply()" style="margin-bottom:0;">
+        <button class="send-btn" onclick="sendReply()">SEND</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- ══ TOOL VIEWER OVERLAY (Vault Labs style) ══ -->
@@ -631,6 +701,7 @@
   <div class="nav-item" onclick="showPage('vc',this)"><span class="nav-icon">◎</span><span class="nav-label">VC Logs</span></div>
   <div class="nav-item" onclick="showPage('users',this)"><span class="nav-icon">◉</span><span class="nav-label">Members</span></div>
   <div class="nav-item" onclick="showPage('courses',this)"><span class="nav-icon">▣</span><span class="nav-label">Courses</span></div>
+  <div class="nav-item" onclick="showPage('inbox',this)"><span class="nav-icon">✉</span><div class="nav-pending-dot" id="inbox-pending-dot"></div><span class="nav-label">Inbox</span></div>
   <div class="nav-item" onclick="window.location.href='admin-labs.html'"><span class="nav-icon">⬡</span><span class="nav-label">Labs</span></div>
 </div>
 
@@ -901,6 +972,7 @@ function showPage(name, el) {
   if (name==='vc')        loadVCPurchases();
   if (name==='users')     loadUsers();
   if (name==='courses')   loadCourses();
+  if (name==='inbox')     loadInbox();
 }
 
 function switchMktTab(name, el) {
@@ -1682,6 +1754,136 @@ async function initAdmin() {
 }
 
 initAdmin();
+
+// ── INBOX ────────────────────────────────────────────────────────────
+let allThreads   = [];
+let inboxFilter  = 'all';
+let activeThread = null;
+
+async function loadInbox() {
+  document.getElementById('threads-list').innerHTML = '<div class="loading"><span class="spinner"></span>Loading inbox...</div>';
+  const res = await apiFetch(`${API}/admin/messages`);
+  if (!res) return;
+  try {
+    const data = await res.json();
+    allThreads = data.threads || [];
+    const unread = allThreads.filter(t => t.unread).length;
+    const dot = document.getElementById('inbox-pending-dot');
+    dot.style.display = unread > 0 ? 'block' : 'none';
+    renderThreads();
+  } catch(e) {
+    document.getElementById('threads-list').innerHTML = '<div class="empty">// Failed to load inbox.</div>';
+  }
+}
+
+function inboxSetFilter(f, btn) {
+  inboxFilter = f;
+  document.querySelectorAll('.inbox-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderThreads();
+}
+
+function renderThreads() {
+  const list = document.getElementById('threads-list');
+  const filtered = inboxFilter === 'unread' ? allThreads.filter(t => t.unread) : allThreads;
+  if (!filtered.length) { list.innerHTML = '<div class="empty">// No messages.</div>'; return; }
+  list.innerHTML = '';
+  filtered.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'thread-item' + (t.unread ? ' unread' : '');
+    div.innerHTML = `
+      <div class="thread-header">
+        <span class="thread-from">${t.unread?'<span class="unread-dot"></span>':''}${esc(t.username||'User')}</span>
+        <span class="thread-time">${t.last_message_at ? formatAgo(t.last_message_at) : (t.created_at ? formatAgo(t.created_at) : '')}</span>
+      </div>
+      <div class="thread-subject">${esc(t.subject||'Message')}</div>
+      <div class="thread-preview">${esc((t.last_message||'').slice(0,80))}</div>`;
+    div.onclick = () => openConv(t);
+    list.appendChild(div);
+  });
+}
+
+async function openConv(thread) {
+  activeThread = thread;
+  document.getElementById('inbox-view').style.display = 'none';
+  const conv = document.getElementById('conv-view');
+  conv.classList.add('open');
+  document.getElementById('conv-title').textContent = '// ' + (thread.subject || 'THREAD');
+  document.getElementById('conv-user').textContent  = thread.username || '';
+  const bubbles = document.getElementById('conv-bubbles');
+  bubbles.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
+
+  // mark read (fire and forget)
+  if (thread.unread) apiFetch(`${API}/admin/messages/${thread.id}/read`, {method:'POST'});
+
+  const res = await apiFetch(`${API}/admin/messages/${thread.id}`);
+  if (!res) return;
+  try {
+    const data = await res.json();
+    const msgs = data.messages || [];
+    if (!msgs.length) { bubbles.innerHTML = '<div class="empty">// No messages in this thread.</div>'; return; }
+    bubbles.innerHTML = '';
+    msgs.forEach(m => {
+      const b = document.createElement('div');
+      b.className = 'bubble ' + (m.from_admin ? 'from-admin' : 'from-user');
+      b.innerHTML = `<div class="bubble-meta">${m.from_admin?'ADMIN':'USER'} · ${m.created_at?formatAgo(m.created_at):''}</div>${esc(m.message||'')}`;
+      bubbles.appendChild(b);
+    });
+    bubbles.scrollTop = bubbles.scrollHeight;
+  } catch(e) {
+    bubbles.innerHTML = '<div class="empty">// Failed to load thread.</div>';
+  }
+}
+
+function closeConv() {
+  activeThread = null;
+  document.getElementById('conv-view').classList.remove('open');
+  document.getElementById('inbox-view').style.display = 'block';
+  loadInbox(); // refresh unread state / badge
+}
+
+async function sendReply() {
+  if (!activeThread) return;
+  const input = document.getElementById('reply-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  const res = await apiFetch(`${API}/admin/messages/${activeThread.id}/reply`, {
+    method: 'POST',
+    body: JSON.stringify({ message: text })
+  });
+  if (!res) return;
+  const bubbles = document.getElementById('conv-bubbles');
+  const b = document.createElement('div');
+  b.className = 'bubble from-admin';
+  b.innerHTML = `<div class="bubble-meta">ADMIN · just now</div>${esc(text)}`;
+  bubbles.appendChild(b);
+  bubbles.scrollTop = bubbles.scrollHeight;
+  toast('// Reply sent.');
+}
+
+async function sendBroadcast() {
+  const msg  = document.getElementById('broadcast-msg').value.trim();
+  const btn  = document.getElementById('btn-broadcast');
+  const stat = document.getElementById('broadcast-status');
+  if (!msg) return;
+  btn.disabled = true; btn.textContent = '[ SENDING... ]';
+  const res = await apiFetch(`${API}/admin/broadcast`, {
+    method: 'POST',
+    body: JSON.stringify({ message: msg })
+  });
+  if (res) {
+    stat.className = 'inbox-status-msg ' + (res.ok ? 'ok' : 'err');
+    stat.textContent = res.ok ? '✓ BROADCAST SENT TO ALL MEMBERS' : '✗ BROADCAST FAILED';
+    stat.style.display = 'block';
+    if (res.ok) document.getElementById('broadcast-msg').value = '';
+    setTimeout(() => stat.style.display = 'none', 3000);
+  }
+  btn.disabled = false; btn.textContent = '[ BROADCAST TO ALL ]';
+}
+
+// Pre-check unread count on load, same pattern as loadMarketStats() above
+loadInbox();
 </script>
 </body>
 </html>
