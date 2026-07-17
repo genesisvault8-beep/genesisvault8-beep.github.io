@@ -421,6 +421,70 @@
     color:var(--accent3);
   }
   .tvo-btn-delete:hover { background:var(--accent3); color:white; }
+
+  /* MISSIONS */
+  .form-card { background:var(--bg2); border:1px solid var(--border); padding:16px; margin-bottom:16px; }
+  .field-label { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--accent); letter-spacing:2px; margin-bottom:6px; display:block; }
+  .field-input {
+    width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border);
+    color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.75rem;
+    margin-bottom:12px; transition:border-color 0.2s; resize:vertical;
+  }
+  .field-input:focus { outline:none; border-color:var(--accent3); }
+  .field-input::placeholder { color:var(--dim); }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  select.field-input { cursor:pointer; }
+  .post-btn {
+    width:100%; padding:13px; border:none; font-family:'Share Tech Mono',monospace;
+    font-size:0.8rem; font-weight:700; letter-spacing:2px; cursor:pointer; transition:all 0.2s;
+    background:var(--accent3); color:white;
+    clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+  }
+  .post-btn:hover { background:white; color:var(--bg); }
+  .post-btn:disabled { background:var(--border); color:var(--dim); cursor:not-allowed; clip-path:none; }
+
+  .admin-mission-card { background:var(--bg2); border:1px solid var(--border); margin-bottom:10px; }
+  .admin-mission-card.active-card  { border-left:3px solid var(--green); }
+  .admin-mission-card.paused-card  { border-left:3px solid var(--gold); }
+  .admin-mission-card.closed-card  { border-left:3px solid var(--dim); }
+  .amc-body { padding:12px 14px; }
+  .amc-top  { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .amc-name { font-size:0.95rem; font-weight:700; color:white; letter-spacing:1px; }
+  .amc-vc   { font-family:'Share Tech Mono',monospace; font-size:1rem; color:var(--gold); }
+  .amc-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+  .amc-badge { font-family:'Share Tech Mono',monospace; font-size:0.52rem; padding:2px 7px; border:1px solid var(--border); color:var(--dim); }
+  .amc-desc { font-size:0.72rem; color:var(--dim); line-height:1.4; }
+  .amc-footer { padding:0 14px 12px; display:flex; gap:8px; flex-wrap:wrap; }
+  .amc-btn { padding:7px 12px; border:1px solid var(--border); background:none; font-family:'Share Tech Mono',monospace; font-size:0.6rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; color:var(--dim); }
+  .amc-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .amc-btn.danger:hover { border-color:var(--accent3); color:var(--accent3); }
+  .amc-btn.green-btn { border-color:rgba(0,230,118,0.3); color:var(--green); }
+
+  .sub-card { background:var(--bg2); border:1px solid var(--border); margin-bottom:10px; }
+  .sub-card.pending-card  { border-left:3px solid var(--gold); }
+  .sub-card.approved-card { border-left:3px solid var(--green); }
+  .sub-card.rejected-card { border-left:3px solid var(--accent3); }
+  .sub-body { padding:12px 14px; }
+  .sub-top  { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .sub-user { font-size:0.85rem; font-weight:700; color:white; letter-spacing:1px; }
+  .sub-status-badge { font-family:'Share Tech Mono',monospace; font-size:0.55rem; padding:2px 8px; }
+  .sub-status-badge.pending  { color:var(--gold);    border:1px solid rgba(245,166,35,0.3); }
+  .sub-status-badge.approved { color:var(--green);   border:1px solid rgba(0,230,118,0.3); }
+  .sub-status-badge.rejected { color:var(--accent3); border:1px solid rgba(255,0,60,0.3); }
+  .sub-mission { font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--accent); margin-bottom:6px; }
+  .sub-proof   { font-size:0.75rem; color:var(--dim); word-break:break-all; margin-bottom:4px; }
+  .sub-notes   { font-size:0.72rem; color:var(--dim); font-style:italic; }
+  .sub-vc      { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--gold); }
+  .sub-footer  { padding:0 14px 12px; display:flex; gap:8px; }
+  .approve-btn { flex:1; padding:9px; border:1px solid rgba(0,230,118,0.3); font-family:'Share Tech Mono',monospace; font-size:0.65rem; font-weight:700; letter-spacing:2px; cursor:pointer; background:rgba(0,230,118,0.15); color:var(--green); transition:all 0.2s; }
+  .approve-btn:hover { background:var(--green); color:var(--bg); }
+  .reject-btn  { flex:1; padding:9px; border:1px solid rgba(255,0,60,0.2); font-family:'Share Tech Mono',monospace; font-size:0.65rem; font-weight:700; letter-spacing:2px; cursor:pointer; background:rgba(255,0,60,0.08); color:var(--accent3); transition:all 0.2s; }
+  .reject-btn:hover { background:var(--accent3); color:white; }
+
+  .filter-row { display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px; }
+  .filter-row::-webkit-scrollbar { display:none; }
+  .filter-btn { font-family:'Share Tech Mono',monospace; font-size:0.6rem; letter-spacing:1px; padding:5px 10px; border:1px solid var(--border); background:var(--bg2); color:var(--dim); cursor:pointer; white-space:nowrap; transition:all 0.2s; flex-shrink:0; }
+  .filter-btn.active { border-color:var(--accent3); color:var(--accent3); }
 </style>
 </head>
 <body>
@@ -645,6 +709,93 @@
     </div>
   </div>
 
+  <!-- MISSIONS (Bounty Admin) -->
+  <div class="page" id="page-missions">
+    <div class="section-title">// Bounty Admin</div>
+    <div class="stats-grid" id="missions-stats-grid">
+      <div class="stat-card red"><div class="stat-label">MISSIONS</div><div class="stat-value" id="msn-stat-total">0</div></div>
+      <div class="stat-card yellow"><div class="stat-label">PENDING</div><div class="stat-value" id="msn-stat-pending">0</div></div>
+      <div class="stat-card green"><div class="stat-label">APPROVED</div><div class="stat-value" id="msn-stat-approved">0</div></div>
+      <div class="stat-card blue"><div class="stat-label">VC PAID</div><div class="stat-value" id="msn-stat-vcpaid">0</div></div>
+    </div>
+
+    <div class="section-tabs">
+      <div class="section-tab active" data-tab="msn-post"   onclick="switchMissionTab('msn-post',this)">POST MISSION</div>
+      <div class="section-tab"        data-tab="msn-manage" onclick="switchMissionTab('msn-manage',this)">MANAGE</div>
+      <div class="section-tab"        data-tab="msn-review" onclick="switchMissionTab('msn-review',this)">REVIEW <span class="tab-dot" id="msn-review-dot" style="display:none;"></span></div>
+    </div>
+
+    <div class="section-panel active" id="panel-msn-post">
+      <div class="s-title">// CREATE NEW MISSION</div>
+      <div class="form-card">
+        <label class="field-label">Mission Title</label>
+        <input class="field-input" id="msnTitle" type="text" placeholder="e.g. Find 5 subdomains for target.com"/>
+
+        <label class="field-label">Description — Be specific about what proof is required</label>
+        <textarea class="field-input" id="msnDesc" rows="4" placeholder="e.g. Use subfinder or any tool to find active subdomains for example.com. Submit a text file or screenshot showing at least 5 unique subdomains with HTTP status codes."></textarea>
+
+        <div class="field-row">
+          <div>
+            <label class="field-label">VC Reward</label>
+            <input class="field-input" id="msnVC" type="number" placeholder="e.g. 500" min="10" max="50000"/>
+          </div>
+          <div>
+            <label class="field-label">Max Submissions</label>
+            <input class="field-input" id="msnSlots" type="number" placeholder="e.g. 10" min="1" max="1000"/>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label class="field-label">Difficulty</label>
+            <select class="field-input" id="msnDiff">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Category</label>
+            <select class="field-input" id="msnCat">
+              <option value="social">Social</option>
+              <option value="recon" selected>Recon</option>
+              <option value="content">Content</option>
+              <option value="testing">Testing</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="field-label">Deadline (optional)</label>
+        <input class="field-input" id="msnDeadline" type="date"/>
+
+        <button class="post-btn" id="msnPostBtn" onclick="postMission()">▶ POST MISSION</button>
+      </div>
+    </div>
+
+    <div class="section-panel" id="panel-msn-manage">
+      <div class="s-title">// ALL MISSIONS</div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setMissionFilter('all',this)">ALL</button>
+        <button class="filter-btn" onclick="setMissionFilter('active',this)">ACTIVE</button>
+        <button class="filter-btn" onclick="setMissionFilter('paused',this)">PAUSED</button>
+        <button class="filter-btn" onclick="setMissionFilter('closed',this)">CLOSED</button>
+      </div>
+      <div id="manageMissionsContainer"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+
+    <div class="section-panel" id="panel-msn-review">
+      <div class="s-title">// SUBMISSIONS FOR REVIEW</div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setSubFilter('pending',this)">PENDING</button>
+        <button class="filter-btn" onclick="setSubFilter('approved',this)">APPROVED</button>
+        <button class="filter-btn" onclick="setSubFilter('rejected',this)">REJECTED</button>
+        <button class="filter-btn" onclick="setSubFilter('all',this)">ALL</button>
+      </div>
+      <div id="reviewContainer"><div class="loading"><span class="spinner"></span>Loading...</div></div>
+    </div>
+  </div>
+
 </main>
 
 <!-- ══ TOOL VIEWER OVERLAY (Vault Labs style) ══ -->
@@ -702,6 +853,7 @@
   <div class="nav-item" onclick="showPage('users',this)"><span class="nav-icon">◉</span><span class="nav-label">Members</span></div>
   <div class="nav-item" onclick="showPage('courses',this)"><span class="nav-icon">▣</span><span class="nav-label">Courses</span></div>
   <div class="nav-item" onclick="showPage('inbox',this)"><span class="nav-icon">✉</span><div class="nav-pending-dot" id="inbox-pending-dot"></div><span class="nav-label">Inbox</span></div>
+  <div class="nav-item" onclick="showPage('missions',this)"><span class="nav-icon">⛯</span><div class="nav-pending-dot" id="missions-pending-dot"></div><span class="nav-label">Missions</span></div>
   <div class="nav-item" onclick="window.location.href='admin-labs.html'"><span class="nav-icon">⬡</span><span class="nav-label">Labs</span></div>
 </div>
 
@@ -973,6 +1125,15 @@ function showPage(name, el) {
   if (name==='users')     loadUsers();
   if (name==='courses')   loadCourses();
   if (name==='inbox')     loadInbox();
+  if (name==='missions')  { loadMissions(); loadSubmissions(); }
+}
+
+function switchMissionTab(name, el) {
+  document.querySelectorAll('#page-missions .section-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#page-missions .section-panel').forEach(p=>p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else document.querySelector('#page-missions [data-tab="'+name+'"]').classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
 }
 
 function switchMktTab(name, el) {
@@ -1880,6 +2041,196 @@ async function sendBroadcast() {
     setTimeout(() => stat.style.display = 'none', 3000);
   }
   btn.disabled = false; btn.textContent = '[ BROADCAST TO ALL ]';
+}
+
+// ── MISSIONS (Bounty Admin) ─────────────────────────────────────────
+let allMissions    = [];
+let allSubmissions = [];
+let missionFilter  = 'all';
+let subFilter      = 'pending';
+
+async function loadMissions() {
+  try {
+    const res = await apiFetch(`${API}/missions/admin/all`); if(!res)return;
+    const d = await res.json();
+    allMissions = d.missions || [];
+    document.getElementById('msn-stat-total').textContent = allMissions.length;
+    renderManageMissions();
+  } catch(e) { toast('// Failed to load missions.', true); }
+}
+
+async function loadSubmissions() {
+  try {
+    const res = await apiFetch(`${API}/missions/admin/submissions`); if(!res)return;
+    const d = await res.json();
+    allSubmissions = d.submissions || [];
+
+    const pending  = allSubmissions.filter(s => s.status === 'pending').length;
+    const approved = allSubmissions.filter(s => s.status === 'approved').length;
+    const vcPaid   = allSubmissions.filter(s => s.status === 'approved').reduce((a,s) => a + (s.vc_reward||0), 0);
+
+    document.getElementById('msn-stat-pending').textContent  = pending;
+    document.getElementById('msn-stat-approved').textContent = approved;
+    document.getElementById('msn-stat-vcpaid').textContent   = vcPaid.toLocaleString();
+
+    const dot = document.getElementById('msn-review-dot');
+    if (dot) dot.style.display = pending > 0 ? 'inline-block' : 'none';
+    const navDot = document.getElementById('missions-pending-dot');
+    if (navDot) navDot.style.display = pending > 0 ? 'block' : 'none';
+
+    renderReview();
+  } catch(e) { toast('// Failed to load submissions.', true); }
+}
+
+async function postMission() {
+  const title    = document.getElementById('msnTitle').value.trim();
+  const desc     = document.getElementById('msnDesc').value.trim();
+  const vc       = parseInt(document.getElementById('msnVC').value);
+  const slots    = parseInt(document.getElementById('msnSlots').value);
+  const diff     = document.getElementById('msnDiff').value;
+  const cat      = document.getElementById('msnCat').value;
+  const deadline = document.getElementById('msnDeadline').value;
+
+  if (!title)        { toast('⚠️ Title required', true); return; }
+  if (!desc)         { toast('⚠️ Description required', true); return; }
+  if (!vc || vc < 1) { toast('⚠️ VC reward required', true); return; }
+  if (!slots)        { toast('⚠️ Max submissions required', true); return; }
+
+  const btn = document.getElementById('msnPostBtn');
+  btn.disabled    = true;
+  btn.textContent = '// POSTING...';
+
+  try {
+    const res = await apiFetch(`${API}/missions/create`, {
+      method: 'POST',
+      body: JSON.stringify({ title, description: desc, vc_reward: vc, max_slots: slots, difficulty: diff, category: cat, deadline: deadline || null })
+    });
+    if (res) {
+      const d = await res.json();
+      if (d.status === 'success') {
+        toast('✅ Mission posted!');
+        ['msnTitle','msnDesc','msnVC','msnSlots','msnDeadline'].forEach(id => document.getElementById(id).value = '');
+        await loadMissions();
+        switchMissionTab('msn-manage');
+      } else {
+        toast(`// ${d.message || 'Failed to post.'}`, true);
+      }
+    }
+  } catch(e) { toast('// Connection error.', true); }
+
+  btn.disabled    = false;
+  btn.textContent = '▶ POST MISSION';
+}
+
+function renderManageMissions() {
+  const filtered = allMissions.filter(m => missionFilter === 'all' || m.status === missionFilter);
+  if (!filtered.length) {
+    document.getElementById('manageMissionsContainer').innerHTML = `<div class="empty"><span>// No missions</span></div>`;
+    return;
+  }
+  document.getElementById('manageMissionsContainer').innerHTML = filtered.map(m => {
+    const slotsLeft = (m.max_slots||0) - (m.slots_used||0);
+    return `
+      <div class="admin-mission-card ${m.status}-card">
+        <div class="amc-body">
+          <div class="amc-top">
+            <div class="amc-name">${esc(m.title)}</div>
+            <div class="amc-vc">⬡ ${(m.vc_reward||0).toLocaleString()}</div>
+          </div>
+          <div class="amc-meta">
+            <span class="amc-badge">${(m.difficulty||'').toUpperCase()}</span>
+            <span class="amc-badge">${(m.category||'').toUpperCase()}</span>
+            <span class="amc-badge">${(m.status||'').toUpperCase()}</span>
+            <span class="amc-badge">${slotsLeft}/${m.max_slots} slots</span>
+          </div>
+          <div class="amc-desc">${esc(m.description)}</div>
+        </div>
+        <div class="amc-footer">
+          ${m.status === 'active'
+            ? `<button class="amc-btn" onclick="toggleMission('${m.id}','paused')">⏸ PAUSE</button>`
+            : `<button class="amc-btn green-btn" onclick="toggleMission('${m.id}','active')">▶ ACTIVATE</button>`
+          }
+          <button class="amc-btn danger" onclick="toggleMission('${m.id}','closed')">✕ CLOSE</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderReview() {
+  const filtered = allSubmissions.filter(s => subFilter === 'all' || s.status === subFilter);
+  if (!filtered.length) {
+    document.getElementById('reviewContainer').innerHTML = `<div class="empty"><span>// No ${esc(subFilter)} submissions</span></div>`;
+    return;
+  }
+  document.getElementById('reviewContainer').innerHTML = filtered.map(s => {
+    const mission   = allMissions.find(m => m.id === s.mission_id);
+    const date      = new Date(s.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    const isPending = s.status === 'pending';
+    return `
+      <div class="sub-card ${s.status}-card">
+        <div class="sub-body">
+          <div class="sub-top">
+            <div class="sub-user">👤 ${esc(s.username || (s.user_id ? s.user_id.slice(0,8) : 'Unknown'))}</div>
+            <span class="sub-status-badge ${s.status}">${s.status.toUpperCase()}</span>
+          </div>
+          <div class="sub-mission">📋 ${esc(mission ? mission.title : 'Mission #'+s.mission_id)}</div>
+          <div class="sub-proof">📎 <a href="${s.proof_url}" target="_blank" style="color:var(--accent2)">${esc(s.proof_url)}</a></div>
+          ${s.proof_notes ? `<div class="sub-notes">💬 "${esc(s.proof_notes)}"</div>` : ''}
+          <div style="display:flex; justify-content:space-between; margin-top:6px;">
+            <span style="font-family:'Share Tech Mono',monospace; font-size:0.58rem; color:var(--dim);">${date}</span>
+            <span class="sub-vc">⬡ ${(s.vc_reward||0).toLocaleString()} VC</span>
+          </div>
+        </div>
+        ${isPending ? `
+        <div class="sub-footer">
+          <button class="approve-btn" onclick="reviewSubmission('${s.id}','approved')">✓ APPROVE + CREDIT VC</button>
+          <button class="reject-btn"  onclick="reviewSubmission('${s.id}','rejected')">✕ REJECT</button>
+        </div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+async function toggleMission(id, status) {
+  try {
+    const res = await apiFetch(`${API}/missions/admin/update`, {
+      method: 'POST', body: JSON.stringify({ mission_id: id, status })
+    });
+    if (res) {
+      const d = await res.json();
+      if (d.status === 'success') { toast(`✅ Mission ${status}`); await loadMissions(); }
+      else toast(d.message || 'Failed', true);
+    }
+  } catch(e) { toast('// Error', true); }
+}
+
+async function reviewSubmission(subId, decision) {
+  try {
+    const res = await apiFetch(`${API}/missions/review`, {
+      method: 'POST', body: JSON.stringify({ submission_id: subId, decision })
+    });
+    if (res) {
+      const d = await res.json();
+      if (d.status === 'success') {
+        const msg = decision === 'approved' ? `✅ Approved! ${d.vc_credited} VC credited` : '✕ Rejected';
+        toast(msg);
+        await Promise.all([loadSubmissions(), loadMissions()]);
+      } else { toast(d.message || 'Failed', true); }
+    }
+  } catch(e) { toast('// Error', true); }
+}
+
+function setMissionFilter(f, btn) {
+  missionFilter = f;
+  document.querySelectorAll('#panel-msn-manage .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderManageMissions();
+}
+
+function setSubFilter(f, btn) {
+  subFilter = f;
+  document.querySelectorAll('#panel-msn-review .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReview();
 }
 
 // Pre-check unread count on load, same pattern as loadMarketStats() above
