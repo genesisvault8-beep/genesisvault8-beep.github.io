@@ -14,6 +14,42 @@
   </url>
 
   <url>
+    <loc>https://genesisvault.xyz/africa-cybersecurity.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://genesisvault.xyz/understanding-xss.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://genesisvault.xyz/idor-explained.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://genesisvault.xyz/recon-workflow.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://genesisvault.xyz/jwt-algorithm-confusion.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://genesisvault.xyz/day-in-the-life-bug-bounty.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
     <loc>https://genesisvault.xyz/hire.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
