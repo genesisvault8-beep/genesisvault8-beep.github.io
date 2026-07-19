@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learner Hub | Genesis Vault Blog</title>
-<meta name="description" content="Write-ups, guides, and field notes on bug bounty hunting, web exploitation, and practical offensive security — from the team building Genesis Vault.">
+<title>What Bug Bounty Hunting Actually Looks Like Day to Day | Genesis Vault Blog</title>
+<meta name="description" content="A realistic look at how bug bounty hunters spend their time — target selection, recon, testing hypotheses, report writing, and handling duplicates.">
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
@@ -241,76 +241,6 @@
     color: var(--text-dim); text-align: center;
     margin-top: 10px;
   }
-
-  /* ── BLOG INDEX ── */
-  main.blog-main {
-    position: relative; z-index: 2;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 150px 24px 100px;
-  }
-  .blog-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 4px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-  .blog-heading {
-    font-size: clamp(1.8rem, 6vw, 3rem);
-    font-weight: 700; letter-spacing: 1px;
-    color: white; margin-bottom: 14px;
-  }
-  .blog-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.78rem; color: var(--text-dim);
-    letter-spacing: 0.5px; line-height: 1.8;
-    max-width: 620px; margin-bottom: 56px;
-  }
-  .post-list {
-    display: flex; flex-direction: column; gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-  .post-card {
-    background: var(--bg2);
-    padding: 28px 30px;
-    text-decoration: none;
-    display: block;
-    transition: background 0.2s;
-    position: relative;
-  }
-  .post-card:hover { background: var(--bg3); }
-  .post-card-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 2px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .post-card-title {
-    font-size: 1.15rem; font-weight: 700;
-    color: white; letter-spacing: 0.3px;
-    margin-bottom: 10px; line-height: 1.4;
-  }
-  .post-card-desc {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem; color: var(--text-dim);
-    line-height: 1.8; letter-spacing: 0.3px;
-    max-width: 680px; margin-bottom: 12px;
-  }
-  .post-card-meta {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 1px;
-    color: var(--text-dim); text-transform: uppercase;
-  }
-  .post-card-meta span { color: var(--accent2); }
-  .post-card-arrow {
-    position: absolute; top: 28px; right: 30px;
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--text-dim); font-size: 0.85rem;
-    transition: color 0.2s, transform 0.2s;
-  }
-  .post-card:hover .post-card-arrow { color: var(--accent); transform: translateX(4px); }
-
 </style>
 </head>
 <body>
@@ -319,72 +249,55 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <a class="nav-logo" href="index.html">
+  <a class="nav-logo" href="../index.html">
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </a>
   <div class="nav-links">
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="index.html#market">Market</a>
-    <a href="blog.html" class="active">Blog</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="login.html" class="nav-cta">[ ACCESS ]</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../index.html#market">Market</a>
+    <a href="../blog.html" class="active">Blog</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../login.html" class="nav-cta">[ ACCESS ]</a>
   </div>
 </nav>
 
-<!-- ── BLOG INDEX ── -->
-<main class="blog-main">
-  <div class="blog-eyebrow">// LEARNER HUB</div>
-  <div class="blog-heading">Field Notes &amp; Write-Ups</div>
-  <div class="blog-sub">
-    Practical guides on web exploitation, bug bounty methodology, and offensive security —
-    written from real hunting experience, not recycled theory. New articles added regularly.
+<!-- ── ARTICLE ── -->
+<main>
+  <div class="post-eyebrow">// <span>LEARNER HUB</span> — ARTICLE</div>
+
+  <h1 class="post-title">What Bug Bounty Hunting Actually Looks Like Day to Day</h1>
+
+  <div class="post-meta">By <span>Johnthebandit</span> // Genesis Vault</div>
+
+  <div class="post-body">
+    <p>People who are new to bug bounty hunting often picture it as sitting down, finding a critical vulnerability, and collecting a five-figure payout by lunch. The reality is slower, more methodical, and honestly more like a research job than a hacking movie. Here's what the actual day-to-day looks like for someone doing this as a real income source rather than a hobby.</p>
+
+    <h2>Choosing a Target</h2>
+    <p>Most hunters don't attack everything in scope on a program at once. Time is the scarcest resource, so the first decision of the day is often which target to focus on — a newly added program with less prior attention from other hunters, a specific asset that changed recently (a new feature announcement is a strong signal that fresh, less-tested code just shipped), or a target where a hunter has built up deep familiarity over weeks or months and knows exactly where past bugs have lived.</p>
+
+    <h2>Recon Before Anything Else</h2>
+    <p>Before any actual vulnerability testing, there's a recon phase — mapping subdomains, cataloguing API endpoints, reading through client-side JavaScript for references to functionality that isn't obviously linked from the UI. This can easily take up the first hour or more of a session, and experienced hunters treat it as time well spent rather than a delay before the "real" work.</p>
+
+    <h2>The Actual Testing</h2>
+    <p>Testing itself is repetitive by nature: intercepting requests, modifying parameters, watching how the application responds, and forming small hypotheses — "what happens if I change this ID," "what happens if I remove this parameter entirely," "what happens if I submit this twice in a race condition." Most of these hypotheses lead nowhere. That's normal. The skill isn't guessing right every time, it's running through enough well-chosen hypotheses efficiently enough that the right one eventually surfaces.</p>
+
+    <h2>Writing the Report</h2>
+    <p>Finding something is only half the job. A report that gets triaged quickly and paid well needs a clear reproduction path, a realistic impact statement (not "this could theoretically lead to X" but a demonstrated proof of what an attacker could actually do), and a suggested fix where possible. Vague reports with exaggerated severity claims get pushback from triage teams and slow down payment — a tight, honest, well-evidenced report is usually the fastest path to a payout.</p>
+
+    <h2>Dealing With Duplicates and Rejections</h2>
+    <p>A significant fraction of submitted reports come back as duplicates — someone else found the same thing first — or as informative/no-impact. This is normal and happens to every hunter, including very experienced ones. The hunters who last in this field treat a duplicate or a rejection as information about where the crowd already looked, rather than as a personal failure, and adjust where they spend their next session accordingly.</p>
+
+    <h2>Why the Grind Matters</h2>
+    <p>Bug bounty income is genuinely uneven — some weeks produce nothing, others produce a payout that covers a month of expenses. What separates hunters who make it a sustainable income from those who burn out is treating it like a skill built through repetition — recon, hypothesis, testing, reporting, repeat — rather than waiting for a lucky find. That's exactly the loop Genesis Vault's labs and Field Missions are designed to build muscle memory for, in a setting where practicing doesn't risk hitting a real target you don't have authorization to test.</p>
   </div>
 
-  <div class="post-list">
-    <a href="posts/africa-cybersecurity.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">How to Learn Cybersecurity in Africa (Without Paying Western Course Prices)</div>
-      <div class="post-card-desc">Why the real barrier to breaking into security work from Africa isn't talent, and how hands-on labs close the access gap that expensive Western bootcamps assume you can afford.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 8 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/understanding-xss.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">Understanding XSS: Reflected, Stored, and DOM-Based</div>
-      <div class="post-card-desc">The three types of Cross-Site Scripting explained, why simple input escaping fails across different contexts, and what a convincing bug bounty XSS report actually needs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/idor-explained.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">IDOR Vulnerabilities Explained: The Bug Everyone Finds and Nobody Fixes</div>
-      <div class="post-card-desc">What Insecure Direct Object Reference actually is, where it hides in real applications beyond obvious URL parameters, and the two-account testing habit that finds it consistently.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/recon-workflow.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">Building a Recon Workflow: From Subdomain Enumeration to First Findings</div>
-      <div class="post-card-desc">How experienced hunters map an attack surface before testing a single vulnerability — and why the highest-value bugs live on the parts of a target fewer people bother to find.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/jwt-algorithm-confusion.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">JWT Algorithm Confusion: Why Weak Token Verification Still Works in 2026</div>
-      <div class="post-card-desc">How 'alg: none' and RS256-to-HS256 algorithm confusion attacks work, why they keep surfacing in production apps, and what to check when a target uses JWTs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/day-in-the-life-bug-bounty.html" class="post-card">
-      <div class="post-card-tag">// FIELD NOTES</div>
-      <div class="post-card-title">What Bug Bounty Hunting Actually Looks Like Day to Day</div>
-      <div class="post-card-desc">A realistic look at target selection, recon, testing hypotheses, report writing, and handling the duplicates and rejections that happen to every hunter.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
+  <div class="post-cta">
+    <div class="post-cta-text">// Want to practice this hands-on? Get 50 VC instantly on signup.</div>
+    <a href="../login.html" class="btn-primary">[ JOIN THE VAULT ]</a>
   </div>
+
+  <a href="../blog.html" class="back-link">← Back to all articles</a>
 </main>
 
 <!-- ── FOOTER ── -->
@@ -393,12 +306,12 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </div>
   <div class="footer-links">
-    <a href="login.html">Login</a>
-    <a href="login.html">Register</a>
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="terms.html">Terms</a>
+    <a href="../login.html">Login</a>
+    <a href="../login.html">Register</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../terms.html">Terms</a>
   </div>
   <div class="footer-copy">
     // GENESIS VAULT — CYBERSECURITY PLATFORM — © 2026 JOHNTHEBANDIT — ALL RIGHTS RESERVED — FOR AUTHORIZED USE ONLY

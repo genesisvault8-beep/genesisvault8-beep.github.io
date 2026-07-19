@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learner Hub | Genesis Vault Blog</title>
-<meta name="description" content="Write-ups, guides, and field notes on bug bounty hunting, web exploitation, and practical offensive security — from the team building Genesis Vault.">
+<title>IDOR Vulnerabilities Explained: The Bug Everyone Finds and Nobody Fixes | Genesis Vault Blog</title>
+<meta name="description" content="What Insecure Direct Object Reference actually is, where it hides in real applications, and how bug bounty hunters find it consistently.">
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
@@ -241,76 +241,6 @@
     color: var(--text-dim); text-align: center;
     margin-top: 10px;
   }
-
-  /* ── BLOG INDEX ── */
-  main.blog-main {
-    position: relative; z-index: 2;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 150px 24px 100px;
-  }
-  .blog-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 4px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-  .blog-heading {
-    font-size: clamp(1.8rem, 6vw, 3rem);
-    font-weight: 700; letter-spacing: 1px;
-    color: white; margin-bottom: 14px;
-  }
-  .blog-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.78rem; color: var(--text-dim);
-    letter-spacing: 0.5px; line-height: 1.8;
-    max-width: 620px; margin-bottom: 56px;
-  }
-  .post-list {
-    display: flex; flex-direction: column; gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-  .post-card {
-    background: var(--bg2);
-    padding: 28px 30px;
-    text-decoration: none;
-    display: block;
-    transition: background 0.2s;
-    position: relative;
-  }
-  .post-card:hover { background: var(--bg3); }
-  .post-card-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 2px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .post-card-title {
-    font-size: 1.15rem; font-weight: 700;
-    color: white; letter-spacing: 0.3px;
-    margin-bottom: 10px; line-height: 1.4;
-  }
-  .post-card-desc {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem; color: var(--text-dim);
-    line-height: 1.8; letter-spacing: 0.3px;
-    max-width: 680px; margin-bottom: 12px;
-  }
-  .post-card-meta {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 1px;
-    color: var(--text-dim); text-transform: uppercase;
-  }
-  .post-card-meta span { color: var(--accent2); }
-  .post-card-arrow {
-    position: absolute; top: 28px; right: 30px;
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--text-dim); font-size: 0.85rem;
-    transition: color 0.2s, transform 0.2s;
-  }
-  .post-card:hover .post-card-arrow { color: var(--accent); transform: translateX(4px); }
-
 </style>
 </head>
 <body>
@@ -319,72 +249,55 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <a class="nav-logo" href="index.html">
+  <a class="nav-logo" href="../index.html">
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </a>
   <div class="nav-links">
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="index.html#market">Market</a>
-    <a href="blog.html" class="active">Blog</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="login.html" class="nav-cta">[ ACCESS ]</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../index.html#market">Market</a>
+    <a href="../blog.html" class="active">Blog</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../login.html" class="nav-cta">[ ACCESS ]</a>
   </div>
 </nav>
 
-<!-- ── BLOG INDEX ── -->
-<main class="blog-main">
-  <div class="blog-eyebrow">// LEARNER HUB</div>
-  <div class="blog-heading">Field Notes &amp; Write-Ups</div>
-  <div class="blog-sub">
-    Practical guides on web exploitation, bug bounty methodology, and offensive security —
-    written from real hunting experience, not recycled theory. New articles added regularly.
+<!-- ── ARTICLE ── -->
+<main>
+  <div class="post-eyebrow">// <span>LEARNER HUB</span> — ARTICLE</div>
+
+  <h1 class="post-title">IDOR Vulnerabilities Explained: The Bug Everyone Finds and Nobody Fixes</h1>
+
+  <div class="post-meta">By <span>Johnthebandit</span> // Genesis Vault</div>
+
+  <div class="post-body">
+    <p>Ask any working bug bounty hunter which vulnerability class pays their rent most consistently, and a lot of them will say the same thing: IDOR. Not because it's exotic or hard to find — the opposite. It's because almost every application has one somewhere, and almost every developer makes the same mistake that causes it.</p>
+
+    <h2>What IDOR Actually Is</h2>
+    <p>Insecure Direct Object Reference happens when an application lets you access a resource — a user profile, an invoice, a private message — using an identifier you control, without properly checking whether <em>you</em> are allowed to see that specific resource. The classic example is a URL like <strong>/invoice?id=1042</strong>. If changing that number to 1043 shows you someone else's invoice, that's an IDOR.</p>
+    <p>It's not a flashy bug. There's no clever payload, no obfuscated JavaScript, no WAF to bypass most of the time. It's just a missing ownership check on the backend. That simplicity is exactly why it's so common — and why it's so easy for a hunter to overlook if they're only looking for "interesting-looking" bugs.</p>
+
+    <h2>Where It Hides</h2>
+    <p>IDOR isn't limited to obvious numeric IDs in URLs. It shows up in:</p>
+    <p>API endpoints that accept a user ID or object ID as a parameter, even when that parameter is buried in a POST body or a header instead of the URL. GraphQL queries where a client can request another user's node by ID. Sequential or predictable identifiers in mobile app API calls, which developers often assume are "hidden" simply because they're not visible in a browser URL bar. Even file downloads — an exported PDF or CSV that's fetched via a guessable filename or ticket number.</p>
+
+    <h2>How Hunters Actually Find It</h2>
+    <p>The workflow is almost always the same: create two test accounts, perform an action as account A that generates a resource with an identifiable ID (an order, a message, a document), then try to access that same resource while authenticated as account B. If account B can see it, read it, modify it, or delete it — you've found something.</p>
+    <p>The habit that separates hunters who find IDOR consistently from ones who miss it: testing <em>every</em> object reference, not just the ones that look sensitive. A "harmless" endpoint that lets you view someone else's notification preferences might not be the finding by itself, but it tells you the developer isn't checking ownership anywhere in that service — which means the sensitive endpoint nearby probably has the same problem.</p>
+
+    <h2>Why It Keeps Happening</h2>
+    <p>Ownership checks are boring to write and easy to forget, especially as an application grows and endpoints multiply across different services and teams. A check that exists on the main web app's <strong>/profile</strong> endpoint often doesn't exist on a newer internal API added six months later for the mobile app. IDOR is less a coding mistake and more an organizational one — nobody owns the responsibility of verifying that <em>every</em> new endpoint enforces access control consistently.</p>
+
+    <h2>What This Means for You</h2>
+    <p>If you're starting out in bug bounty, IDOR is one of the best places to build real, repeatable skill. It doesn't require deep exploit development knowledge — it requires patience, a systematic testing habit, and comfort using an intercepting proxy to manipulate requests. Genesis Vault's IDOR lab is built around exactly this: two accounts, a set of endpoints, and a goal of finding every place the ownership check is missing.</p>
   </div>
 
-  <div class="post-list">
-    <a href="posts/africa-cybersecurity.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">How to Learn Cybersecurity in Africa (Without Paying Western Course Prices)</div>
-      <div class="post-card-desc">Why the real barrier to breaking into security work from Africa isn't talent, and how hands-on labs close the access gap that expensive Western bootcamps assume you can afford.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 8 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/understanding-xss.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">Understanding XSS: Reflected, Stored, and DOM-Based</div>
-      <div class="post-card-desc">The three types of Cross-Site Scripting explained, why simple input escaping fails across different contexts, and what a convincing bug bounty XSS report actually needs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/idor-explained.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">IDOR Vulnerabilities Explained: The Bug Everyone Finds and Nobody Fixes</div>
-      <div class="post-card-desc">What Insecure Direct Object Reference actually is, where it hides in real applications beyond obvious URL parameters, and the two-account testing habit that finds it consistently.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/recon-workflow.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">Building a Recon Workflow: From Subdomain Enumeration to First Findings</div>
-      <div class="post-card-desc">How experienced hunters map an attack surface before testing a single vulnerability — and why the highest-value bugs live on the parts of a target fewer people bother to find.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/jwt-algorithm-confusion.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">JWT Algorithm Confusion: Why Weak Token Verification Still Works in 2026</div>
-      <div class="post-card-desc">How 'alg: none' and RS256-to-HS256 algorithm confusion attacks work, why they keep surfacing in production apps, and what to check when a target uses JWTs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/day-in-the-life-bug-bounty.html" class="post-card">
-      <div class="post-card-tag">// FIELD NOTES</div>
-      <div class="post-card-title">What Bug Bounty Hunting Actually Looks Like Day to Day</div>
-      <div class="post-card-desc">A realistic look at target selection, recon, testing hypotheses, report writing, and handling the duplicates and rejections that happen to every hunter.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
+  <div class="post-cta">
+    <div class="post-cta-text">// Want to practice this hands-on? Get 50 VC instantly on signup.</div>
+    <a href="../login.html" class="btn-primary">[ JOIN THE VAULT ]</a>
   </div>
+
+  <a href="../blog.html" class="back-link">← Back to all articles</a>
 </main>
 
 <!-- ── FOOTER ── -->
@@ -393,12 +306,12 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </div>
   <div class="footer-links">
-    <a href="login.html">Login</a>
-    <a href="login.html">Register</a>
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="terms.html">Terms</a>
+    <a href="../login.html">Login</a>
+    <a href="../login.html">Register</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../terms.html">Terms</a>
   </div>
   <div class="footer-copy">
     // GENESIS VAULT — CYBERSECURITY PLATFORM — © 2026 JOHNTHEBANDIT — ALL RIGHTS RESERVED — FOR AUTHORIZED USE ONLY

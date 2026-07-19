@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learner Hub | Genesis Vault Blog</title>
-<meta name="description" content="Write-ups, guides, and field notes on bug bounty hunting, web exploitation, and practical offensive security — from the team building Genesis Vault.">
+<title>Understanding XSS: Reflected, Stored, and DOM-Based | Genesis Vault Blog</title>
+<meta name="description" content="A breakdown of the three types of Cross-Site Scripting, why simple input escaping fails, and what a convincing bug bounty XSS report actually needs.">
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
@@ -241,76 +241,6 @@
     color: var(--text-dim); text-align: center;
     margin-top: 10px;
   }
-
-  /* ── BLOG INDEX ── */
-  main.blog-main {
-    position: relative; z-index: 2;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 150px 24px 100px;
-  }
-  .blog-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 4px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-  .blog-heading {
-    font-size: clamp(1.8rem, 6vw, 3rem);
-    font-weight: 700; letter-spacing: 1px;
-    color: white; margin-bottom: 14px;
-  }
-  .blog-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.78rem; color: var(--text-dim);
-    letter-spacing: 0.5px; line-height: 1.8;
-    max-width: 620px; margin-bottom: 56px;
-  }
-  .post-list {
-    display: flex; flex-direction: column; gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-  .post-card {
-    background: var(--bg2);
-    padding: 28px 30px;
-    text-decoration: none;
-    display: block;
-    transition: background 0.2s;
-    position: relative;
-  }
-  .post-card:hover { background: var(--bg3); }
-  .post-card-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 2px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .post-card-title {
-    font-size: 1.15rem; font-weight: 700;
-    color: white; letter-spacing: 0.3px;
-    margin-bottom: 10px; line-height: 1.4;
-  }
-  .post-card-desc {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem; color: var(--text-dim);
-    line-height: 1.8; letter-spacing: 0.3px;
-    max-width: 680px; margin-bottom: 12px;
-  }
-  .post-card-meta {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 1px;
-    color: var(--text-dim); text-transform: uppercase;
-  }
-  .post-card-meta span { color: var(--accent2); }
-  .post-card-arrow {
-    position: absolute; top: 28px; right: 30px;
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--text-dim); font-size: 0.85rem;
-    transition: color 0.2s, transform 0.2s;
-  }
-  .post-card:hover .post-card-arrow { color: var(--accent); transform: translateX(4px); }
-
 </style>
 </head>
 <body>
@@ -319,72 +249,54 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <a class="nav-logo" href="index.html">
+  <a class="nav-logo" href="../index.html">
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </a>
   <div class="nav-links">
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="index.html#market">Market</a>
-    <a href="blog.html" class="active">Blog</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="login.html" class="nav-cta">[ ACCESS ]</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../index.html#market">Market</a>
+    <a href="../blog.html" class="active">Blog</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../login.html" class="nav-cta">[ ACCESS ]</a>
   </div>
 </nav>
 
-<!-- ── BLOG INDEX ── -->
-<main class="blog-main">
-  <div class="blog-eyebrow">// LEARNER HUB</div>
-  <div class="blog-heading">Field Notes &amp; Write-Ups</div>
-  <div class="blog-sub">
-    Practical guides on web exploitation, bug bounty methodology, and offensive security —
-    written from real hunting experience, not recycled theory. New articles added regularly.
+<!-- ── ARTICLE ── -->
+<main>
+  <div class="post-eyebrow">// <span>LEARNER HUB</span> — ARTICLE</div>
+
+  <h1 class="post-title">Understanding XSS: Reflected, Stored, and DOM-Based</h1>
+
+  <div class="post-meta">By <span>Johnthebandit</span> // Genesis Vault</div>
+
+  <div class="post-body">
+    <p>Cross-Site Scripting shows up on almost every "top vulnerability" list ever published, and it's still one of the first things a new hunter learns — partly because it's visual and satisfying (you get a popup, an alert box, proof it worked), and partly because it teaches a lesson that applies to nearly every other web vulnerability class: never trust anything the browser renders that a user could have influenced.</p>
+
+    <h2>The Three Flavors</h2>
+    <p><strong>Reflected XSS</strong> happens when user input from a request — a search query, a URL parameter — gets echoed back into the page's HTML without being sanitized. The attack only fires when a victim clicks a crafted link, since the payload lives in the request itself rather than being stored anywhere.</p>
+    <p><strong>Stored XSS</strong> is the more dangerous sibling. The payload gets saved somewhere persistent — a comment, a username, a support ticket — and executes for every single person who later views that content. No crafted link required; the victim just has to load a normal page.</p>
+    <p><strong>DOM-based XSS</strong> is subtler still. The vulnerable code never touches the server at all — client-side JavaScript reads something attacker-controlled (a URL fragment, <strong>document.referrer</strong>, local storage) and writes it into the page using an unsafe sink like <strong>innerHTML</strong>. You can have a perfectly sanitized backend and still be fully exploitable purely in the browser.</p>
+
+    <h2>Why "Just Escape the Input" Isn't Enough</h2>
+    <p>Most developers know to escape user input somewhere. The problem is context. Data that's safely escaped for placement inside an HTML text node can still be dangerous inside an attribute, inside a <strong>&lt;script&gt;</strong> block, or inside a URL. Each context has different characters that matter. A filter that strips <strong>&lt;script&gt;</strong> tags does nothing against a payload delivered through an <strong>onerror</strong> attribute on an image tag, or through a <strong>javascript:</strong> URI in an href.</p>
+
+    <h2>What a Real Finding Looks Like</h2>
+    <p>A convincing XSS proof-of-concept in bug bounty isn't just an alert box — that gets you told "low impact, please demonstrate real risk." A strong report shows what an attacker could actually do with it: exfiltrating a session cookie or auth token to an external listener, performing an action as the victim (changing their email, transferring funds, posting on their behalf), or chaining the XSS with a CSRF-protected endpoint to bypass that protection entirely, since script running in the victim's own browser already has whatever tokens the page has.</p>
+
+    <h2>Where People Get Stuck</h2>
+    <p>The most common mistake newer hunters make is stopping the moment a basic payload gets filtered. Modern frameworks and WAFs block the obvious <strong>&lt;script&gt;alert(1)&lt;/script&gt;</strong> on sight. Real testing means understanding the templating engine or framework being used, checking whether it auto-escapes by default (React and most modern frameworks do, in most contexts), and looking specifically for the places developers had to opt out of that protection — <strong>dangerouslySetInnerHTML</strong>, <strong>v-html</strong>, raw template interpolation — because that's exactly where the safety net has a hole in it.</p>
+
+    <h2>Practicing It Properly</h2>
+    <p>Genesis Vault's Stored XSS lab is built around a realistic scenario — a blog comment field with a persistent payload — precisely because that's the pattern you'll see most in real applications: user-generated content, rendered for other users, with weak or missing output encoding.</p>
   </div>
 
-  <div class="post-list">
-    <a href="posts/africa-cybersecurity.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">How to Learn Cybersecurity in Africa (Without Paying Western Course Prices)</div>
-      <div class="post-card-desc">Why the real barrier to breaking into security work from Africa isn't talent, and how hands-on labs close the access gap that expensive Western bootcamps assume you can afford.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 8 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/understanding-xss.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">Understanding XSS: Reflected, Stored, and DOM-Based</div>
-      <div class="post-card-desc">The three types of Cross-Site Scripting explained, why simple input escaping fails across different contexts, and what a convincing bug bounty XSS report actually needs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/idor-explained.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">IDOR Vulnerabilities Explained: The Bug Everyone Finds and Nobody Fixes</div>
-      <div class="post-card-desc">What Insecure Direct Object Reference actually is, where it hides in real applications beyond obvious URL parameters, and the two-account testing habit that finds it consistently.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/recon-workflow.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">Building a Recon Workflow: From Subdomain Enumeration to First Findings</div>
-      <div class="post-card-desc">How experienced hunters map an attack surface before testing a single vulnerability — and why the highest-value bugs live on the parts of a target fewer people bother to find.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/jwt-algorithm-confusion.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">JWT Algorithm Confusion: Why Weak Token Verification Still Works in 2026</div>
-      <div class="post-card-desc">How 'alg: none' and RS256-to-HS256 algorithm confusion attacks work, why they keep surfacing in production apps, and what to check when a target uses JWTs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/day-in-the-life-bug-bounty.html" class="post-card">
-      <div class="post-card-tag">// FIELD NOTES</div>
-      <div class="post-card-title">What Bug Bounty Hunting Actually Looks Like Day to Day</div>
-      <div class="post-card-desc">A realistic look at target selection, recon, testing hypotheses, report writing, and handling the duplicates and rejections that happen to every hunter.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
+  <div class="post-cta">
+    <div class="post-cta-text">// Want to practice this hands-on? Get 50 VC instantly on signup.</div>
+    <a href="../login.html" class="btn-primary">[ JOIN THE VAULT ]</a>
   </div>
+
+  <a href="../blog.html" class="back-link">← Back to all articles</a>
 </main>
 
 <!-- ── FOOTER ── -->
@@ -393,12 +305,12 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </div>
   <div class="footer-links">
-    <a href="login.html">Login</a>
-    <a href="login.html">Register</a>
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="terms.html">Terms</a>
+    <a href="../login.html">Login</a>
+    <a href="../login.html">Register</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../terms.html">Terms</a>
   </div>
   <div class="footer-copy">
     // GENESIS VAULT — CYBERSECURITY PLATFORM — © 2026 JOHNTHEBANDIT — ALL RIGHTS RESERVED — FOR AUTHORIZED USE ONLY

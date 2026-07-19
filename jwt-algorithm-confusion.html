@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learner Hub | Genesis Vault Blog</title>
-<meta name="description" content="Write-ups, guides, and field notes on bug bounty hunting, web exploitation, and practical offensive security — from the team building Genesis Vault.">
+<title>JWT Algorithm Confusion: Why Weak Token Verification Still Works in 2026 | Genesis Vault Blog</title>
+<meta name="description" content="How JWT algorithm confusion and "alg: none" attacks actually work, why they keep showing up in real applications, and what to check when testing a target.">
 
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
@@ -241,76 +241,6 @@
     color: var(--text-dim); text-align: center;
     margin-top: 10px;
   }
-
-  /* ── BLOG INDEX ── */
-  main.blog-main {
-    position: relative; z-index: 2;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 150px 24px 100px;
-  }
-  .blog-eyebrow {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 4px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-  .blog-heading {
-    font-size: clamp(1.8rem, 6vw, 3rem);
-    font-weight: 700; letter-spacing: 1px;
-    color: white; margin-bottom: 14px;
-  }
-  .blog-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.78rem; color: var(--text-dim);
-    letter-spacing: 0.5px; line-height: 1.8;
-    max-width: 620px; margin-bottom: 56px;
-  }
-  .post-list {
-    display: flex; flex-direction: column; gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-  .post-card {
-    background: var(--bg2);
-    padding: 28px 30px;
-    text-decoration: none;
-    display: block;
-    transition: background 0.2s;
-    position: relative;
-  }
-  .post-card:hover { background: var(--bg3); }
-  .post-card-tag {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 2px;
-    color: var(--accent); text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .post-card-title {
-    font-size: 1.15rem; font-weight: 700;
-    color: white; letter-spacing: 0.3px;
-    margin-bottom: 10px; line-height: 1.4;
-  }
-  .post-card-desc {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem; color: var(--text-dim);
-    line-height: 1.8; letter-spacing: 0.3px;
-    max-width: 680px; margin-bottom: 12px;
-  }
-  .post-card-meta {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.6rem; letter-spacing: 1px;
-    color: var(--text-dim); text-transform: uppercase;
-  }
-  .post-card-meta span { color: var(--accent2); }
-  .post-card-arrow {
-    position: absolute; top: 28px; right: 30px;
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--text-dim); font-size: 0.85rem;
-    transition: color 0.2s, transform 0.2s;
-  }
-  .post-card:hover .post-card-arrow { color: var(--accent); transform: translateX(4px); }
-
 </style>
 </head>
 <body>
@@ -319,72 +249,55 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <a class="nav-logo" href="index.html">
+  <a class="nav-logo" href="../index.html">
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </a>
   <div class="nav-links">
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="index.html#market">Market</a>
-    <a href="blog.html" class="active">Blog</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="login.html" class="nav-cta">[ ACCESS ]</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../index.html#market">Market</a>
+    <a href="../blog.html" class="active">Blog</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../login.html" class="nav-cta">[ ACCESS ]</a>
   </div>
 </nav>
 
-<!-- ── BLOG INDEX ── -->
-<main class="blog-main">
-  <div class="blog-eyebrow">// LEARNER HUB</div>
-  <div class="blog-heading">Field Notes &amp; Write-Ups</div>
-  <div class="blog-sub">
-    Practical guides on web exploitation, bug bounty methodology, and offensive security —
-    written from real hunting experience, not recycled theory. New articles added regularly.
+<!-- ── ARTICLE ── -->
+<main>
+  <div class="post-eyebrow">// <span>LEARNER HUB</span> — ARTICLE</div>
+
+  <h1 class="post-title">JWT Algorithm Confusion: Why Weak Token Verification Still Works in 2026</h1>
+
+  <div class="post-meta">By <span>Johnthebandit</span> // Genesis Vault</div>
+
+  <div class="post-body">
+    <p>JSON Web Tokens are everywhere in modern web and mobile applications, used for everything from session management to API authentication. They're also one of the most consistently misimplemented pieces of security infrastructure on the internet, which is exactly why "JWT attacks" remains one of the most requested topics from bug bounty hunters at every level.</p>
+
+    <h2>What a JWT Actually Is</h2>
+    <p>A JWT is three Base64-encoded segments separated by dots: a header describing the token type and signing algorithm, a payload containing claims (user ID, role, expiry), and a signature that proves the header and payload haven't been tampered with. The entire security model rests on one assumption: that only the server can produce a valid signature.</p>
+
+    <h2>The "alg: none" Problem</h2>
+    <p>Early JWT libraries supported an "none" algorithm for testing purposes, meaning a token could declare it isn't signed at all. Some server-side implementations, when parsing a token, trusted whatever algorithm the token itself claimed rather than enforcing the algorithm the server expected. That meant an attacker could take a legitimate token, change the header to say <strong>"alg": "none"</strong>, strip the signature entirely, modify the payload to claim to be a different user or a higher privilege role, and have some vulnerable servers accept it without ever checking a signature at all. Most modern libraries have patched this by default, but it still surfaces in older codebases and custom implementations that rolled their own JWT handling.</p>
+
+    <h2>Algorithm Confusion: RS256 to HS256</h2>
+    <p>A more subtle and still very much alive attack targets applications using asymmetric signing (RS256), where the server has a private key for signing and a public key for verifying. If the server's verification code doesn't strictly enforce which algorithm family a token must use, an attacker can craft a token using HS256 (a symmetric algorithm) and sign it using the server's <em>public</em> key as the HMAC secret. Since the public key is, by definition, public, an attacker can obtain it and use it to forge a validly-signed token — because the server ends up checking the signature using the same public key value, just under the wrong algorithm's rules.</p>
+
+    <h2>Weak Secrets</h2>
+    <p>For applications using symmetric signing (HS256) from the start, the entire security model depends on the signing secret staying private and being sufficiently random. Short, guessable, or default secrets can be brute-forced offline once an attacker has a single valid token to test guesses against — no interaction with the live server required until the very last step of using the forged token.</p>
+
+    <h2>What This Means in Practice</h2>
+    <p>When testing an application using JWTs, the questions worth asking are: does the server strictly pin the expected algorithm rather than trusting the token's own header, is the signing secret something that could be brute-forced or guessed, and are expiry and revocation actually enforced server-side or does the application just trust whatever the token payload claims. None of these require exotic tooling — they require understanding what the token format actually promises versus what a specific implementation actually checks.</p>
+
+    <h2>Practicing This Safely</h2>
+    <p>Genesis Vault's JWT Algorithm Confusion lab walks through exactly this scenario in a sandboxed, intentionally vulnerable environment — a safe place to see the full attack chain from a normal user token to a forged admin one, without touching a real system.</p>
   </div>
 
-  <div class="post-list">
-    <a href="posts/africa-cybersecurity.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">How to Learn Cybersecurity in Africa (Without Paying Western Course Prices)</div>
-      <div class="post-card-desc">Why the real barrier to breaking into security work from Africa isn't talent, and how hands-on labs close the access gap that expensive Western bootcamps assume you can afford.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 8 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/understanding-xss.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">Understanding XSS: Reflected, Stored, and DOM-Based</div>
-      <div class="post-card-desc">The three types of Cross-Site Scripting explained, why simple input escaping fails across different contexts, and what a convincing bug bounty XSS report actually needs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/idor-explained.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">IDOR Vulnerabilities Explained: The Bug Everyone Finds and Nobody Fixes</div>
-      <div class="post-card-desc">What Insecure Direct Object Reference actually is, where it hides in real applications beyond obvious URL parameters, and the two-account testing habit that finds it consistently.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/recon-workflow.html" class="post-card">
-      <div class="post-card-tag">// GUIDE</div>
-      <div class="post-card-title">Building a Recon Workflow: From Subdomain Enumeration to First Findings</div>
-      <div class="post-card-desc">How experienced hunters map an attack surface before testing a single vulnerability — and why the highest-value bugs live on the parts of a target fewer people bother to find.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 7 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/jwt-algorithm-confusion.html" class="post-card">
-      <div class="post-card-tag">// ARTICLE</div>
-      <div class="post-card-title">JWT Algorithm Confusion: Why Weak Token Verification Still Works in 2026</div>
-      <div class="post-card-desc">How 'alg: none' and RS256-to-HS256 algorithm confusion attacks work, why they keep surfacing in production apps, and what to check when a target uses JWTs.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
-    <a href="posts/day-in-the-life-bug-bounty.html" class="post-card">
-      <div class="post-card-tag">// FIELD NOTES</div>
-      <div class="post-card-title">What Bug Bounty Hunting Actually Looks Like Day to Day</div>
-      <div class="post-card-desc">A realistic look at target selection, recon, testing hypotheses, report writing, and handling the duplicates and rejections that happen to every hunter.</div>
-      <div class="post-card-meta">By <span>Johnthebandit</span> // 6 min read</div>
-      <div class="post-card-arrow">→</div>
-    </a>
+  <div class="post-cta">
+    <div class="post-cta-text">// Want to practice this hands-on? Get 50 VC instantly on signup.</div>
+    <a href="../login.html" class="btn-primary">[ JOIN THE VAULT ]</a>
   </div>
+
+  <a href="../blog.html" class="back-link">← Back to all articles</a>
 </main>
 
 <!-- ── FOOTER ── -->
@@ -393,12 +306,12 @@
     <span class="g">GENESIS</span><span class="v">VAULT</span>
   </div>
   <div class="footer-links">
-    <a href="login.html">Login</a>
-    <a href="login.html">Register</a>
-    <a href="index.html#features">Features</a>
-    <a href="index.html#vault-labs">Labs</a>
-    <a href="hire.html">Hire Me</a>
-    <a href="terms.html">Terms</a>
+    <a href="../login.html">Login</a>
+    <a href="../login.html">Register</a>
+    <a href="../index.html#features">Features</a>
+    <a href="../index.html#vault-labs">Labs</a>
+    <a href="../hire.html">Hire Me</a>
+    <a href="../terms.html">Terms</a>
   </div>
   <div class="footer-copy">
     // GENESIS VAULT — CYBERSECURITY PLATFORM — © 2026 JOHNTHEBANDIT — ALL RIGHTS RESERVED — FOR AUTHORIZED USE ONLY
