@@ -279,6 +279,24 @@
 
   @keyframes spin    { to { transform:rotate(360deg); } }
   @keyframes fadeIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  /* PAYMENTS PAUSED (flip PAYMENTS_ENABLED in the script to re-open) */
+  .coming-banner { display:none; margin-bottom:16px; padding:16px;
+    border:1px solid var(--vc); background:rgba(245,196,0,0.06);
+    font-family:'Share Tech Mono',monospace; text-align:center; }
+  .coming-banner .cb-tag { font-size:0.62rem; letter-spacing:3px; color:var(--vc); margin-bottom:6px; }
+  .coming-banner .cb-title { font-size:1rem; color:var(--vc); letter-spacing:2px; font-weight:700; }
+  .coming-banner .cb-sub { font-size:0.7rem; color:var(--text-dim); margin-top:8px; line-height:1.6; }
+  .payments-off .coming-banner { display:block; }
+  .payments-off .pkg-card { cursor:not-allowed; opacity:0.5; }
+  .payments-off .pkg-card:hover { border-color:var(--border); box-shadow:none; }
+  .payments-off .pkg-card.popular:hover { border-color:var(--vc); }
+  .payments-off .pkg-card:hover::before { opacity:0; }
+  .payments-off .pkg-btn, .payments-off .pkg-card.popular .pkg-btn,
+  .payments-off .pkg-card.popular .pkg-btn:hover {
+    background:none; color:var(--text-dim); border-color:var(--border);
+    font-weight:400; cursor:not-allowed; pointer-events:none; }
+  .payments-off .how-buy { display:none; }
 </style>
 </head>
 <body>
@@ -302,6 +320,12 @@
   </div>
 
   <!-- PACKAGES -->
+  <div class="coming-banner">
+    <div class="cb-tag">// STATUS</div>
+    <div class="cb-title">COMING SOON</div>
+    <div class="cb-sub">Working on the payment system.<br>Meanwhile, earn free VC below.</div>
+  </div>
+
   <p class="section-title">// VC Packages</p>
   <div class="packages-grid">
 
@@ -377,8 +401,8 @@
   </div>
 
   <!-- HOW IT WORKS -->
-  <p class="section-title">// How to Buy</p>
-  <div style="margin-bottom:28px;">
+  <p class="section-title how-buy">// How to Buy</p>
+  <div class="how-buy" style="margin-bottom:28px;">
     <div class="how-step">
       <div class="step-num">1</div>
       <div class="step-text">Select a VC package above and click the button.</div>
@@ -453,6 +477,13 @@ if (!token) location.href = 'login.html';
 
 let activePkg = null;
 
+/* Payments paused: set to true when the new payment system is live */
+const PAYMENTS_ENABLED = false;
+if (!PAYMENTS_ENABLED) {
+  document.body.classList.add('payments-off');
+  document.querySelectorAll('.pkg-btn').forEach(b => { b.textContent = '[ COMING SOON ]'; });
+}
+
 const PACKAGES = {
   '5usd_1000vc':   { label: '1,000 VC — 5 USDT',   usdt: 5,  vc: 1000  },
   '10usd_2500vc':  { label: '2,500 VC — 10 USDT',  usdt: 10, vc: 2500  },
@@ -506,6 +537,7 @@ async function loadWallet() {
 
 /* ── OPEN BUY MODAL ── */
 function openBuy(pkgKey) {
+  if (!PAYMENTS_ENABLED) return;
   activePkg = { key: pkgKey, ...PACKAGES[pkgKey] };
 
   // Populate summary
@@ -534,6 +566,7 @@ function closeModal() {
 
 /* ── SUBMIT PAYMENT ── */
 async function submitPayment() {
+  if (!PAYMENTS_ENABLED) return;
   const tx  = document.getElementById('buy-tx').value.trim();
   const btn = document.getElementById('btn-submit');
   const msg = document.getElementById('buy-status');
